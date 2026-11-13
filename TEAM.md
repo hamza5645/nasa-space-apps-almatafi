@@ -55,6 +55,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
+- X41 finish the real cloud product (X28): the GIBS download stopped on Nov 13 with Aqua at 520 of ~4,450 days, and error replies were saved as images; fix that, finish the download, swap the real product into the demo cache and `frontend/public/cache/` — Khalid (with Claude), Nov 14. `pipeline/almatafi/clouds.py`, `frontend/public/cache/`
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)

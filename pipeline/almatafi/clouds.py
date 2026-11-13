@@ -249,6 +249,7 @@ def _ssl_context():
 
 
 _SSL = None
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
 def _get(url: str, retries: int = 4) -> bytes:
@@ -269,7 +270,8 @@ def _get(url: str, retries: int = 4) -> bytes:
 
 def build_gibs(cmg_ids: np.ndarray, first: tuple[int, int], last: tuple[int, int], cache: Path,
                fetch: Fetcher = _get, workers: int = 6, log=print, colormap_xml: str | None = None,
-               only: set[int] | None = None, every: int = 2) -> tuple[pa.Table, dict]:
+               only: set[int] | None = None, every: int = 2, retries: int = 3,
+               retry_wait: float = 3.0) -> tuple[pa.Table, dict]:
     """Monthly mean cloud fraction per 0.5° cell from GIBS's daily MODIS cloud fraction,
     Terra and Aqua, for the months first..last, sampling every `every`-th day. One world image
     per day and platform, cached in `cache/<platform>/world/`."""
@@ -295,16 +297,26 @@ def build_gibs(cmg_ids: np.ndarray, first: tuple[int, int], last: tuple[int, int
     def one(job):
         platform, layer, k, box, day = job
         path = cache / platform / str(k) / f"{day.isoformat()}.png"  # k is "world"
-        if path.exists():
-            data, stats_key = path.read_bytes(), "cached"
-        else:
+        data, stats_key = (path.read_bytes() if path.exists() else b""), "cached"
+        # GIBS answers some days with HTTP 200 and an XML error report (its own backend's 500).
+        # That is not an image: ask again, and never keep it, or reruns would skip the day
+        # for good. A cached file that isn't a PNG is such a reply from an older run.
+        for attempt in range(retries + 1):
+            if data.startswith(PNG_MAGIC):
+                break
+            if attempt:
+                time.sleep(retry_wait * attempt)
             try:
                 data = fetch(wms_url(layer, box, day))
             except Exception as e:  # one bad day doesn't stop the month
                 return platform, day, None, f"failed: {type(e).__name__}"
+            stats_key = "fetched"
+        if not data.startswith(PNG_MAGIC):
+            path.unlink(missing_ok=True)
+            return platform, day, None, "failed: not an image"
+        if stats_key == "fetched":
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-            stats_key = "fetched"
         try:
             vals = decode(data, box, cmap)
         except Exception as e:
