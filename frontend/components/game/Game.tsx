@@ -11,7 +11,7 @@ import { points, stars, type Chapter } from "@/lib/game";
 import { play, say, setSoundOn, soundOn, subscribeSound } from "@/lib/sound";
 import Illus from "./Illus";
 import { Backdrop, Sky } from "./Scene";
-import Sprite, { type Sheets } from "./Sprite";
+import Sprite, { preload, type Sheets } from "./Sprite";
 import Stage from "./Stage";
 import "./game.css";
 
@@ -39,6 +39,7 @@ export default function Game({ chapters, sheets, plate = null }: { chapters: Cha
   const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
 
   useEffect(() => { const t = setTimeout(() => setBest(loadStars()), 0); return () => clearTimeout(t); }, []);
+  useEffect(() => preload(sheets), [sheets]);   // every sheet is fetched once, before the first question
 
   const chapter = chapters[ci];
   const round = chapter?.rounds[ri];
@@ -163,14 +164,14 @@ export default function Game({ chapters, sheets, plate = null }: { chapters: Cha
                    onResult={onResult} onSettled={() => setExplain(true)}
                    explain={explain && (
                      <div className={`explain ${results[ri] ? "ok" : "no"}`} role="status">
-                       <p className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</p>
-                       <p className="explain-text">{round.explain}</p>
-                       <div className="explain-row">
-                         <button type="button" className="btn btn-fire" onClick={next} autoFocus>
-                           {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
-                         </button>
-                         {round.link && <Link className="explain-link" href={round.link}>See it in the calendar →</Link>}
-                       </div>
+                       <p className="explain-text">
+                         <b className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</b>{" "}
+                         {round.explain}
+                         {round.link && <>{" "}<Link className="explain-link" href={round.link}>See it in the calendar →</Link></>}
+                       </p>
+                       <button type="button" className="btn btn-fire" onClick={next} autoFocus>
+                         {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
+                       </button>
                      </div>
                    )} />
           </>

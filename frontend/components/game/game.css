@@ -86,8 +86,10 @@
 .il-flicker { animation: il-flicker 1.1s ease-in-out infinite alternate; transform-box: fill-box; }
 .il-float { animation: il-float 3.2s ease-in-out infinite; }
 .il-pulse { animation: il-pulse 1.6s ease-in-out infinite; }
-@keyframes il-flicker { from { transform: scale(1, 1); } to { transform: scale(.96, 1.06); } }
-@keyframes il-float { 50% { transform: translateY(-4px); } }
+/* `scale` and `translate`, not `transform`: a CSS transform would replace the SVG element's own
+   transform attribute, and the satellite drifted to the picture's corner and back. */
+@keyframes il-flicker { from { scale: 1 1; } to { scale: .96 1.06; } }
+@keyframes il-float { 50% { translate: 0 -4px; } }
 @keyframes il-pulse { 50% { opacity: .45; } }
 
 /* The stage: card + host */
@@ -418,9 +420,6 @@
 .on-plate .ground { background: none; border-top: 0; box-shadow: none; }
 .ground-hint { top: auto; bottom: calc(100% + 6px); }
 .on-plate .ground-hint { bottom: calc(100% + 10px); }
-/* The host stands left of centre; the flame burns on the card's top edge, in the middle. */
-.host { left: 36%; }
-.card-flame { position: absolute; left: 61%; transform: translateX(-50%); z-index: 24; pointer-events: none; filter: drop-shadow(0 0 18px rgba(255, 140, 40, .55)); }
 /* The notepad: four rings at the top left, a curled corner, the question underlined by hand. */
 .q-card::before { left: 36px; right: auto; width: 192px; top: -18px; height: 34px;
   background: radial-gradient(circle at 50% 50%, transparent 6px, #4A4A62 6.5px 11px, transparent 11.5px) 0 0 / 48px 34px repeat-x; }
@@ -433,7 +432,7 @@
 .truck { left: calc(-120px * var(--unit, 1)); }
 .firefighter { right: calc(-90px * var(--unit, 1)); }
 @media (max-width: 1240px) { .truck { left: 0; transform: scale(.72); } .firefighter { right: 0; transform: scale(.8); } }
-@media (max-width: 760px) { .truck { transform: scale(.42); } .firefighter { transform: scale(.5); } .host { left: 20%; } .q-card::before { width: 144px; left: 24px; } }
+@media (max-width: 760px) { .truck { transform: scale(.42); } .firefighter { transform: scale(.5); } }
 /* The card hugs its question (like a real notepad) instead of stretching to the blocks; pictures keep a sane height. */
 .q-card { flex: 0 1 auto; max-height: 100%; }
 .q-visual { flex: 0 1 auto; }
@@ -450,4 +449,55 @@
   .vis-years figcaption, .vis-months figcaption { display: none; }
   .q-card { padding: 10px 16px 10px; gap: 5px; }
   .fl-chart { padding-top: 10px; }
+}
+
+/* ---- X38: a plain card, no flame on it, and the explanation written on the card. ---- */
+.host { left: 50%; }
+.q-card { background: #FBF3E2; background-image: none; border: 3px solid #2A1E3A; border-radius: 10px; padding: 12px 22px 16px; gap: 8px;
+  box-shadow: 0 8px 0 #1A1230, 0 30px 60px -20px rgba(0, 0, 0, .9); }
+.q-card::before, .q-text::after { content: none; }
+.q-meta { justify-content: center; gap: 8px; }
+.q-text { text-align: center; text-wrap: balance; text-decoration: none; font-size: clamp(19px, 1.5vh + 10px, 27px); line-height: 1.2; }
+.q-ctx { text-align: center; text-wrap: balance; }
+.vis-illus { justify-content: center; overflow: hidden; border-radius: 6px; }
+/* Once answered, the explanation takes the context line's place: nothing is covered. The
+   place and count pills and the chart's caption step aside to give it room. */
+.q-card.answered .q-meta, .q-card.answered figcaption:not(.vis-map figcaption) { display: none; }
+.explain { position: static; flex: none; width: auto; max-height: none; overflow: visible; margin: 0; flex-direction: row; align-items: center; gap: 10px 16px;
+  padding: 8px 10px 8px 14px; border-radius: 8px; border: 2px solid #3A2A1E; box-shadow: none; }
+.explain.ok { background: #DDF2DF; border-color: #3FAE65; }
+.explain.no { background: #FBE1DA; border-color: #E0473A; }
+.explain-text { flex: 1 1 auto; min-width: 0; font-size: 14.5px; line-height: 1.4; color: #2E241C; }
+.explain-flag { font-size: 17px; margin-right: 2px; }
+.explain .btn { flex: none; white-space: nowrap; }
+@media (max-width: 620px) { .explain { flex-direction: column; align-items: stretch; gap: 8px; } }
+@media (max-height: 700px) { .q-card { padding: 9px 16px 10px; gap: 5px; } .explain { padding: 6px 8px 6px 12px; } .explain-text { font-size: 13.5px; } }
+/* The two-satellite cards make room for the explanation: no icon, and no note that repeats it. */
+.q-card.answered .vv-card svg, .q-card.answered .vv-note { display: none; }
+.q-card.answered .vv-after { margin-top: 2px; }
+/* Compact pictures, so the card never cuts its own content: the satellite's icon sits beside
+   its numbers, and the 2012 pair keeps its ratio in the title row and gives height back first. */
+.vv-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-content: center; padding: 8px 12px; }
+.vv-card svg { grid-row: 1 / span 3; align-self: center; }
+.vv-after { grid-column: 1 / -1; }
+.q-card.answered .vv-card { grid-template-columns: minmax(0, 1fr); }
+.vis-trap { grid-template-rows: minmax(0, 1fr); align-content: stretch; }
+.vt-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); gap: 4px 10px; align-items: center; padding: 8px 12px; min-height: 0; }
+.vt-ratio { grid-row: 1; grid-column: 2; font-size: 22px; line-height: 1; }
+.vt-cols { grid-column: 1 / -1; height: auto; min-height: 44px; max-height: 110px; align-self: stretch; }
+.vt-col { min-height: 0; }
+.vt-col i { min-height: 3px; }
+.vis-map img { max-height: min(30vh, 320px); }
+.vis-maps .vis-map img { max-height: min(26vh, 260px); }
+/* Shorter screens: no chart caption; once answered, the explanation stands for the question. */
+@media (max-height: 760px) {
+  .vis-years figcaption, .vis-months figcaption { display: none; }
+  .q-card.answered .q-text { display: none; }
+}
+/* The stage's one column never grows past the screen (a wide chart used to push the card out). */
+.stage { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 620px) {
+  .q-card.answered .q-text { display: none; }
+  .explain-text { font-size: 13.5px; }
+  .q-card.answered .vv-title { display: none; }
 }

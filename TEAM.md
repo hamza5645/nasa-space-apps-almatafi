@@ -56,11 +56,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 
 ### In progress
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
-- X38 the game's question card and after-answer message: no flame on the card, a cleaner card, the host and the other characters stay on screen, and the explanation no longer covers the stage — Khalid (with Claude), Nov 13. `frontend/components/game/` only
 - X35 Wel3a, a small flame character on every page: written fun facts and highlights for what's on screen, and typed questions answered by Cloudflare Workers AI through a new `/api/wel3a` function in the site's Worker — Hamza (with Claude), Nov 13. `frontend/` and `frontend/wrangler.jsonc` only. (X34 is Khalid's explorer tour, on `khalid/x34-tour-sources`.)
 
 ### In review (PR open, merge in this order)
-- (nothing)
+- X38 the game's question card and after-answer message — Khalid (with Claude), Nov 13. `frontend/components/game/` only; Hamza to look
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
@@ -119,6 +118,17 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Khalid (with Claude) (41)
+- Did: X38, from Khalid's three screenshots of the game (`frontend/components/game/` only, branch `khalid/x38-game-stage`).
+  - **No flame on the question card**; the host stands in the middle of its top edge.
+  - **The card is plain:** cream with a dark border, the place and question count as two centred pills, the question centred and bigger; the notepad rings (they were cut in half), the lined paper, the hand underline and the ✦ are gone.
+  - **The message after an answer no longer covers the stage.** It was a panel over the pavement that hid Khalid, the truck and the firefighter. It is now written on the card, in place of the question's context line, with "Next question" beside it; the pills and chart captions step aside for it, and on screens under 760 px tall (or 620 px wide) the question's own line does too.
+  - **Characters that weren't there:** every sprite was a CSS background on an element made anew for each question, so the browser fetched (the dev server sends `max-age=0`) and decoded each strip again, and until then the character was missing. Sprites are now drawn on a canvas from one Image per sheet, loaded once when the game opens (`Sprite.tsx`).
+  - **Also:** the satellite in the chapter pictures drifted to the picture's corner and back (a CSS `transform` animation replaced its SVG transform; now `translate`/`scale`); the two-satellite cards and the 2012 pair are more compact; a wide chart could push the card off a narrow screen.
+  - Checked in headless Chrome, all five chapters, at 1000×610, 1280×720, 1470×823, 1440×900 and 520×900: every sprite canvas has pixels on every question, no page scroll, the card cuts nothing but the explorer's feet (4 px, as before). 72 frontend tests, lint and typecheck pass.
+- Next: Hamza looks at the PR. Khalid: say whether the plain card is what you wanted.
+- Broken / blocked: the missing characters did not reproduce in headless Chrome before the change, so the cause above is the likely one, not a proven one; check it in the browser the screenshots came from. Not checked in Safari or on a real phone.
 
 ### Nov 13 — Hamza (with Claude)
 - Did: moved the auto-deploy to this repo (hamza5645/nasa-space-apps-almatafi). The API image is now `ghcr.io/hamza5645/almatafi-api` (`deploy.yml`, the VPS unit, `deploy/README.md`); the VPS runs it, healthy, and podman auto-update watches it. khalidstark/nasa-space-apps-modis's `deploy` workflow is disabled (its `tests` still run). The old unit is backed up on the VPS at `~almatafi/almatafi-api.container.bak-khalidstark`.
