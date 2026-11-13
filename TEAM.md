@@ -56,6 +56,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 
 ### In progress
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
+- X35 Wel3a, a small flame character on every page: written fun facts and highlights for what's on screen, and typed questions answered by Cloudflare Workers AI through a new `/api/wel3a` function in the site's Worker — Hamza (with Claude), Nov 13. `frontend/` and `frontend/wrangler.jsonc` only. (X34 is Khalid's explorer tour, on `khalid/x34-tour-sources`.)
 
 ### In review (PR open, merge in this order)
 - (nothing)
