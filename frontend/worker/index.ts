@@ -1,0 +1,72 @@
+// The site's only Worker code. Pages and files are served straight from out/ without it:
+// wrangler.jsonc sends just /api/* here. POST /api/wel3a answers one question for Wel3a, the
+// flame guide (components/wel3a/), with Workers AI. Nothing is stored, and questions aren't logged.
+
+import { LIMITS, answerText, messages, parseChat } from "../lib/wel3a-chat.ts";
+
+// The bindings in wrangler.jsonc, as far as this file uses them.
+type Env = {
+  ASSETS: { fetch(request: Request): Promise<Response> };
+  AI: { run(model: string, input: Record<string, unknown>): Promise<unknown> };
+  WEL3A_LIMIT: { limit(options: { key: string }): Promise<{ success: boolean }> };
+};
+
+// About 12 neurons per answer, so the free 10,000 a day cover roughly 800 answers.
+const MODEL = "@cf/google/gemma-4-26b-a4b-it";
+
+function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
+  return Response.json(body, { status, headers: { "cache-control": "no-store", ...headers } });
+}
+
+/** The body as text, or null when it is larger than `max` bytes. */
+async function readCapped(request: Request, max: number): Promise<string | null> {
+  if (Number(request.headers.get("content-length") ?? 0) > max) return null;
+  if (!request.body) return "";
+  const reader = request.body.getReader(), decoder = new TextDecoder();
+  let text = "", size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    size += value.byteLength;
+    if (size > max) { await reader.cancel(); return null; }
+    text += decoder.decode(value, { stream: true });
+  }
+}
+
+const worker = {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname !== "/api/wel3a") return env.ASSETS.fetch(request);
+    if (request.method !== "POST") return json(405, { error: "Use POST." }, { allow: "POST" });
+    // Browsers on other sites can't spend this site's AI allowance.
+    const origin = request.headers.get("origin");
+    if (origin && origin !== url.origin) return json(403, { error: "Wel3a only answers on this site." });
+
+    const visitor = request.headers.get("cf-connecting-ip") ?? "unknown";
+    if (!(await env.WEL3A_LIMIT.limit({ key: visitor })).success) {
+      return json(429, { error: "That's a lot of questions. Give me a minute." });
+    }
+
+    const text = await readCapped(request, LIMITS.body);
+    if (text === null) return json(413, { error: "That message is too long." });
+    let raw: unknown;
+    try { raw = JSON.parse(text); } catch { return json(400, { error: "Send JSON." }); }
+    const chat = parseChat(raw);
+    if (typeof chat === "string") return json(400, { error: chat });
+
+    try {
+      const out = await env.AI.run(MODEL, {
+        messages: messages(chat), max_tokens: 220, temperature: 0.3,
+        chat_template_kwargs: { enable_thinking: false },
+      });
+      const answer = answerText(out);
+      if (answer) return json(200, { answer });
+      console.error(JSON.stringify({ event: "wel3a_empty_answer" }));
+    } catch (e) {
+      console.error(JSON.stringify({ event: "wel3a_ai_error", message: e instanceof Error ? e.message : String(e) }));
+    }
+    return json(502, { error: "I can't answer right now." });
+  },
+};
+
+export default worker;
