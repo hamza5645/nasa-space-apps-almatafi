@@ -45,7 +45,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - **Open from the PR #1–#34 reviews** (details in `docs/reviews/`): 1.1 proposals: all in `contracts/CHANGES-1.1.md` now (PR #20 review); Khalid and Hamza go through it together · Method: the static mask drops a cell for all 25 years, and X22's Terra-only months: now in `docs/method.md` and on the Method page's Limits (PR #26 and #34 reviews); nothing left · check on Nov 13 (NOAA-21's start date: it has no country files, so through the API) · after the stack merges (overpass `GROUP` platform names, test helper imports; the backend's hotspot, partial-month and `/nrt` filters read the MODIS threshold from the grid's metadata instead of using 30; data paths pasted into the backend's SQL, so a `'` in the data folder breaks every endpoint) · on Nov 13 (R2/R3, from the PR #15 review): time the real bundle's start-up download against the VPS unit's `TimeoutStartSec=300` and health kill (90 s + 3 × 30 s); if it gets close, keep the data on a volume · rename one of the two X15s
 - **From the FIRMS comparison (X27, Nov 13)**, not built yet:
   - **Nov 13, with the real key (Khalid, R1/R2):** check `/api/country` (FIRMS marks it unavailable; `build-data.sh` no longer needs it) · NOAA-21's first day: FIRMS's download page says 2023-03-01, its FAQ 2024-01-17; `data_availability` settles it (`platforms.py` uses 2023-03-01) · Río Negro July 2026: check the night share of its detections before the pitch (FIRMS notes 2–3 spurious night pixels a night over the South Atlantic Anomaly, which covers Río Negro)
-  - X28 real cloud product (pipeline, Khalid): read MOD14CMH/MYD14CMH (monthly 0.5° CMG, HDF4, UMD sftp `fuoco.geog.umd.edu`) into `clouds/cloud_monthly.parquet` (`python -m almatafi.clouds real`, now a stub); then score the correction (does it shrink cloudy-month residuals?). Until then the app says the cloud cover is simulated
+  - X28 real cloud product (pipeline, Khalid): read MOD14CMH/MYD14CMH (monthly 0.5° CMG, HDF4, UMD sftp `fuoco.geog.umd.edu`) into `clouds/cloud_monthly.parquet` (`python -m almatafi.clouds real`, now a stub); then score the correction (does it shrink cloudy-month residuals?). With the real file, time the cloud join in `/calendar` (5 ms on the mock; every calendar runs it) and check the months it doesn't cover yet: in the corrected view they are not observed (PR #37 review). Until then the app says the cloud cover is simulated
   - X29 FIRMS `/api/missing_data` (pipeline, Khalid): FIRMS's own list of days with no data per satellite. Use it for coverage instead of guessing outages from day counts; that fixes X21. Check the CSV route and columns with the key
   - X30 real alert emails (both, after the event): X27 only previews them (`/api/alerts/preview`) and writes `.eml` files locally (`python -m app.alerts run`). Sending needs a provider, double opt-in, unsubscribe links and a decision on storing addresses
   - X31 cross-check (pipeline, Khalid, R2): our raw counts per country and year against FIRMS's yearly country summary CSV (`firms.modaps.eosdis.nasa.gov/country/`)
@@ -58,7 +58,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - (nothing)
 
 ### In review (PR open, merge in this order)
-- X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
+- X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts **Reviewed Nov 13 (Hamza):** 11 findings, fixes pushed to the branch (`docs/reviews/pr-37-x27-firms-gaps.md`); Khalid to look at the ones in `pipeline/` and `backend/`
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
@@ -113,6 +113,16 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Hamza (with Claude)
+- Did: reviewed PR #37 (X27) and fixed what the review found, on Khalid's branch (`docs/reviews/pr-37-x27-firms-gaps.md`, 11 findings).
+  - **For today's real run:** `fetch api --country` clipped FIRMS rows to the map's 2,000-vertex outline, which is up to 9.5 km off for Chile (6.6% of its area on the wrong side; Egypt 0.004°, Argentina unchanged). It now clips to geoBoundaries' full ADM0 file in `data/outlines/` (`python -m app.admin --outlines DIR EGY ARG CHL`; `build-data.sh` does it). The `fetch api` flag is `--outline-dir` now, not `--admin-dir`.
+  - **Cloud correction:** a month the cloud product doesn't cover is not observed in the corrected view (it was left uncorrected next to months scaled up to 5×). Calendar and grid exports follow the "Cloud-corrected" toggle.
+  - **Explorer:** "Day image" no longer covers the area and the dots when the base map style fails to load; the alert preview no longer outlives its area; KML files were saved as `.undefined`.
+  - **Backend:** KML exports capped at 50,000 points (200,000 took 940 MB); alert emails write big counts out; a refused area is checked once.
+  - 225 pipeline, 229 backend, 53 frontend tests; lint, typecheck and build clean. Checked on a full mock build and in headless Chrome against a local API. The offline cache is unchanged.
+- Next: Khalid looks at the fixes in `pipeline/` and `backend/`, then PR #37 can merge. If the real fetch already ran with the old code, rerun Chile's API part: delete its `sp_chl_*` and `nrt_chl_*` files and their `manifest.json` entries first, or the rerun skips them.
+- Broken / blocked: nothing. Not changed: Chile's fetch box reaches Easter Island, so its requests also bring neighbouring countries' rows, which the clip drops.
 
 ### Nov 13 — Khalid (with Claude) (34)
 - Did: X27, after comparing the project with NASA FIRMS's own pages (Earthdata FIRMS page and FAQ, API index, download and alerts pages; notes in `docs/firms-research.md`).
