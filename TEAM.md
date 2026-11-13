@@ -55,6 +55,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
+- X34 explorer tour + data sources made explicit + landing for cold judges + real cloud product (X28) — Khalid (with Claude), branch `khalid/x34-tour-sources`, Nov 13 evening, on the new repo (hamza5645/nasa-space-apps-almatafi; the old repo is left as it is). From the Cairo judging guide (judges test the site themselves, no pitch): a stepper tour in the explorer (replayable), a clear split between the three FIRMS sources (archive yearly files, this year's API data, the public 24h/48h/7-day CSVs), a "try it in two minutes" block on the landing. Touches `frontend/` (Hamza's area) at Khalid's request.
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
