@@ -55,6 +55,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
+- X40 the accessibility voice is silent in Khalid's Chrome (Alt + R, nothing heard): `speak()` hardened against Chrome's known silent failures — Khalid (with Claude), Nov 14, PR open. `frontend/components/a11y/runtime.ts` only
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
@@ -120,6 +121,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (43)
+- Did: X40. Khalid tried the merged accessibility mode in Chrome on his Mac: Option + M and the voice commands work, but Option + R (read the page) is silent. I can't hear audio from the headless runs (they show the right utterances queued), so `speak()` now guards against the four ways Chrome goes silent without an error: an utterance queued in the same tick as `cancel()` is dropped (speaking now starts 60 ms later, with a generation counter so a newer call or Stop wins), utterances the garbage collector takes mid-queue stop the queue (they're held until they end), the engine can sit paused after a cancel (`resume()` first), and the default voice can be missing until the voice list loads (an English voice is picked when there is one). Also, Khalid's dev server was in a reload loop (a broken `.next` after a branch switch plus a production build in the same folder: 851 requests of `/`, no globe, "lag"); a clean restart fixed it. 102 frontend tests, lint, typecheck pass; the headless run queues the same utterances as before.
+- Next: Khalid runs `speechSynthesis.speak(new SpeechSynthesisUtterance("hello"))` in the Console. Silent there means Chrome or the Mac has no working voice, and this PR won't change that; audible there and still silent on the site means something else in our code, to look at with the extension connected.
+- Broken / blocked: the Chrome extension can't connect from this session (OAuth account mismatch), so nothing was heard first-hand.
 
 ### Nov 13 — Hamza (with Claude) (6)
 - Did: X39. With X35 and X37 both on `main`, the Accessibility button (bottom 100 px) sat on top of Wel3a's tip bubble and open chat, which grow upward from the flame in the same corner.

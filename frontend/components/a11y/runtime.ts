@@ -41,6 +41,23 @@ export const canSpeak = () => typeof window !== "undefined" && "speechSynthesis"
 // When the voice last finished a sentence by itself; stopSpeech() (the user's own Stop, or the
 // microphone opening) doesn't count, so a command said right after it is still heard.
 let spokeAt = 0, hushed = false;
+// Chrome quirks, each of which makes the voice silent with no error:
+//  - an utterance queued in the same tick as cancel() can be dropped, so speaking starts a moment later;
+//  - utterances the garbage collector takes mid-queue stop the queue, so they're held here until they end;
+//  - the engine can sit "paused" after a cancel, so resume() comes first;
+//  - the default voice can be missing until the voice list has loaded, so an English voice is picked when there is one.
+const held = new Set<SpeechSynthesisUtterance>();
+let gen = 0;
+let englishVoice: SpeechSynthesisVoice | null = null;
+function pickVoice(): SpeechSynthesisVoice | null {
+  if (englishVoice) return englishVoice;
+  const vs = window.speechSynthesis.getVoices();
+  englishVoice = vs.find((v) => /^en[-_]US/i.test(v.lang) && v.default) ?? vs.find((v) => /^en[-_]US/i.test(v.lang)) ?? vs.find((v) => /^en/i.test(v.lang)) ?? null;
+  return englishVoice;
+}
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  try { window.speechSynthesis.addEventListener?.("voiceschanged", () => { englishVoice = null; }); } catch { /* no voice list events */ }
+}
 
 /** Says text with the browser's voice when the mode and voice reading are on. Long text goes
  *  out sentence by sentence (Chrome drops utterances over ~15 s). interrupt=false queues it. */
@@ -50,7 +67,6 @@ export function speak(text: string, { interrupt = true, force = false }: { inter
   if (!force && (!s.on || !s.voice)) return;
   const clean = text.replace(/\s+/g, " ").trim();
   if (!clean) return;
-  if (interrupt) window.speechSynthesis.cancel();
   // Sentence ends: . ! ? followed by a space (so "2.4 times" stays whole).
   const chunks = clean.split(/(?<=[.!?…])\s+/);
   let buf = "";
@@ -59,14 +75,25 @@ export function speak(text: string, { interrupt = true, force = false }: { inter
     if ((buf + c).length > 220 && buf) { out.push(buf); buf = c; } else buf = buf ? `${buf} ${c}` : c;
   }
   if (buf) out.push(buf);
+  const synth = window.speechSynthesis;
+  if (interrupt) { gen++; synth.cancel(); held.clear(); }
+  const my = gen;
   hushed = false;
-  for (const part of out) {
-    const u = new SpeechSynthesisUtterance(part.trim());
-    u.lang = "en-US";
-    u.rate = 1;
-    u.onend = u.onerror = () => { if (!hushed) spokeAt = Date.now(); };
-    window.speechSynthesis.speak(u);
-  }
+  const go = () => {
+    if (my !== gen) return;   // cancelled or replaced while waiting
+    try { synth.resume(); } catch { /* fine */ }
+    const voice = pickVoice();
+    for (const part of out) {
+      const u = new SpeechSynthesisUtterance(part.trim());
+      u.lang = "en-US";
+      u.rate = 1;
+      if (voice) u.voice = voice;
+      held.add(u);
+      u.onend = u.onerror = () => { held.delete(u); if (!hushed) spokeAt = Date.now(); };
+      synth.speak(u);
+    }
+  };
+  if (interrupt) setTimeout(go, 60); else go();
 }
 
 /** Is the site's own voice talking, or did it stop less than `ms` ago? A microphone that is open then hears it. */
@@ -76,6 +103,8 @@ export function spokeWithin(ms: number): boolean {
 
 export function stopSpeech() {
   hushed = true;
+  gen++;   // anything waiting to start stays silent
+  held.clear();
   if (canSpeak()) window.speechSynthesis.cancel();
 }
 
