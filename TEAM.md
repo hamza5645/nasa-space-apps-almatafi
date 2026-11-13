@@ -55,10 +55,9 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- (nothing)
+- X33 v2 — Khalid (with Claude), PR #38 (`khalid/x33-game-slider`), back in progress Nov 13 afternoon with Khalid's pixel-art sprite sheets: the game becomes chapters on a level map with illustrated intros; two answer blocks with the Khalid character running and jumping to the chosen one, the top character celebrating or panicking (fire), the firefighter spraying, the map explorer folding his map beside map-snapshot questions, a glowing ALMATAFI fire truck as decor; pictures instead of dot strips; the raw-vs-harmonized slider redone so it reads at a glance; a pass on how the pages connect. Touches `frontend/` (Hamza's area) at Khalid's request.
 
 ### In review (PR open, merge in this order)
-- X33 "Normal or not?" game + raw-vs-harmonized slider + phone overlap fixes — Khalid (with Claude), PR #38 (`khalid/x33-game-slider`), stacked on PR #37 (merge #37 first). Touches `frontend/` (Hamza's area) at Khalid's request. The game goes against the Oct 31 "no gamification" decision: Khalid's call; Decisions unchanged until Hamza agrees (suggested wording: an educational quiz on our real data is fine; no badges or leaderboards)
 - X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
