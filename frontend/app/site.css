@@ -81,7 +81,6 @@
 .cta-in h2 { font-size: clamp(40px, 6vw, 84px); line-height: .96; letter-spacing: -0.035em; max-width: 14ch; }
 .cta-in h2 em { color: var(--ember); }
 .cta-in p { margin: 0; font-size: 19px; color: var(--soft); max-width: 46ch; }
-.cta-tag { position: absolute; right: 20px; bottom: 18px; }
 
 /* Method page */
 .method-head { display: flex; flex-direction: column; gap: 20px; padding-top: 40px; padding-bottom: 72px; max-width: 900px; margin-left: 0; }
@@ -123,3 +122,19 @@
 .gen-figure { margin: 0 0 22px; position: relative; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .08); }
 .gen-figure img { display: block; width: 100%; height: clamp(200px, 32vw, 380px); object-fit: cover; }
 .gen-figure figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px 14px; font-size: 14px; color: #F2EBE1; background: linear-gradient(180deg, rgba(5, 7, 11, 0), rgba(5, 7, 11, .82)); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+
+/* X33: the raw-vs-harmonized slider under the proof chart. */
+.proof-slider { margin-top: 40px; display: grid; grid-template-columns: minmax(220px, 320px) minmax(0, 1fr); gap: 24px 48px; align-items: start; }
+.proof-slider h3 { font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.02em; }
+.proof-slider p { margin: 8px 0 0; color: #6B5F52; font-size: 16px; line-height: 1.55; }
+@media (max-width: 860px) { .proof-slider { grid-template-columns: 1fr; } }
+
+/* X33: the game's band on the landing. */
+.play-band { display: flex; align-items: center; gap: 28px 40px; padding: 32px 36px; border-radius: 28px; color: var(--text);
+  background: radial-gradient(120% 140% at 0% 50%, rgba(240, 138, 36, .28), rgba(240, 138, 36, 0) 55%), #14110E; box-shadow: 0 30px 80px -40px rgba(0, 0, 0, .55); }
+.play-band p { margin: 0; color: var(--soft); font-size: 17px; line-height: 1.55; max-width: 56ch; }
+.play-band .h2 { color: #FFF; }
+.play-band .h2 em { color: var(--ember); }
+.play-band .btn { flex: none; }
+.play-band .eyebrow { color: var(--ember); }
+@media (max-width: 760px) { .play-band { flex-direction: column; align-items: flex-start; padding: 26px 22px; } .play-band .stack-lg { flex: none; } }

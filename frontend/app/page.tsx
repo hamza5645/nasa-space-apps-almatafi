@@ -1,10 +1,13 @@
 import { SeriesChart } from "@/components/Charts";
+import CompareSlider from "@/components/CompareSlider";
+import "@/components/compare.css";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import OrbitStory, { type StoryNumbers } from "@/components/OrbitStory";
 import SmoothScroll from "@/components/SmoothScroll";
 import WarpLink from "@/components/WarpLink";
-import { demoCalendar, fireWeek, isMock, validation, type MiniCalendar } from "@/lib/content";
+import Mascot from "@/components/game/Mascot";
+import { demoCalendar, demoCompare, fireWeek, isMock, validation, type MiniCalendar } from "@/lib/content";
 import { fmt } from "@/lib/format";
 import "./site.css";
 import "./story.css";
@@ -15,7 +18,7 @@ const FAQ = [
   ["How current is it?", "The record runs to last month from NASA's standard archive, with near-real-time data for the newest weeks. The current month is compared with the same days in past years."],
   ["Can I download the data?", "Yes. Any area as CSV or GeoJSON (individual hotspots), the monthly calendar as CSV, and the 0.1° grid as a Cloud-Optimized GeoTIFF."],
   ["Does no hotspot mean no fire?", "No. Clouds, thick smoke, small fires and burning between satellite passes can all hide a fire. Read zero as nothing detected."],
-  ["What is real and what is generated?", "Every number, the globe's fires and the maps are NASA data. The films of the Delta and Patagonia, and the portraits, are generated scenes (Higgsfield) and are marked as such."],
+  ["What is real and what is generated?", "Every number, the globe's fires and the maps are NASA data. The films and stills of the Delta and Patagonia, the smoke and the portraits are AI-generated scenes (Higgsfield), there to set the mood; no number comes from them."],
 ];
 
 const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
@@ -29,6 +32,7 @@ export default function Home() {
   const mock = isMock(v?.data_version);
   const week = fireWeek();
   const cal = demoCalendar("nile-delta");
+  const cmp = demoCompare("nile-delta");
   const n: StoryNumbers = {
     week: week ? [fmtDay(week.dates[0]), `${fmtDay(week.dates[1])} 2026`] : ["27 Oct", "3 Nov 2026"],
     modis: week?.sensors.modis.detections ?? 0,
@@ -88,6 +92,15 @@ export default function Home() {
               </p>
             </div>
             {v && <div data-reveal data-draw><SeriesChart years={v.series.years} raw={v.series.raw} harmonized={v.series.harmonized} mock={mock} /></div>}
+            {cmp && (
+              <div className="proof-slider" data-reveal>
+                <div className="stack-sm">
+                  <h3 className="display">See it for yourself.</h3>
+                  <p>The Nile Delta&apos;s calendar, twice: raw on the left of the line, ours on the right. Drag it.{mock ? " (Mock data until Nov 13.)" : ""}</p>
+                </div>
+                <CompareSlider {...cmp} place="Nile Delta" tone="light" />
+              </div>
+            )}
           </div>
 
           <div className="wrap section">
@@ -102,7 +115,6 @@ export default function Home() {
                     <source src="/media/rio-negro-loop.mp4" type="video/mp4" />
                   </video>
                 </div>
-                <span className="tag gen">Generated scene</span>
                 <div className="case-body">
                   <div className="eyebrow">Case study · CONAE&apos;s example</div>
                   <h3 className="display">Río Negro, July 2026</h3>
@@ -117,7 +129,6 @@ export default function Home() {
                     <source src="/media/nile-delta-loop.mp4" type="video/mp4" />
                   </video>
                 </div>
-                <span className="tag gen">Generated scene</span>
                 <div className="case-body">
                   <div className="eyebrow">Closer to home</div>
                   <h3 className="display">The Nile Delta&apos;s rice-straw season</h3>
@@ -143,11 +154,24 @@ export default function Home() {
                 <article key={img} className="card who-card">
                   <div className="who-img">
                     {/* eslint-disable-next-line @next/next/no-img-element -- static WebP, sized by CSS */}
-                    <img src={`/media/${img}.webp`} alt="" loading="lazy" decoding="async" /><span className="tag gen">Generated portrait</span></div>
+                    <img src={`/media/${img}.webp`} alt="" loading="lazy" decoding="async" /></div>
                   <h3>{title}</h3>
                   <p>{text}</p>
                 </article>
               ))}
+            </div>
+          </div>
+
+          <div className="wrap section">
+            <div className="play-band" data-reveal>
+              <Mascot mood="idle" size={110} />
+              <div className="stack-lg">
+                <div className="eyebrow">A game, on real data</div>
+                <h2 className="display h2">Normal <em>or not?</em></h2>
+                <p>Seven questions from our own record: is this month strange for the Nile Delta? Which year really burned more?
+                  Can you spot the 2012 trap? Three embers, two minutes.</p>
+              </div>
+              <WarpLink className="btn btn-fire big-btn" href="/play">Play</WarpLink>
             </div>
           </div>
 
@@ -177,7 +201,6 @@ export default function Home() {
               <WarpLink className="btn btn-glass big-btn" href="/method">Read the method</WarpLink>
             </div>
           </div>
-          <span className="tag gen cta-tag">Generated scene</span>
         </section>
       </main>
       <Footer />

@@ -189,7 +189,6 @@ export default function OrbitStory({ n }: { n: StoryNumbers }) {
 
         <article className="ch ch-film" data-ch="6">
           <div className="ch-in film-cap">
-            <span className="tag">Generated scene · Higgsfield</span>
             <p className="display">From 700 km up to the field.</p>
           </div>
         </article>

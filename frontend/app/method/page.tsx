@@ -160,7 +160,6 @@ export default function MethodPage() {
               {/* eslint-disable-next-line @next/next/no-img-element -- static WebP, sized by CSS */}
               <img src="/media/clouds-fire.webp" alt="" loading="lazy" decoding="async" />
               <figcaption>
-                <span className="tag gen">Generated scene · Higgsfield</span>
                 From orbit, cloud hides part of a burning delta: fires under it make no hotspots. The calendar marks
                 months that were mostly cloud, and can correct for them.
               </figcaption>
@@ -187,7 +186,7 @@ export default function MethodPage() {
             <li><a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a>: Blue Marble Next Generation and VIIRS Black Marble imagery for the map and globe; the day&apos;s MODIS and VIIRS true-colour images and the OMPS/OMI aerosol index (smoke) on the explorer&apos;s map</li>
             <li>Cloud cover: MOD14CMH/MYD14CMH (MODIS climate modelling grid, monthly 0.5°) is the planned source; the app uses simulated cloud cover until it is loaded</li>
             <li><a href="https://github.com/nasa/NASA-3D-Resources">NASA 3D Resources</a>: the Aqua and Suomi NPP satellite models</li>
-            <li><a href="https://higgsfield.ai/">Higgsfield</a>: the generated films and portraits on the landing page (marked as generated)</li>
+            <li><a href="https://higgsfield.ai/">Higgsfield</a>: the AI-generated films, stills and portraits on the landing page (mood only; no data comes from them)</li>
             <li><a href="https://www.geoboundaries.org/">geoBoundaries</a>: administrative boundaries · <a href="https://nominatim.org/">Nominatim / OpenStreetMap</a>: place search</li>
           </ul>
           <h2 className="display h3" data-reveal>What the method builds on</h2>

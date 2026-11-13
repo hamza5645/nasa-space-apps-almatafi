@@ -121,3 +121,6 @@ html.warp-in main, html.warp-in .explorer { transition: transform .85s cubic-bez
   .nav-float .nav-links .btn { min-height: 38px; padding: 0 14px; font-size: 14px; }
   .brand span { font-size: 18px; }
 }
+
+/* X33: the nav's Play link stays off narrow phones (it would wrap the nav to two rows); the landing has a band for it. */
+@media (max-width: 560px) { .nav-play { display: none; } }

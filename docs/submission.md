@@ -29,7 +29,7 @@ Almatafi merges 25 years of NASA FIRMS fire detections from MODIS and VIIRS into
 
 **Other data:** geoBoundaries (admin areas), OpenStreetMap via Nominatim (place search), OpenFreeMap basemap (OpenStreetMap data).
 
-**AI use disclosure:** We used Claude Code (Anthropic) as a coding assistant for parts of the pipeline, backend and web app. We designed the method, reviewed the code, and checked every result against the data ourselves.
+**AI use disclosure:** We used Claude Code (Anthropic) as a coding assistant for parts of the pipeline, backend and web app. We designed the method, reviewed the code, and checked every result against the data ourselves. The landing page's films, stills and portraits are AI-generated (Higgsfield: Soul stills, Kling image-to-video); they set the scene and carry no data. Every number, map and the globe's fires are NASA data.
 
 **Links:** demo https://almatafi.monitorthesituations.com · repo [make public at submission] · video [YouTube] · slides [PDF]
 
