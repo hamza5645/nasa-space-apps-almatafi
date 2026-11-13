@@ -6,6 +6,10 @@ Each country/level is fetched once and kept in data/admin/{ISO}_ADM{n}.geojson, 
 AOI parser reads, so `{"type": "admin", "admin_id": …}` works for every fetched boundary.
 
 Prefetch before a demo:  python -m app.admin EGY:1 ARG:1 CHL:1
+
+The pipeline's `fetch api --country` clips FIRMS rows to a country's outline. It needs the
+outline as geoBoundaries publishes it, not the ≤ 2,000-vertex copy kept for the map (that one
+moves Chile's border and coast by up to 9 km):  python -m app.admin --outlines DIR EGY ARG CHL
 """
 
 from __future__ import annotations
@@ -81,14 +85,34 @@ class GeoBoundaries:
                 chunks.append(chunk)
         return b"".join(chunks)
 
-    def _fetch(self, country: str, level: int) -> dict:
+    def _download(self, country: str, level: int, full: bool = False) -> dict:
+        """geoBoundaries' own file: its simplified one for the map, the full one for clipping."""
         meta = json.loads(self._read(f"{self.api_base}/{country}/ADM{level}/"))
         if isinstance(meta, list):
             meta = meta[0] if meta else {}
-        url = meta.get("simplifiedGeometryGeoJSON") or meta.get("gjDownloadURL")
+        keys = ("gjDownloadURL", "simplifiedGeometryGeoJSON")
+        url = meta.get(keys[0 if full else 1]) or meta.get(keys[1 if full else 0])
         if not url:
             raise UpstreamNotFound(country)
-        raw = json.loads(self._read(url))
+        return json.loads(self._read(url))
+
+    def outline(self, country: str, folder: Path) -> Path:
+        """The country's ADM0 outline at full resolution in `folder/{ISO}_ADM0.geojson`, fetched
+        once. Never written to data/admin: the AOI parser must not read it."""
+        path = folder / f"{country}_ADM0.geojson"
+        if not path.exists():
+            raw = self._download(country, 0, full=True)
+            if not any((f.get("geometry") or {}).get("type") in ("Polygon", "MultiPolygon")
+                       for f in raw.get("features", [])):
+                raise UpstreamNotFound(country)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(raw))
+            os.replace(tmp, path)
+        return path
+
+    def _fetch(self, country: str, level: int) -> dict:
+        raw = self._download(country, level)
         features = []
         for f in raw.get("features", []):
             props = f.get("properties") or {}
@@ -125,6 +149,10 @@ def main(argv: list[str]) -> None:
 
     settings = Settings()
     gb = GeoBoundaries(settings.geoboundaries_url, settings.data_dir / "admin")
+    if argv[:1] == ["--outlines"]:
+        for country in argv[2:]:
+            print(f"{country.upper()} outline → {gb.outline(country.upper(), Path(argv[1]))}")
+        return
     for item in argv:
         country, level = item.upper().split(":")
         doc = gb.get(country, int(level))

@@ -92,6 +92,22 @@ def test_big_polygons_are_simplified(tmp_path):
     assert shapely.get_num_coordinates(g) <= 2000
 
 
+def test_clipping_outline_is_the_full_file_untouched(tmp_path):
+    """The pipeline clips FIRMS rows with it: 2,000 vertices move Chile's border by up to 9 km."""
+    ring = [[31 + 0.4 * math.cos(a), 30.8 + 0.4 * math.sin(a)] for a in (2 * math.pi * i / 5000 for i in range(5000))]
+    ring.append(ring[0])
+    doc = {"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {"shapeID": "EGY-ADM0-1"}, "geometry": {"type": "Polygon", "coordinates": [ring]}}]}
+    full = FILE.replace("ADM1_simplified", "ADM0")
+    fake = Fake({f"{API}/EGY/ADM0/": httpx.Response(200, json={"gjDownloadURL": full, "simplifiedGeometryGeoJSON": FILE}),
+                 full: httpx.Response(200, json=doc)})
+    gb = GeoBoundaries(API, tmp_path / "admin", transport=httpx.MockTransport(fake.handler))
+    path = gb.outline("EGY", tmp_path / "outlines")
+    assert path == tmp_path / "outlines" / "EGY_ADM0.geojson" and json.loads(path.read_text()) == doc
+    assert gb.outline("EGY", tmp_path / "outlines") == path and len(fake.requests) == 2  # fetched once
+    assert not (tmp_path / "admin").exists()  # never where the AOI parser reads
+
+
 @pytest.mark.parametrize("params", [{}, {"country": "EG"}, {"country": "EGYP"}, {"country": "../x"},
                                     {"country": "EGY", "level": 3}, {"country": "EGY", "level": -1}])
 def test_bad_queries_are_400(tmp_path, params):

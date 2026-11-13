@@ -15,7 +15,7 @@ scripts/build-data.sh mock
    ```
    - The yearly country files for Egypt, Argentina and Chile, 2000 to last year (standard processing, no key needed). NOAA-20's files are called `viirs-jpss1` on FIRMS.
    - Through the area API, per country (needs the key): this year's standard data, all of NOAA-21 (it has no country files), then the NRT tail. About 600 requests per country, so roughly 30 minutes for three.
-   - FIRMS's country API is off (Nov 13), so each country is fetched as its bounding box and clipped to its outline. The script first downloads the outlines (`python -m app.admin EGY:0 ARG:0 CHL:0`, geoBoundaries, into `data/admin/`); the log says how many rows fell outside each country. Chile's box reaches Easter Island, so it is mostly ocean.
+   - FIRMS's country API is off (Nov 13), so each country is fetched as its bounding box and clipped to its outline. The script first downloads the outlines at full resolution (`python -m app.admin --outlines data/outlines EGY ARG CHL`, geoBoundaries; not the map's copies in `data/admin/`, which are cut to 2,000 vertices and move Chile's border by up to 9 km); the log says how many rows fell outside each country. Chile's box reaches Easter Island, so it is mostly ocean.
    - S-NPP stopped on Nov 2, 2026; NOAA-20 and NOAA-21 carry the record after that.
    - Then ingest, grid, harmonize, validate, admin boundaries, the demo cache, `frontend/public/cache/`, and a bundle in `dist/` with its SHA-256.
    - Other countries: `COUNTRIES=Egypt,Sudan API_COUNTRIES=EGY,SDN scripts/build-data.sh real --fetch`. Country files use FIRMS spellings, with underscores for spaces (`United_States`); the API uses ISO3 codes.

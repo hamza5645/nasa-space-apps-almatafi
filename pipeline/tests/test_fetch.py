@@ -232,9 +232,10 @@ def test_api_by_country_clips_a_box(tmp_path):
 def test_cli_country_needs_its_outline(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("FIRMS_MAP_KEY", KEY)
     rc = main(["--out", str(tmp_path / "raw"), "api", "--country", "egy", "--name", "egypt",
-               "--admin-dir", str(tmp_path / "admin")])
+               "--outline-dir", str(tmp_path / "outlines")])
     err = capsys.readouterr().err
-    assert rc == 1 and "EGY_ADM0.geojson" in err and "app.admin EGY:0" in err and KEY not in err
+    assert rc == 1 and "EGY_ADM0.geojson" in err and KEY not in err
+    assert f"app.admin --outlines {tmp_path / 'outlines'} EGY" in err
 
 
 def test_bad_key_error_is_redacted(tmp_path):

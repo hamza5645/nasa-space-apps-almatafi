@@ -9,8 +9,10 @@ Two sources, as a real run needs both:
    after standard data ends. `api_plan` makes the pieces meet without overlapping (NRT and
    standard positions differ, so ingest can't dedupe them).
    FIRMS's `/api/country` endpoint is marked "currently not available" (checked Nov 13, 2026),
-   so a country is fetched as its bounding box and clipped to its outline (geoBoundaries ADM0,
-   from the backend's `python -m app.admin EGY:0`), with ~1 km of slack for coastal pixels.
+   so a country is fetched as its bounding box and clipped to its outline (geoBoundaries ADM0
+   at full resolution, from the backend's `python -m app.admin --outlines data/outlines EGY`),
+   with ~1 km of slack for coastal pixels. Not the outlines in data/admin: those are cut to
+   2,000 vertices for the map, which moves Chile's border and coast by up to 9 km.
    The kept area then matches the yearly country files closely enough (borders may differ by
    a pixel or so; FIRMS doesn't say which outline its country files use).
 
@@ -19,7 +21,7 @@ Every file is checked (FIRMS header, size cap), written atomically, and logged i
 never reaches the manifest, the file names or the logs.
 
     python -m almatafi.fetch countries --countries Egypt,Argentina,Chile --years 2000-2025
-    FIRMS_MAP_KEY=... python -m almatafi.fetch api --country EGY --name egypt --admin-dir data/admin
+    FIRMS_MAP_KEY=... python -m almatafi.fetch api --country EGY --name egypt --outline-dir data/outlines
     FIRMS_MAP_KEY=... python -m almatafi.fetch api --bbox 29,29,33,32 --name nile-delta
 """
 
@@ -168,7 +170,7 @@ class Boundary:
             return cls(json.loads(path.read_text()), path.stem)
         except FileNotFoundError:
             raise FetchError(f"no boundary file {path}; prefetch it with the backend's "
-                             f"`python -m app.admin {path.stem.replace('_ADM', ':')}`") from None
+                             f"`python -m app.admin --outlines {path.parent} {path.stem[:3]}`") from None
 
     def fetch_bbox(self, pad: float = 0.05) -> tuple[float, float, float, float]:
         w, s, e, n = self.bbox
@@ -467,8 +469,9 @@ def main(argv=None) -> int:
     where.add_argument("--bbox", type=_bbox, help="west,south,east,north or world")
     n.add_argument("--name", required=True, help="short tag for the file names, e.g. nile-delta")
     n.add_argument("--products", default=",".join(PRODUCTS))
-    n.add_argument("--admin-dir", type=Path, default=REPO / "data" / "admin",
-                   help="where {ISO3}_ADM0.geojson lives (backend: python -m app.admin EGY:0)")
+    n.add_argument("--outline-dir", type=Path, default=REPO / "data" / "outlines",
+                   help="where the full-resolution {ISO3}_ADM0.geojson lives "
+                        "(backend: python -m app.admin --outlines DIR EGY)")
     args = ap.parse_args(argv)
 
     products = [p.strip() for p in args.products.split(",") if p.strip()]
@@ -482,7 +485,7 @@ def main(argv=None) -> int:
                 ap.error("--name: letters, digits and dashes only")
             if args.country and not (len(args.country) == 3 and args.country.isalpha()):
                 ap.error("--country: an ISO 3166 alpha-3 code, e.g. EGY")
-            area = (Boundary.from_file(args.admin_dir / f"{args.country.upper()}_ADM0.geojson")
+            area = (Boundary.from_file(args.outline_dir / f"{args.country.upper()}_ADM0.geojson")
                     if args.country else args.bbox)
             counts = fetch_api(os.environ.get("FIRMS_MAP_KEY", ""), area, args.name, args.out, products=products)
     except FetchError as e:
