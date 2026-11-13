@@ -35,6 +35,13 @@ test("a bad request, another area, or a request the copy can't answer still fail
   await assert.rejects(withFallback(async () => { throw down; }, region, pickCalendar("harmonized", "detections", "2010-01", null) as never), down);
 });
 
+test("a 405 (another app on the API's port) counts as an outage", async () => {
+  serveCache();
+  const other = new ApiError(405, "http", "Request failed (405).");
+  const r = await withFallback(async () => { throw other; }, region, () => ({ meta: { from: "copy" } }));
+  assert.deepEqual(r, { meta: { from: "copy" }, offline: true });
+});
+
 test("live answers pass straight through", async () => {
   const r = await withFallback(async () => ({ meta: { live: 1 } }), region, () => null);
   assert.deepEqual(r, { meta: { live: 1 } });
