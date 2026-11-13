@@ -1,0 +1,122 @@
+/* Design tokens. Warm ash for the surfaces (burnt ground at night), the ember ramp for fire,
+   and one cool colour, "sensor", for what the satellite and the user point at: the area,
+   the selected month, focus rings. */
+:root {
+  --night: #15120F;     /* page */
+  --panel: #1D1915;     /* raised surfaces */
+  --panel-2: #26211B;   /* hover, selected tab */
+  --line: #3A3229;
+  --text: #F2EBE1;
+  --muted: #A89A88;
+  --soft: #D4C8B8;
+  --fire: #F08A24;
+  --fire-ink: #1C0F04;
+  --ember: #FFC65C;
+  --blue: #6BD0E4;      /* "sensor" */
+  --blue-ink: #0B2A31;
+  --light: #F4F5F2;
+  --ink: #1A1714;
+  --ink-muted: #4A443D;
+  --card-line: #E2E0DA;
+  --warn-bg: #3B2513;
+  --warn-ink: #FFD7AE;
+  --display: var(--font-body), system-ui, sans-serif;
+  --body: var(--font-body), system-ui, sans-serif;
+  --mono: var(--font-mono), ui-monospace, monospace;
+  --serif: var(--font-serif), "Iowan Old Style", Georgia, serif;
+  --space: #05070B;     /* the story stage */
+  --light-warm: #F6EEE3; /* where the smoke clears into the page */
+  --glass: rgba(12, 13, 17, .46);
+  --glass-line: rgba(255, 255, 255, .09);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--body); background: var(--night); color: var(--text); line-height: 1.45; font-variant-numeric: tabular-nums; }
+a { color: var(--ember); }
+a:hover { color: #FFE3A8; }
+button, input, select { font: inherit; color: inherit; }
+h1, h2, h3 { margin: 0; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.wrap { max-width: 1280px; margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+@media (max-width: 640px) { .wrap { padding-left: 16px; padding-right: 16px; } }
+.mono { font-family: var(--mono); }
+.display { font-family: var(--display); font-weight: 700; font-stretch: 118%; letter-spacing: -0.02em; }
+.eyebrow { font-size: 15px; font-weight: 600; color: var(--ember); }
+.light .eyebrow { color: #A8430B; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Nav */
+.nav { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding-top: 18px; padding-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+.brand span { font-weight: 700; font-stretch: 118%; font-size: 21px; letter-spacing: -0.01em; }
+.nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; font-size: 15px; margin-left: auto; }
+.nav-links a { color: var(--soft); text-decoration: none; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: #FFFFFF; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 10px; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+.btn-fire { background: var(--fire); color: var(--fire-ink); }
+.btn-fire:hover { background: #FFA040; color: var(--fire-ink); }
+.btn-ghost { border-color: var(--line); color: var(--text); background: transparent; font-weight: 500; }
+.btn-ghost:hover { border-color: var(--blue); color: #FFFFFF; }
+.chip-btn { min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; font-size: 14px; }
+.chip-btn:hover:not(:disabled) { border-color: var(--blue); }
+.chip-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Panels */
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.box h2 { font-size: 15px; font-weight: 600; color: var(--text); }
+.hint { font-size: 14px; line-height: 1.5; color: var(--soft); margin: 0; }
+.muted { color: var(--muted); }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+.field input, .field select { min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--night); color: var(--text); padding: 0 10px; width: 100%; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.warn { padding: 10px 14px; border-radius: 10px; background: var(--warn-bg); color: var(--warn-ink); font-size: 14px; }
+.error { padding: 10px 14px; border-radius: 10px; background: #3D1614; color: #FFC4BC; font-size: 14px; }
+
+/* Light sections */
+.light { background: var(--light); color: var(--ink); }
+.card { background: #FFFFFF; border: 1px solid var(--card-line); border-radius: 16px; padding: 28px; }
+
+footer.site { border-top: 1px solid var(--line); padding-top: 28px; padding-bottom: 40px; color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 12px 32px; }
+
+/* X15: editorial italic for the key word of a headline */
+.display em { font-family: var(--serif); font-style: italic; font-weight: 400; font-stretch: 100%; letter-spacing: -0.01em; }
+
+.btn { transition: background-color .25s var(--ease-out), border-color .25s var(--ease-out), color .25s, transform .35s var(--ease-out), box-shadow .35s var(--ease-out); }
+.btn:active { transform: translateY(1px) scale(.99); }
+.btn-fire { box-shadow: 0 10px 30px -12px rgba(240, 138, 36, .75), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.btn-fire:hover { box-shadow: 0 16px 40px -14px rgba(255, 160, 64, .9), inset 0 1px 0 rgba(255, 255, 255, .3); transform: translateY(-1px); }
+.btn-glass { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .16); color: var(--text); font-weight: 500; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.btn-glass:hover { background: rgba(255, 255, 255, .12); border-color: rgba(107, 208, 228, .6); color: #fff; }
+.btn-ink { background: var(--ink); color: #FFF7EC; }
+.btn-ink:hover { background: #2B2520; color: #fff; transform: translateY(-1px); }
+
+.tag { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: rgba(10, 10, 12, .5); color: rgba(255, 255, 255, .78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+/* Floating nav (landing, Method) */
+.nav-float { position: fixed; inset: 0 0 auto 0; z-index: 50; transition: transform .5s var(--ease-out), background-color .4s, border-color .4s, color .4s; border-bottom: 1px solid transparent; }
+.nav-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding-top: 14px; padding-bottom: 14px; }
+.nav-float[data-solid] { background: rgba(8, 9, 12, .42); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3); border-bottom-color: rgba(255, 255, 255, .06); }
+.nav-float[data-tone="light"][data-solid] { background: rgba(250, 247, 242, .72); border-bottom-color: rgba(26, 23, 20, .06); }
+.nav-float[data-tone="light"] .brand, .nav-float[data-tone="light"] .nav-links a:not(.btn) { color: var(--ink); }
+.nav-float[data-tucked] { transform: translateY(-100%); }
+.nav-float .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; font-size: 15px; margin-left: auto; }
+.nav-float .nav-links a:not(.btn) { color: var(--soft); text-decoration: none; }
+.nav-float .nav-links a:not(.btn):hover, .nav-float .nav-links a[aria-current="page"]:not(.btn) { color: #fff; }
+.nav-float[data-tone="light"] .nav-links a:not(.btn):hover { color: #000; }
+
+/* Page transition (WarpOverlay) */
+.warp { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1000; pointer-events: none; }
+/* Transform only: a full-page blur re-rasterized the WebGL canvas and every backdrop-filter under the smoke each frame.
+   Only while leaving (warp-in): the page that arrives under the clearing smoke is never scaled, so it has no scale to snap back from. */
+html.warp-in main, html.warp-in .explorer { transition: transform .85s cubic-bezier(.55, 0, .75, .2); transform: scale(1.06); }
+@media (max-width: 520px) {
+  .nav-inner { flex-wrap: nowrap; gap: 12px; padding-top: 10px; padding-bottom: 10px; }
+  .nav-float .nav-links { gap: 14px; font-size: 14px; flex-wrap: nowrap; }
+  .nav-float .nav-links .btn { min-height: 38px; padding: 0 14px; font-size: 14px; }
+  .brand span { font-size: 18px; }
+}
