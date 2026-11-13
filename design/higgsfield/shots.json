@@ -136,5 +136,56 @@
    "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, aircraft",
    "prompt": "The camera flies forward steadily into the glowing smoke bank, the smoke rushes past the lens, gets thinner and brighter, and opens into a clear, bright, pale sky full of soft white light. Continuous motion, no cuts, cinematic."
   }
+ },
+ {
+  "id": "planet",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Photograph from deep space of the whole Earth at night as a complete sphere, placed in the right half of the frame and filling about seventy percent of the frame height, black space on the left. The night side is scattered with tiny glowing orange wildfire embers across Africa and South America, a few golden city lights, a thin turquoise airglow ring around the planet's edge, faint stars. Photoreal NASA style, cinematic, no spacecraft, no text."
+  }
+ },
+ {
+  "id": "me_open",
+  "model": "kling-video/v3.0/pro/image-to-video",
+  "usd": 0.8,
+  "from": "night_orbit",
+  "last": "her_open",
+  "args": {
+   "duration": 5,
+   "sound": "off",
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, warped face, distorted face, extra people, morphing, flicker, cuts",
+   "prompt": "One continuous, smooth camera move with no cuts. The camera starts in orbit above the night side of Earth, where small wildfires glow like orange embers, then dives straight down through the thin blue atmosphere and the clouds toward the lights of a city at night, glides in through the window of a softly lit room, and settles in front of a smiling young woman in a blue hijab and a white sweater sitting facing the camera. Constant forward motion, cinematic, photoreal."
+  }
+ },
+ {
+  "id": "me_close",
+  "model": "kling-video/v3.0/pro/image-to-video",
+  "usd": 0.8,
+  "from": "her_close",
+  "last": "planet",
+  "args": {
+   "duration": 5,
+   "sound": "off",
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, warped face, distorted face, extra people, morphing, flicker, cuts",
+   "prompt": "One continuous, smooth camera move with no cuts. The camera pulls back from the smiling young woman in the blue hijab, out through the window of her room, rises over the rooftops of the city at dusk, up through the clouds and the thin blue atmosphere into space, and reveals the whole Earth at night, glowing with small orange wildfires. Constant backward motion, cinematic, photoreal."
+  }
+ },
+ {
+  "id": "v_responder",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "who_responder",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, extra people",
+   "prompt": "Slow push-in. The firefighter studies the tablet, then looks up toward the fire. Smoke drifts and glows orange behind, a few embers float past. Subtle natural motion, cinematic, photoreal."
+  }
  }
 ]

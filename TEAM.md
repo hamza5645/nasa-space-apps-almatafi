@@ -105,6 +105,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 
 _Newest first. One entry per work session._
 
+### Nov 6 — Khalid (33)
+- Did: edited the Cairo registration video from a teammate's 73 s take (the script in the registration PDF). The edit lives outside the repo, in `~/Documents/video-editor-bassam/projects/almatafi-registration` (Remotion). Four new Higgsfield shots were added to `design/higgsfield/shots.json`: `planet` (Soul still), `me_open` (Kling 3.0 dive from orbit into her room, last frame = her first frame), `me_close` (Kling 3.0 pull-out from her room to the planet) and `v_responder` (Kling 2.5 loop). Spend is now **$3.21** of the $5 cap. The video's numbers are the same real FIRMS week as the site (MODIS 58,127 vs VIIRS 300,095; Nile Delta box 7 vs 88). The schematic charts are labelled ILLUSTRATION and every AI shot is labelled.
+- Next: team checks the video, uploads it to YouTube as Public, and pastes the link into the form before Sat Nov 7 23:59.
+- Broken / blocked: nothing. (Committed on Nov 13 from Khalid's local checkout, where it was left uncommitted.)
+
 ### Nov 5 — Hamza (with Claude) (2)
 - Did: merged PR #36 and checked it live. `tests` and `deploy` passed on the merge commit (8d00aa9). On the live site the transition's class timeline is the new one (`warp-in` at 2 ms, covered at 823 ms, clear at 1,772 ms), the 8K map returns 404 and the 4K map is served. X26 moved to Done.
 - Next: Safari and phone check of the landing, Method and the transition.
