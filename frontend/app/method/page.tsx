@@ -205,7 +205,8 @@ export default function MethodPage() {
             (FIRMS), part of NASA&apos;s Earth Science Data and Information System (ESDIS), with near real-time data from
             LANCE and imagery from GIBS.
           </p>
-          <p><WarpLink className="btn btn-fire big-btn" href="/explore">Open the calendar →</WarpLink></p>
+          <p className="row"><WarpLink className="btn btn-fire big-btn" href="/explore">Open the calendar →</WarpLink>
+            <WarpLink className="btn btn-ghost big-btn" href="/play">Test yourself: play Normal or not?</WarpLink></p>
         </div>
       </section>
       </main>

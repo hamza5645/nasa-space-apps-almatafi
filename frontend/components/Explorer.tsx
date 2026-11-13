@@ -147,6 +147,15 @@ export default function Explorer() {
       <div className="xp-sky" aria-hidden="true" style={{ backgroundImage: `url(${sky})` }} />
       <header className="topbar">
         <Brand size={24} />
+        <Popover className="pages-pop" ariaLabel="Pages" label={<span className="pages-label">Menu</span>}>
+          {() => (
+            <nav className="pages-menu" aria-label="Pages">
+              <Link href="/"><strong>The story</strong><span>Why two satellites need one record</span></Link>
+              <Link href="/method"><strong>Method</strong><span>How we merge MODIS and VIIRS, and how we check it</span></Link>
+              <Link href="/play"><strong>Play: Normal or not?</strong><span>Five chapters on real fire data</span></Link>
+            </nav>
+          )}
+        </Popover>
         <div className="choices">
           <Popover className="area-pop" ariaLabel={`Area: ${s.aoiLabel}. Change the area`}
                    label={<><span className="pop-key">Area</span><span className="pop-val">{s.aoiLabel}</span></>}>
@@ -249,12 +258,12 @@ export default function Explorer() {
       {harm.data && modis.data && viirs.data && (
         <section className="xp-sensors xp-compare" aria-label="Raw join against the harmonized record">
           <div className="sensors-text">
-            <h2>Drag the line</h2>
+            <h2>Slide from raw to harmonized</h2>
             <p>
-              The same calendar twice. Left of the line, MODIS glued to VIIRS as they come; right of it, our record.
-              Same colours for the same numbers.
+              Each bar is one year of this area. At the left end of the slider: MODIS&apos;s counts, then VIIRS&apos;s glued on from 2012.
+              At the right end: our record, where MODIS years are converted to what VIIRS would have counted.
             </p>
-            <p className="muted">If the raw side brightens from 2012 and ours doesn&apos;t, that brightening was the satellite, not the fires.</p>
+            <p className="muted">If the bars step up at 2012 on the raw end and not on ours, the step was the satellite, not the fires.</p>
             <Link href="/play">Test your eye: play Normal or not?</Link>
           </div>
           <CompareSlider harmonized={harm.data} modis={modis.data} viirs={viirs.data} place={s.aoiLabel}
