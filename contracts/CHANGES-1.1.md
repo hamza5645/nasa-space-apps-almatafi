@@ -80,3 +80,14 @@ Details in `docs/reviews/`.
 - [ ] **api.md: error codes 413 and 500.** 413 for a body over the size limit, and 500 for a crash, returned as `{"error": …}` with CORS headers (X19, PR #6 review).
 - [ ] **api.md: small areas show what they cover.** Below 4 cell centres every touched cell counts, so `meta.aoi` should give the covered cells' area too (X20).
 - [ ] **api.md: `/search`.** Names are in English (`accept-language=en`). A place in parts on both sides of 180° gets the small bbox that crosses it (west > east, as RFC 7946 allows) instead of Nominatim's world-wide one (PR #12 review).
+
+## From X27 (FIRMS gaps, Khalid with Claude, Nov 13)
+
+Additive only: every new field is optional, and clients that ignore it see 1.0 responses.
+
+- [ ] **data-products.md: `clouds/cloud_monthly.parquet`.** `cmg_id` (int32, 0.5° cell: `((cell_id // 3600) // 5) * 720 + (cell_id % 3600) // 5`), `year`, `month`, `platform` (Terra|Aqua), `cloud_fraction` (float32, 0–1); metadata `source` (`mock` until MOD14CMH/MYD14CMH are read), `generated_utc`, `clear_min`. Bundles may carry `clouds/`; without it the backend drops its built-in copy.
+- [ ] **api.md: `clouds` on `/calendar` and `/stats`.** `"off"` (default) or `"correct"`: harmonized detections ÷ max(1 − cloud fraction, 0.2) per cell (Aqua's cloud, Terra's before 2002-07). 422 for raw views and fire days, 503 `data_unavailable` (`dataset: clouds`) without a cloud product. `unit` gains ", corrected for cloud cover".
+- [ ] **api.md: cloud fields in responses.** With a cloud product, `/calendar` adds `cloud` (matrix like `matrix`, the area's mean cloud fraction, 2 decimals, `null` where unknown) and `clouds` (`{mode, source, cloudy_from, note}`); `/stats` adds `cloud_fraction` and `clouds`.
+- [ ] **api.md: `/export` hotspots as `kml`.** One placemark per hotspot with its approximate pixel footprint (scan × track km), FRP colour classes, one folder per satellite.
+- [ ] **api.md: `POST /api/alerts/preview`.** Body `{aoi, name?, threshold: above_normal|unusual_high, clouds?}`; returns the month checked (this month so far, else last month), `triggered`, `status`, `value`, `z`, `partial`, `email {subject, text, html}` (every value escaped), `sent: false`. Takes no email address, stores nothing.
+- [ ] **data-products.md §5 (cache): `calendar_clouds` and `stats_clouds`** in each region file when the backend has a cloud product.
