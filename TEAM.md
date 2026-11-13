@@ -56,10 +56,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 
 ### In progress
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
-- X39 the Accessibility button overlaps Wel3a's bubble and chat (same corner, since X35 and X37 both merged) — Hamza (with Claude), Nov 13. Fixed on `hamza/x39-a11y-button-overlap` (`frontend/components/a11y/`, `frontend/app/story.css`, `frontend/components/wel3a/Wel3a.tsx`), with the round button and Wel3a's pop-up tips off on small screens; pushed, PR not opened yet
 
 ### In review (PR open, merge in this order)
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
+- X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
@@ -128,7 +128,7 @@ _Newest first. One entry per work session._
   - **Landing:** the hero caption moved further left (152 px from the right, was 96 px; on phones the right padding is 134 px, was 88 px), or the button would cover its end as the flame once did. Its width shrinks on narrow screens so it stays off the scroll cue.
   - **Later, at Hamza's ask:** the Accessibility button is a circle like the flame (44 px; it was a pill that grew a label on hover; the label is gone, the tooltip and the spoken name stay). Wel3a's pop-up tips are off by default on small screens (up to 820 px wide, the landing's phone layout), where the bubble covers much of the page; on wider screens they stay on. The choice made in the chat's "Pop-up tips" box is saved either way (`wel3a-quiet` is now "1" for off and "0" for on; nothing saved means the default for the screen). Checked at 375 px (no bubble; switched on, it shows after a reload) and at 1280 px (bubble shows).
   - Checked in the browser on the dev build, measuring the boxes: the button against the flame, the bubble and the open chat, and the panel against the flame and the button, on the explorer (1280 px at Normal and Largest text, 375 px at both), the game (1280×720 and 375 px) and the landing (900, 1280 and 1600 px wide, 375×667). No overlap anywhere; before the change the button overlapped the bubble and the chat. 102 frontend tests and lint pass.
-- Next: open the PR for Khalid's look (the button's place was his choice in X37).
+- Next: Khalid looks at the PR, hamza5645/nasa-space-apps-almatafi#7 (the button's place and its hover label were his choices in X37).
 - Broken / blocked: nothing known. Not changed: at Largest text the landing's hero caption runs into the scroll cue at 1280 px (it did before this change too). On Firefox older than 121 (no `:has()`), the game page keeps the button's normal place, 8 px into Wel3a's open chat. Not checked in Safari or on a real phone.
 
 ### Nov 13 — Hamza (with Claude) (5)
