@@ -58,11 +58,12 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - (nothing)
 
 ### In review (PR open, merge in this order)
-- X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts **Reviewed Nov 13 (Hamza):** 11 findings, fixes pushed to the branch (`docs/reviews/pr-37-x27-firms-gaps.md`); Khalid to look at the ones in `pipeline/` and `backend/`
+- (nothing)
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
+- [x] X27 FIRMS gaps: country fetch through the area API, cloud correction on a mock cloud product, alert previews, day image, smoke and footprints on the map, KML export, FIRMS credits — Khalid (with Claude); reviewed and fixed by Hamza (with Claude) (PR #37, merged Nov 13). Open: Khalid to look at the review fixes in `pipeline/` and `backend/` (`docs/reviews/pr-37-x27-firms-gaps.md`); Safari and phone check
 - [x] X26 4K day map everywhere + "Open the calendar" transition fades — Hamza (with Claude) (PR #36, merged Nov 5). Open: Safari and phone check
 - [x] X25 animation jank and load freezes — Hamza (with Claude) (PR #35, merged Nov 3). Open: phone and Safari check; the ~290 ms 8K map upload at load (4K everywhere would remove it)
 - [x] I1 staging deploy + auto-deploy on merge to `main` — Hamza (PR #34, merged Nov 3). Live: https://almatafi.monitorthesituations.com, API https://almatafi-api.monitorthesituations.com. `deploy/README.md`
@@ -113,6 +114,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Hamza (with Claude) (2)
+- Did: merged PR #37 (b122d82) at Hamza's call, before Khalid looked at the review fixes, and checked it live. `tests` and `deploy` passed on the merge commit; the VPS had the new image about 2 minutes after the deploy finished. Live API: the Nile Delta's October 2026 calendar export gives 589 as seen and 665 with `clouds: correct` (column `value_cloud_corrected`); the alert preview and the KML export answer. Live explorer in headless Chrome: no page errors; the alert preview clears when the area or the level changes; calendar and grid downloads send the cloud setting; the KML file is named `.kml`. X27 moved to Done.
+- Next: Khalid looks at the review fixes in his area, most of all the rule that a month without cloud data is not observed in the corrected view. Today's real fetch must run from `main` (it has the Chile outline fix). Safari and phone check of the explorer's new controls.
+- Broken / blocked: nothing. Not checked live: the Day image's layer order when the base map style fails to load (checked locally before the merge).
 
 ### Nov 13 — Hamza (with Claude)
 - Did: reviewed PR #37 (X27) and fixed what the review found, on Khalid's branch (`docs/reviews/pr-37-x27-firms-gaps.md`, 11 findings).
