@@ -8,7 +8,8 @@ const FIRE = "url(#il-fire)";
 function Defs() {
   return (
     <defs>
-      <linearGradient id="il-fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#E14E22" /><stop offset=".55" stopColor="#FF9A3C" /><stop offset="1" stopColor="#FFE39A" /></linearGradient>
+      <linearGradient id="il-fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#D6391A" /><stop offset=".5" stopColor="#F27A2A" /><stop offset="1" stopColor="#FFC14A" /></linearGradient>
+      <linearGradient id="il-tongue" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#FFD873" /><stop offset="1" stopColor="#FFF4C4" /></linearGradient>
       <linearGradient id="il-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0B1430" /><stop offset="1" stopColor="#1C2A44" /></linearGradient>
       <linearGradient id="il-ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#4C5A2A" /><stop offset="1" stopColor="#2E3618" /></linearGradient>
       <radialGradient id="il-glow"><stop offset="0" stopColor="#FFB547" stopOpacity=".8" /><stop offset="1" stopColor="#FFB547" stopOpacity="0" /></radialGradient>
@@ -17,12 +18,28 @@ function Defs() {
   );
 }
 
-export function Flame({ x, y, h, w = h * 0.62, dim = false }: { x: number; y: number; h: number; w?: number; dim?: boolean }) {
+// A flame with a fixed shape (outer body, lighter tongue, a glow at the base), drawn in a
+// 60 × 100 box and scaled to w × h. Width follows height unless a slot is given.
+const FLAME_OUT = "M30 0 C40 18 56 34 57 62 C58 84 46 100 30 100 C14 100 2 84 3 62 C4 48 12 40 17 28 C19 38 23 44 28 47 C26 32 27 14 30 0 Z";
+const FLAME_IN = "M30 42 C37 52 44 62 44 76 C44 90 38 100 30 100 C22 100 16 90 16 76 C16 67 21 60 24 54 C25 59 27 61 30 62 C29 55 29 48 30 42 Z";
+
+export function flameWidth(h: number, slot?: number): number {
+  return Math.max(12, Math.min(h * 0.6, slot ?? h * 0.6));
+}
+
+export function Flame({ x, y, h, w, dim = false, outline = false }:
+  { x: number; y: number; h: number; w?: number; dim?: boolean; outline?: boolean }) {
   // Base centre at (x, y), height h.
-  const d = `M${x} ${y - h} C${x + w * 0.32} ${y - h * 0.62} ${x + w * 0.5} ${y - h * 0.45} ${x + w * 0.5} ${y - h * 0.22} C${x + w * 0.5} ${y - h * 0.05} ${x + w * 0.25} ${y} ${x} ${y}` +
-    ` C${x - w * 0.25} ${y} ${x - w * 0.5} ${y - h * 0.05} ${x - w * 0.5} ${y - h * 0.22} C${x - w * 0.5} ${y - h * 0.4} ${x - w * 0.22} ${y - h * 0.5} ${x - w * 0.12} ${y - h * 0.68}` +
-    ` C${x - w * 0.02} ${y - h * 0.55} ${x + w * 0.05} ${y - h * 0.52} ${x + w * 0.08} ${y - h * 0.56} C${x + w * 0.04} ${y - h * 0.72} ${x - w * 0.02} ${y - h * 0.86} ${x} ${y - h} Z`;
-  return <path d={d} fill={dim ? "#5A5048" : FIRE} className={dim ? undefined : "il-flicker"} style={{ transformOrigin: `${x}px ${y}px` }} />;
+  const ww = w ?? flameWidth(h);
+  const t = `translate(${x - ww / 2} ${y - h}) scale(${ww / 60} ${h / 100})`;
+  if (outline) return <path d={FLAME_OUT} transform={t} fill="rgba(255, 198, 92, .08)" stroke="#FFC65C" strokeWidth={2.5 * 60 / Math.max(ww, 1)} strokeDasharray="7 5" vectorEffect="non-scaling-stroke" />;
+  return (
+    <g className={dim ? undefined : "il-flicker"} style={{ transformOrigin: `${x}px ${y}px` }}>
+      {!dim && <ellipse cx={x} cy={y - h * 0.08} rx={ww * 0.6} ry={h * 0.12} fill="#FF9A3C" opacity=".28" />}
+      <path d={FLAME_OUT} transform={t} fill={dim ? "#5A5048" : FIRE} />
+      {!dim && <path d={FLAME_IN} transform={t} fill="url(#il-tongue)" />}
+    </g>
+  );
 }
 
 function Satellite({ x, y, s = 1 }: { x: number; y: number; s?: number }) {

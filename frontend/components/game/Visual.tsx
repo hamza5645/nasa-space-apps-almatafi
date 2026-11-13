@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Visual as V } from "@/lib/game";
 import { MONTHS, fmt } from "@/lib/format";
-import Illus, { Flame } from "./Illus";
+import Illus, { Flame, flameWidth } from "./Illus";
 import Sprite, { type Sheets } from "./Sprite";
 
 export default function Visual({ v, answered, sheets }: { v: V; answered: boolean; sheets: Sheets | null }) {
@@ -21,39 +21,61 @@ export default function Visual({ v, answered, sheets }: { v: V; answered: boolea
   return <div className="vis-illus"><Illus name={v.name} /></div>;
 }
 
+const FIRE_DEFS = (
+  <defs>
+    <linearGradient id="il-fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#D6391A" /><stop offset=".5" stopColor="#F27A2A" /><stop offset="1" stopColor="#FFC14A" /></linearGradient>
+    <linearGradient id="il-tongue" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#FFD873" /><stop offset="1" stopColor="#FFF4C4" /></linearGradient>
+  </defs>
+);
+
+/** Flame height for a value: eased, so a big year isn't a needle and a small one isn't a dot. */
+const eased = (v: number, max: number, H: number) => Math.max(8, Math.sqrt(Math.max(0, v) / max) * H);
+
 function Years({ v, answered }: { v: Extract<V, { type: "years" }>; answered: boolean }) {
   const past = [...v.past].sort((a, b) => a.year - b.year);
   const max = Math.max(1, v.value, ...past.map((p) => p.value));
-  const H = 150, base = 176, slot = Math.max(16, Math.min(30, 640 / (past.length + 1)));
-  const W = slot * (past.length + 1) + 40;
-  const h = (x: number) => Math.max(6, (x / max) * H);
-  const tx = 20 + past.length * slot + slot / 2;
+  const n = past.length;
+  const slot = Math.max(18, Math.min(34, 680 / (n + 1.6)));
+  const W = Math.round(slot * (n + 1.6) + 36), H = 132, base = 164;
+  const h = (x: number) => eased(x, max, H);
+  const cx = (i: number) => 18 + i * slot + slot / 2;
+  const tx = 18 + n * slot + slot * 0.6 + slot / 2;
+  const ty = base - h(v.typical);
+  const label = `typical ${v.monthName}: ${fmt(v.typical)}`;
+  const lw = label.length * 6.6 + 14;
   return (
     <figure className="vis-years">
-      <svg viewBox={`0 0 ${W} 200`} role="img"
-           aria-label={`${v.monthName} in ${past.length} other years as flames; a typical one has ${fmt(v.typical)}${answered ? `; ${v.year} has ${fmt(v.value)}` : ""}.`}>
-        <defs><linearGradient id="il-fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#E14E22" /><stop offset=".55" stopColor="#FF9A3C" /><stop offset="1" stopColor="#FFE39A" /></linearGradient></defs>
-        <line x1="10" x2={W - 10} y1={base - h(v.typical)} y2={base - h(v.typical)} className="vy-typical" />
-        <text x="12" y={base - h(v.typical) - 6} className="vy-typical-label">typical {v.monthName}: {fmt(v.typical)}</text>
+      <svg viewBox={`0 0 ${W} 190`} preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label={`${v.monthName} in ${n} other years as flames; a typical one has ${fmt(v.typical)}${answered ? `; ${v.year} has ${fmt(v.value)}` : ""}.`}>
+        {FIRE_DEFS}
+        <line x1="10" x2={W - 10} y1={ty} y2={ty} className="vy-typical" />
+        <g className="vy-typical-pill">
+          <rect x={W - 10 - lw} y={ty - 22} width={lw} height="18" rx="6" />
+          <text x={W - 10 - lw / 2} y={ty - 9}>{label}</text>
+        </g>
         {past.map((p, i) => (
           <g key={p.year}>
-            <Flame x={20 + i * slot + slot / 2} y={base} h={h(p.value)} w={slot * 0.72} />
+            <Flame x={cx(i)} y={base} h={h(p.value)} w={flameWidth(h(p.value), slot * 0.86)} />
             <title>{`${v.monthName} ${p.year}: ${fmt(p.value)}`}</title>
-            {(i % 2 === 0 || past.length < 14) && <text x={20 + i * slot + slot / 2} y={base + 16} className="vy-year">{`'${String(p.year % 100).padStart(2, "0")}`}</text>}
+            {(i % 2 === n % 2 || n < 14) && <text x={cx(i)} y={base + 15} className="vy-year">{`'${String(p.year % 100).padStart(2, "0")}`}</text>}
           </g>
         ))}
+        <line x1={tx - slot * 0.8} x2={tx - slot * 0.8} y1={base - H - 6} y2={base + 2} className="vy-divider" />
         {answered ? (
           <g className="vy-now">
-            <circle cx={tx} cy={base - Math.min(h(v.value), 60) / 2} r={Math.min(28, Math.max(16, h(v.value) / 3))} className="vy-glow" />
-            <Flame x={tx} y={base} h={h(v.value)} w={slot * 0.9} />
-            <text x={tx} y={Math.max(14, base - h(v.value) - 8)} className="vy-now-label">{fmt(v.value)}</text>
+            <circle cx={tx} cy={base - Math.min(h(v.value), 50) / 2} r={Math.min(26, Math.max(14, h(v.value) / 3))} className="vy-glow" />
+            <Flame x={tx} y={base} h={h(v.value)} w={flameWidth(h(v.value), slot * 1.05)} />
+            <text x={tx} y={Math.max(13, base - h(v.value) - 7)} className="vy-now-label">{fmt(v.value)}</text>
           </g>
         ) : (
-          <g className="vy-ask"><text x={tx} y={base - 20} className="vy-q">?</text></g>
+          <g className="vy-ask">
+            <Flame x={tx} y={base} h={h(v.typical)} w={flameWidth(h(v.typical), slot * 1.05)} outline />
+            <text x={tx} y={base - Math.max(18, h(v.typical) / 2 - 10)} className="vy-q">?</text>
+          </g>
         )}
-        <text x={tx} y={base + 16} className="vy-year now">{v.year}</text>
+        <text x={tx} y={base + 15} className="vy-year now">{v.year}</text>
       </svg>
-      <figcaption>Each flame is {v.monthName} in another year; the taller, the more hotspots.</figcaption>
+      <figcaption>Each flame is {v.monthName} in another year: the taller, the more hotspots.</figcaption>
     </figure>
   );
 }
@@ -94,14 +116,17 @@ function Months({ v, answered }: { v: Extract<V, { type: "months" }>; answered: 
   const max = Math.max(1, ...v.values.map((x) => x ?? 0));
   return (
     <figure className="vis-months">
-      <svg viewBox="0 0 480 180" role="img" aria-label={`A typical year, month by month${answered ? `: highest in ${MONTHS[v.peak]}` : ""}.`}>
-        <defs><linearGradient id="il-fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#E14E22" /><stop offset=".55" stopColor="#FF9A3C" /><stop offset="1" stopColor="#FFE39A" /></linearGradient></defs>
-        {v.values.map((x, j) => (
-          <g key={j} opacity={answered && j !== v.peak ? 0.5 : 1}>
-            <Flame x={22 + j * 39} y={150} h={Math.max(4, ((x ?? 0) / max) * 128)} w={26} />
-            <text x={22 + j * 39} y={170} className={`vy-year${answered && j === v.peak ? " now" : ""}`}>{MONTHS[j]}</text>
-          </g>
-        ))}
+      <svg viewBox="0 0 480 172" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`A typical year, month by month${answered ? `: highest in ${MONTHS[v.peak]}` : ""}.`}>
+        {FIRE_DEFS}
+        {v.values.map((x, j) => {
+          const h = eased(x ?? 0, max, 118);
+          return (
+            <g key={j} opacity={answered && j !== v.peak ? 0.55 : 1}>
+              <Flame x={22 + j * 39.5} y={142} h={h} w={flameWidth(h, 32)} />
+              <text x={22 + j * 39.5} y={162} className={`vy-year${answered && j === v.peak ? " now" : ""}`}>{MONTHS[j]}</text>
+            </g>
+          );
+        })}
       </svg>
       <figcaption>A typical year here, month by month.</figcaption>
     </figure>
@@ -153,7 +178,7 @@ function MapShot({ src, label, dots, sheets, tag }: { src: string; label: string
       </figcaption>
       {fold && unfold && (
         <div className="explorer-guy"><div className="explorer-c">
-          <Sprite sheet={step.part === "fold" ? fold : unfold} height={150} run={step.part === "rest" ? null : `${step.n}-${step.part}`}
+          <Sprite sheet={step.part === "fold" ? fold : unfold} height={130} run={step.part === "rest" ? null : `${step.n}-${step.part}`}
                   still={unfold.frames - 1} onEnd={ended} label="An explorer folding and unfolding his map" />
         </div></div>
       )}

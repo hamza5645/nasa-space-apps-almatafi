@@ -5,8 +5,10 @@
 // it (the runner sheet, mirrored to run left), jumps, and on the jump's peak frame his head
 // hits the block: it bumps and turns right or wrong. Then the host celebrates or catches fire
 // and runs, and on a wrong answer the firefighter sprays at once. The truck glows on the left.
+// Everything is sized from the viewport height (`unit`), so a question fits the screen with
+// no page scroll; the explanation comes in over the card's lower part.
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Round } from "@/lib/game";
 import { play, say } from "@/lib/sound";
 import { FireTruck } from "./Illus";
@@ -22,16 +24,20 @@ type Props = {
   total: number;
   onResult: (choice: string, right: boolean) => void;   // at the block hit
   onSettled: () => void;                                // the reaction has played
+  explain?: ReactNode;                                  // shown over the card once settled
 };
 
-const KHALID_H = 210;       // display height of Khalid's jump frames, px; his run frames use the same scale
-const HOST_IDLE_H = 150;    // display height of the host's idle frames; his other sheets use the same scale
+// Base sizes at unit 1 (a 900 px tall viewport); everything scales down to unit 0.58.
+const KHALID_H = 210;       // display height of Khalid's jump frames; his run frames use the same scale
+const HOST_IDLE_H = 120;    // the host's idle frames; his other sheets use the same scale
 const FIREFIGHTER_H = 150;
 const RUN_SPEED = 620;      // px per second across the lane
-const GROUND = 18;          // px of ground under the characters' feet
-const HOST_PAD = 132;       // room above the card for the host
+const GROUND = 16;          // px of ground under the characters' feet
 
-export default function Stage({ round, sheets, index, total, onResult, onSettled }: Props) {
+const subscribeResize = (cb: () => void) => { window.addEventListener("resize", cb); return () => window.removeEventListener("resize", cb); };
+const unitNow = () => Math.min(1, Math.max(0.58, (window.innerHeight - 60) / 840));
+
+export default function Stage({ round, sheets, index, total, onResult, onSettled, explain }: Props) {
   const [phase, setPhase] = useState<Phase>("ask");
   const [target, setTarget] = useState<0 | 1 | null>(null);
   const [dx, setDx] = useState(0);
@@ -41,9 +47,10 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
   const lane = useRef<HTMLDivElement>(null);
   const blocks = [useRef<HTMLButtonElement>(null), useRef<HTMLButtonElement>(null)];
   const settled = useRef(false);
+  const unit = useSyncExternalStore(subscribeResize, unitNow, () => 1);
 
   const jump = sheets["khalid-jump"], run = sheets["khalid-run"];
-  const s = KHALID_H / jump.frameH;
+  const s = (KHALID_H * unit) / jump.frameH;
   const peak = jump.peak ?? Math.floor(jump.frames / 2);
   const picked = target === null ? null : round.choices[target].id;
   const right = picked !== null && picked === round.answer;
@@ -101,21 +108,28 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
     return () => clearTimeout(t);
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hs = HOST_IDLE_H / sheets["host-idle"].frameH;
-  const host = hostRun?.kind === "right" ? sheets["host-right"] : hostRun?.kind === "wrong" ? sheets["host-wrong"] : sheets["host-idle"];
+  // The host: one scale for all his sheets. The band above the card holds his standing
+  // height; a jump may rise above it, over the header (the host draws above it).
+  const idle = sheets["host-idle"];
+  const hs = (HOST_IDLE_H * unit) / idle.frameH;
+  const host = hostRun?.kind === "right" ? sheets["host-right"] : hostRun?.kind === "wrong" ? sheets["host-wrong"] : idle;
+  const band = Math.round(idle.baseline * hs) + 6;
   const khalidSheet = phase === "run" ? run : jump;
-  const blockLift = Math.round(((jump.rise ?? jump.frameH * 0.28) * s) + (jump.baseline * s) * 0.62);
+  // The block's underside sits where Khalid's head is at the top of his jump, less a little, so it's a hit.
+  const blockLift = Math.round((jump.baseline + (jump.rise ?? jump.frameH * 0.28)) * s * 0.95);
+  const ff = sheets["firefighter-spray"];
+  const ffH = FIREFIGHTER_H * unit;
 
   return (
-    <section className={`stage stage-${phase}`} aria-labelledby="q">
-      <div className="stage-card-wrap" style={{ paddingTop: HOST_PAD }}>
-        <div className="host" aria-hidden={hostRun ? undefined : true} style={{ top: HOST_PAD - host.baseline * hs }}>
+    <section className={`stage stage-${phase}`} aria-labelledby="q" style={{ ["--unit" as string]: unit }}>
+      <div className="stage-card-wrap" style={{ paddingTop: band }}>
+        <div className="host" aria-hidden={hostRun ? undefined : true} style={{ top: band - 6 - host.baseline * hs }}>
           {hostRun ? (
             <Sprite key={hostRun.n} sheet={host} height={host.frameH * hs} run={hostRun.n} hold="first"
                     onEnd={() => { setHostRun(null); settle(); }}
                     label={hostRun.kind === "right" ? "The host jumps for joy" : "The host's shoes catch fire and he runs"} />
           ) : (
-            <Sprite sheet={sheets["host-idle"]} height={sheets["host-idle"].frameH * hs} run="idle" loop />
+            <Sprite sheet={idle} height={idle.frameH * hs} run="idle" loop />
           )}
         </div>
         <div className="q-card">
@@ -125,11 +139,12 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
           </div>
           <h1 id="q" className="q-text">{round.prompt}</h1>
           {round.context && <p className="q-ctx">{round.context}</p>}
-          <Visual v={round.visual} answered={hit} sheets={sheets} />
+          <div className="q-visual"><Visual v={round.visual} answered={hit} sheets={sheets} /></div>
         </div>
+        {explain}
       </div>
 
-      <div className="lane" ref={lane} style={{ ["--lift" as string]: `${blockLift + GROUND}px`, ["--kh" as string]: `${KHALID_H}px`, ["--ground" as string]: `${GROUND}px` }}>
+      <div className="lane" ref={lane} style={{ ["--lift" as string]: `${blockLift + GROUND}px`, ["--ground" as string]: `${GROUND}px` }}>
         {round.choices.map((c, t) => {
           const state = !hit ? "" : c.id === round.answer ? (t === target ? " right" : " was-right") : t === target ? " wrong" : " dim";
           return (
@@ -154,15 +169,16 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
           </div>
         </div>
 
-        <div className="ground" aria-hidden="true" />
-        <div className="truck"><FireTruck width={200} /></div>
-        {sheets["firefighter-spray"] && (
-          <div className="firefighter" style={{ bottom: GROUND - (sheets["firefighter-spray"].frameH - sheets["firefighter-spray"].baseline) * (FIREFIGHTER_H / sheets["firefighter-spray"].frameH) }}>
-            <Periodic sheet={sheets["firefighter-spray"]} height={FIREFIGHTER_H} rest={3000} poke={spray} label="A firefighter spraying water" />
+        <div className="ground" aria-hidden="true">
+          <span className="ground-hint">{phase === "ask" ? "Pick a block: click it, or press ← or →" : ""}</span>
+        </div>
+        <div className="truck"><FireTruck width={Math.round(200 * unit)} /></div>
+        {ff && (
+          <div className="firefighter" style={{ bottom: GROUND - (ff.frameH - ff.baseline) * (ffH / ff.frameH) }}>
+            <Periodic sheet={ff} height={ffH} rest={3000} poke={spray} label="A firefighter spraying water" />
           </div>
         )}
       </div>
-      <p className="lane-hint" aria-hidden={phase !== "ask"}>{phase === "ask" ? "Pick a block: click it, or press ← or →." : " "}</p>
     </section>
   );
 }

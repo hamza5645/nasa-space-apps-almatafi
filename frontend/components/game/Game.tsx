@@ -157,19 +157,19 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
         {screen === "play" && round && (
           <>
             <Stage key={`${chapter.id}-${round.id}`} round={round} sheets={sheets} index={ri + 1} total={chapter.rounds.length}
-                   onResult={onResult} onSettled={() => setExplain(true)} />
-            {explain && (
-              <div className={`explain ${results[ri] ? "ok" : "no"}`} role="status">
-                <p className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</p>
-                <p className="explain-text">{round.explain}</p>
-                <div className="explain-row">
-                  <button type="button" className="btn btn-fire" onClick={next} autoFocus>
-                    {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
-                  </button>
-                  {round.link && <Link className="explain-link" href={round.link}>See it in the calendar →</Link>}
-                </div>
-              </div>
-            )}
+                   onResult={onResult} onSettled={() => setExplain(true)}
+                   explain={explain && (
+                     <div className={`explain ${results[ri] ? "ok" : "no"}`} role="status">
+                       <p className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</p>
+                       <p className="explain-text">{round.explain}</p>
+                       <div className="explain-row">
+                         <button type="button" className="btn btn-fire" onClick={next} autoFocus>
+                           {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
+                         </button>
+                         {round.link && <Link className="explain-link" href={round.link}>See it in the calendar →</Link>}
+                       </div>
+                     </div>
+                   )} />
           </>
         )}
 
