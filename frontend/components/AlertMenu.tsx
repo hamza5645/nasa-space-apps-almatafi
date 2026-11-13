@@ -17,18 +17,20 @@ export default function AlertMenu() {
   const s = useSelection();
   const [level, setLevel] = useState<Level>("above_normal");
   const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<AlertPreview | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const clouds = cloudsApply("harmonized", "detections", s.clouds) ? "correct" : "off";
+  // An answer belongs to the area, level and cloud mode it was asked for. When one of them
+  // changes it is no longer shown (this menu keeps its state while closed).
+  const asked = JSON.stringify([s.aoi, level, clouds]);
+  const [answer, setAnswer] = useState<{ asked: string; preview?: AlertPreview; error?: string } | null>(null);
+  const shown = answer?.asked === asked ? answer : null;
+  const preview = shown?.preview, error = shown?.error;
 
   async function run() {
     setBusy(true);
-    setError(null);
     try {
-      setPreview(await api.alertPreview({ aoi: s.aoi, name: s.aoiLabel, threshold: level,
-                                          clouds: cloudsApply("harmonized", "detections", s.clouds) ? "correct" : "off" }));
+      setAnswer({ asked, preview: await api.alertPreview({ aoi: s.aoi, name: s.aoiLabel, threshold: level, clouds }) });
     } catch (e) {
-      setPreview(null);
-      setError(e instanceof ApiError ? e.message : "The preview failed.");
+      setAnswer({ asked, error: e instanceof ApiError ? e.message : "The preview failed." });
     } finally {
       setBusy(false);
     }

@@ -8,7 +8,7 @@
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, MapLayerMouseEvent } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TerraDraw, TerraDrawPolygonMode, TerraDrawRectangleMode, TerraDrawRenderMode } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import type { Hotspots } from "@/lib/api";
@@ -133,8 +133,10 @@ export default function MapView({ hotspots, loading }: Props) {
   const [base, setBase] = useState<Base>("map");
   const [smoke, setSmoke] = useState(false);
   const { shape, aoiLabel, month, hotspot, setAoi, selectHotspot } = useSelection();
-  // The day the satellite image and smoke show: the picked hotspot's, else the month's busiest.
-  const day = hotspot?.acq_datetime_utc.slice(0, 10) ?? busiestDay(hotspots);
+  // The day the satellite image and smoke show: the picked hotspot's, else the busiest among
+  // the detections on the map (the whole month's, unless it has more than the map loads).
+  const busiest = useMemo(() => busiestDay(hotspots), [hotspots]);
+  const day = hotspot?.acq_datetime_utc.slice(0, 10) ?? busiest;
   const dayLayer = day ? trueColorLayer(day) : null;
   const smokeOf = day ? smokeLayer(day) : null;
 
@@ -246,8 +248,9 @@ export default function MapView({ hotspots, loading }: Props) {
   useEffect(() => {
     const m = map.current;
     if (!ready || !m) return;
-    const labels = m.getStyle().layers.find((l) => l.type === "symbol")?.id;
-    swapRaster(m, "day", base === "day" && dayLayer && day ? gibsTiles(dayLayer, day) : null, labels, 9, {});
+    // Right under the Blue Marble layer, which loadStyle put under the labels. Not "before the
+    // first symbol layer": on the fallback style that is one of Terra Draw's, above the hotspots.
+    swapRaster(m, "day", base === "day" && dayLayer && day ? gibsTiles(dayLayer, day) : null, "relief", 9, {});
     swapRaster(m, "smoke", smoke && smokeOf && day ? gibsTiles(smokeOf, day) : null, "aoi-fill", 6, { "raster-opacity": 0.7 });
   }, [ready, base, smoke, day, dayLayer, smokeOf]);
 
@@ -311,7 +314,9 @@ export default function MapView({ hotspots, loading }: Props) {
       <span><i className="dash" />Your area.</span>
       {(base === "day" || smoke) && day && (
         <span className="maplegend-day">
-          {base === "day" && dayLayer && <>Image: {day}, {dayLayer.label}{hotspot ? " (the picked hotspot's day)" : " (the month's busiest day)"}. </>}
+          {base === "day" && dayLayer && <>Image: {day}, {dayLayer.label}{hotspot ? " (the picked hotspot's day)"
+            : hotspots?.truncated ? " (the busiest day among the detections shown; this month has more than the map loads)"
+            : " (the month's busiest day)"}. </>}
           {smoke && smokeOf && <>Smoke: {smokeOf.label}; yellow to red is more smoke or dust. </>}
           From NASA GIBS.
         </span>

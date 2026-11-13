@@ -68,7 +68,8 @@ export default function Explorer() {
   const cloudInfo = cal.data?.clouds;
   const canFix = Boolean(cloudInfo) && cloudsApply(s.view, s.metric, true);
   const fixed = canFix && s.clouds;
-  // The yearly-totals chart compares all three views; the selected one is already cached.
+  // The yearly-totals chart compares all three views; the selected one is already cached
+  // (except the cloud-corrected calendar, which is its own request).
   const harm = useCalendar(s.aoi, s.start, s.end, "harmonized", s.metric);
   const modis = useCalendar(s.aoi, s.start, s.end, "modis", s.metric);
   const viirs = useCalendar(s.aoi, s.start, s.end, "viirs", s.metric);

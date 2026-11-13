@@ -2,7 +2,8 @@
 
 import { API_URL, ApiError, type ExportRequest } from "./api.ts";
 
-const EXT: Record<string, string> = { csv: "csv", geojson: "geojson", json: "json", geotiff: "tif" };
+// Every export format needs its extension here (KML files were saved as ".undefined").
+const EXT: Record<ExportRequest["format"], string> = { csv: "csv", geojson: "geojson", json: "json", geotiff: "tif", kml: "kml" };
 
 export function exportName(r: Pick<ExportRequest, "what" | "format" | "start" | "end">): string {
   return `almatafi_${r.what}_${r.start}_${r.end}.${EXT[r.format]}`;

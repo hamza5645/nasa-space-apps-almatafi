@@ -7,7 +7,7 @@ import Popover from "./Popover";
 import { ApiError, type ExportRequest } from "@/lib/api";
 import { download } from "@/lib/download";
 import { monthDays } from "@/lib/format";
-import { sensorsFor } from "@/lib/queries";
+import { cloudsApply, sensorsFor } from "@/lib/queries";
 import { useSelection } from "@/lib/store";
 
 type Item = { id: string; label: string; title: string; body: () => ExportRequest | null };
@@ -19,6 +19,8 @@ export default function ExportMenu({ latest }: { latest: string | null }) {
 
   const monthRange = s.month ? monthDays(s.month) : null;
   const lastMonth = s.end ?? latest ?? s.month ?? s.start;
+  // Calendar and grid files carry the numbers on screen: cloud-corrected when that view is on.
+  const clouds = cloudsApply(s.view, s.metric, s.clouds) ? { clouds: "correct" as const } : {};
   const items: Item[] = [
     { id: "csv", label: "Hotspots, CSV", title: "Every hotspot of the selected month, one row each",
       body: () => monthRange && { aoi: s.aoi, what: "hotspots", format: "csv", start: monthRange[0], end: monthRange[1], sensors: sensorsFor(s.view) } },
@@ -27,9 +29,9 @@ export default function ExportMenu({ latest }: { latest: string | null }) {
     { id: "kml", label: "Hotspots, KML", title: "For Google Earth: each hotspot with its pixel footprint, coloured by fire power",
       body: () => monthRange && { aoi: s.aoi, what: "hotspots", format: "kml", start: monthRange[0], end: monthRange[1], sensors: sensorsFor(s.view) } },
     { id: "geotiff", label: "Grid, GeoTIFF", title: "The selected month on the 0.1° grid (Cloud-Optimized GeoTIFF)",
-      body: () => s.month === null ? null : { aoi: s.aoi, what: "grid", format: "geotiff", start: s.month, end: s.month, view: s.view, metric: s.metric } },
+      body: () => s.month === null ? null : { aoi: s.aoi, what: "grid", format: "geotiff", start: s.month, end: s.month, view: s.view, metric: s.metric, ...clouds } },
     { id: "calendar", label: "Calendar, CSV", title: "Every month in the calendar, one row each",
-      body: () => ({ aoi: s.aoi, what: "calendar", format: "csv", start: s.start, end: lastMonth, view: s.view, metric: s.metric }) },
+      body: () => ({ aoi: s.aoi, what: "calendar", format: "csv", start: s.start, end: lastMonth, view: s.view, metric: s.metric, ...clouds }) },
   ];
 
   async function run(item: Item) {
