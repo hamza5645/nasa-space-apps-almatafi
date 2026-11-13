@@ -1,27 +1,32 @@
 import type { Metadata } from "next";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import Game from "@/components/game/Game";
-import { fireWeek, gameDocs, hasMedia } from "@/lib/content";
-import { buildPool } from "@/lib/game";
+import type { Sheets } from "@/components/game/Sprite";
+import { fireWeek, gameDocs } from "@/lib/content";
+import { buildChapters, type MapShots } from "@/lib/game";
 
 export const metadata: Metadata = {
   title: "Normal or not?",
-  description: "A seven-question game on real NASA fire records: tell a strange fire season from a normal one, and spot the satellite trap.",
+  description: "A five-chapter game on real NASA fire records: what a hotspot is, why two satellites disagree, and how to tell a strange fire season from a normal one.",
 };
 
 function day(iso: string) {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-// The rounds are built here, at build time, from the committed offline copy (public/cache/) and
-// the globe's real FIRMS week, so the game ships with its numbers and works offline.
+function json<T>(...parts: string[]): T | null {
+  try { return JSON.parse(readFileSync(join(process.cwd(), "public", ...parts), "utf8")) as T; } catch { return null; }
+}
+
+// Built here, at build time, from the committed offline copy (public/cache/), the globe's real
+// FIRMS week and the explorer snapshots (public/game/maps/), so the game ships with its numbers.
 export default function PlayPage() {
   const w = fireWeek();
   const week = w ? { dates: [day(w.dates[0]), `${day(w.dates[1])} 2026`] as [string, string],
                      modis: w.sensors.modis.detections, viirs: w.sensors.viirs.detections } : null;
-  const pool = buildPool(gameDocs(), week);
-  return (
-    <Game pool={pool}
-          winScene={hasMedia("game-win.webp") ? "/media/game-win.webp" : "/media/delta-high.webp"}
-          loseScene={hasMedia("game-lose.webp") ? "/media/game-lose.webp" : "/media/nile-delta.webp"} />
-  );
+  const chapters = buildChapters(gameDocs(), week, json<MapShots>("game", "maps", "maps.json") ?? {});
+  const sheets = json<Sheets>("game", "sprites", "sprites.json");
+  if (!sheets) throw new Error("public/game/sprites/sprites.json is missing: run design/sprites/process.py");
+  return <Game chapters={chapters} sheets={sheets} />;
 }

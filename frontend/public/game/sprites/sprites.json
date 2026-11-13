@@ -1,0 +1,78 @@
+{
+  "host-idle": {
+    "src": "/game/sprites/host-idle.webp",
+    "frameW": 88,
+    "frameH": 180,
+    "frames": 5,
+    "fps": 6,
+    "baseline": 176,
+    "facing": "front"
+  },
+  "host-wrong": {
+    "src": "/game/sprites/host-wrong.webp",
+    "frameW": 244,
+    "frameH": 192,
+    "frames": 27,
+    "fps": 12,
+    "baseline": 179,
+    "facing": "right"
+  },
+  "host-right": {
+    "src": "/game/sprites/host-right.webp",
+    "frameW": 130,
+    "frameH": 223,
+    "frames": 14,
+    "fps": 12,
+    "baseline": 219,
+    "facing": "front",
+    "rise": 69,
+    "peak": 5
+  },
+  "explorer-fold": {
+    "src": "/game/sprites/explorer-fold.webp",
+    "frameW": 198,
+    "frameH": 303,
+    "frames": 8,
+    "fps": 10,
+    "baseline": 299,
+    "facing": "front"
+  },
+  "explorer-unfold": {
+    "src": "/game/sprites/explorer-unfold.webp",
+    "frameW": 208,
+    "frameH": 302,
+    "frames": 8,
+    "fps": 10,
+    "baseline": 298,
+    "facing": "front"
+  },
+  "firefighter-spray": {
+    "src": "/game/sprites/firefighter-spray.webp",
+    "frameW": 266,
+    "frameH": 258,
+    "frames": 16,
+    "fps": 12,
+    "baseline": 252,
+    "facing": "right"
+  },
+  "khalid-run": {
+    "src": "/game/sprites/khalid-run.webp",
+    "frameW": 324,
+    "frameH": 445,
+    "frames": 8,
+    "fps": 14,
+    "baseline": 441,
+    "facing": "right"
+  },
+  "khalid-jump": {
+    "src": "/game/sprites/khalid-jump.webp",
+    "frameW": 246,
+    "frameH": 504,
+    "frames": 8,
+    "fps": 14,
+    "baseline": 494,
+    "facing": "front",
+    "rise": 151,
+    "peak": 4
+  }
+}

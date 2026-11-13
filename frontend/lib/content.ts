@@ -71,6 +71,15 @@ export function gameDocs(ids = ["nile-delta", "rio-negro"]): RegionDoc[] {
   return ids.map((id) => read<RegionDoc>(`${id}.json`)).filter((d): d is RegionDoc => Boolean(d?.stats && d?.calendar));
 }
 
+/** The game's sprite sheets (public/game/sprites/sprites.json, made by design/sprites/process.py). */
+export function gameSheets(): import("../components/game/Sprite.tsx").Sheets | null {
+  try {
+    return JSON.parse(readFileSync(join(process.cwd(), "public", "game", "sprites", "sprites.json"), "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 /** Whether a file is in public/media/ (generated media that may not be made yet, X27). */
 export function hasMedia(name: string): boolean {
   return /^[\w.-]+$/.test(name) && existsSync(join(process.cwd(), "public", "media", name));

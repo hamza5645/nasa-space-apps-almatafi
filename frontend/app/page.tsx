@@ -6,8 +6,8 @@ import Nav from "@/components/Nav";
 import OrbitStory, { type StoryNumbers } from "@/components/OrbitStory";
 import SmoothScroll from "@/components/SmoothScroll";
 import WarpLink from "@/components/WarpLink";
-import Mascot from "@/components/game/Mascot";
-import { demoCalendar, demoCompare, fireWeek, isMock, validation, type MiniCalendar } from "@/lib/content";
+import Sprite from "@/components/game/Sprite";
+import { demoCalendar, demoCompare, fireWeek, gameSheets, isMock, validation, type MiniCalendar } from "@/lib/content";
 import { fmt } from "@/lib/format";
 import "./site.css";
 import "./story.css";
@@ -33,6 +33,7 @@ export default function Home() {
   const week = fireWeek();
   const cal = demoCalendar("nile-delta");
   const cmp = demoCompare("nile-delta");
+  const sheets = gameSheets();
   const n: StoryNumbers = {
     week: week ? [fmtDay(week.dates[0]), `${fmtDay(week.dates[1])} 2026`] : ["27 Oct", "3 Nov 2026"],
     modis: week?.sensors.modis.detections ?? 0,
@@ -96,7 +97,7 @@ export default function Home() {
               <div className="proof-slider" data-reveal>
                 <div className="stack-sm">
                   <h3 className="display">See it for yourself.</h3>
-                  <p>The Nile Delta&apos;s calendar, twice: raw on the left of the line, ours on the right. Drag it.{mock ? " (Mock data until Nov 13.)" : ""}</p>
+                  <p>The Nile Delta, one bar per year. Slide from the raw join to our record and watch the 2012 step disappear.{mock ? " (Mock data until Nov 13.)" : ""}</p>
                 </div>
                 <CompareSlider {...cmp} place="Nile Delta" tone="light" />
               </div>
@@ -164,12 +165,12 @@ export default function Home() {
 
           <div className="wrap section">
             <div className="play-band" data-reveal>
-              <Mascot mood="idle" size={110} />
+              {sheets?.["host-idle"] && <Sprite sheet={sheets["host-idle"]} height={140} run="idle" loop label="The game's host" />}
               <div className="stack-lg">
                 <div className="eyebrow">A game, on real data</div>
                 <h2 className="display h2">Normal <em>or not?</em></h2>
-                <p>Seven questions from our own record: is this month strange for the Nile Delta? Which year really burned more?
-                  Can you spot the 2012 trap? Three embers, two minutes.</p>
+                <p>Five short chapters on our own record: what a hotspot is, why two satellites disagree, and how to tell a strange
+                  fire season from a normal one. Pick a block, and Khalid jumps to it.</p>
               </div>
               <WarpLink className="btn btn-fire big-btn" href="/play">Play</WarpLink>
             </div>

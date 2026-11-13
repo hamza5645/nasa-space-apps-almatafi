@@ -1,126 +1,100 @@
 "use client";
 
-// X33: "Normal or not?". Seven rounds from Almatafi's own record (lib/game.ts builds the pool
-// at build time), three embers for lives, a host whose mood follows the game. Keys 1–4 answer,
-// Enter goes on. Sound is off until the player turns it on.
+// X33: "Normal or not?" in five chapters. A level map (stars kept on this device), an
+// illustrated intro per chapter, then its questions on the stage (components/game/Stage.tsx),
+// an explanation after each answer, and the chapter's stars at the end.
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Brand from "@/components/Brand";
-import { LIVES, pickGame, points, verdictLine, type Round } from "@/lib/game";
-import type { Mood } from "@/lib/mascot";
+import { points, stars, type Chapter } from "@/lib/game";
 import { play, say, setSoundOn, soundOn, subscribeSound } from "@/lib/sound";
-import EmberField, { type EmberFieldHandle } from "./EmberField";
-import Mascot, { EmberIcon } from "./Mascot";
-import RevealViz from "./RevealViz";
+import Illus from "./Illus";
+import Sprite, { type Sheets } from "./Sprite";
+import Stage from "./Stage";
 import "./game.css";
 
-type Phase = "intro" | "play" | "end";
-type Result = { round: Round; right: boolean };
+type Screen = "map" | "intro" | "play" | "end";
+const KEY = "almatafi-game-stars";
 
-const SCENE: Record<string, string> = { "nile-delta": "/media/nile-delta.webp", "rio-negro": "/media/rio-negro.webp" };
-const sceneOf = (r: Round | null) => (r?.region && SCENE[r.region]) || "/media/night-orbit.webp";
+function loadStars(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(KEY) ?? "{}"); } catch { return {}; }
+}
+function saveStars(s: Record<string, number>) {
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* not remembered */ }
+}
 
-export default function Game({ pool, winScene = "/media/delta-high.webp", loseScene = "/media/nile-delta.webp" }:
-  { pool: Round[]; winScene?: string; loseScene?: string }) {
-  const [phase, setPhase] = useState<Phase>("intro");
-  const [rounds, setRounds] = useState<Round[]>([]);
-  const [i, setI] = useState(0);
-  const [picked, setPicked] = useState<string | null>(null);
-  const [lives, setLives] = useState(LIVES);
+export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets: Sheets }) {
+  const [screen, setScreen] = useState<Screen>("map");
+  const [ci, setCi] = useState(0);
+  const [ri, setRi] = useState(0);
+  const [results, setResults] = useState<boolean[]>([]);
+  const [explain, setExplain] = useState(false);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [results, setResults] = useState<Result[]>([]);
-  const [mood, setMood] = useState<Mood>("idle");
+  const [best, setBest] = useState<Record<string, number>>({});
   const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
-  const [shake, setShake] = useState(false);
-  const embers = useRef<EmberFieldHandle>(null);
-  const nextBtn = useRef<HTMLButtonElement>(null);
-  const card = useRef<HTMLDivElement>(null);
 
-  const round = phase === "play" ? rounds[i] : null;
-  const out = lives === 0;
+  useEffect(() => { const t = setTimeout(() => setBest(loadStars()), 0); return () => clearTimeout(t); }, []);
 
-  const start = useCallback(() => {
-    setRounds(pickGame(pool));
-    setI(0); setPicked(null); setLives(LIVES); setScore(0); setStreak(0); setResults([]); setMood("idle");
-    setPhase("play");
-    play("tap"); say("game-intro");
-  }, [pool]);
+  const chapter = chapters[ci];
+  const round = chapter?.rounds[ri];
+  const done = Object.keys(best).filter((k) => chapters.some((c) => c.id === k)).length;
+  const nextUp = chapters.findIndex((c) => !(c.id in best));
+  const totalStars = chapters.reduce((a, c) => a + (best[c.id] ?? 0), 0);
 
-  const answer = useCallback((id: string, el?: HTMLElement | null) => {
-    if (!round || picked) return;
-    const right = id === round.answer;
-    setPicked(id);
-    setResults((rs) => [...rs, { round, right }]);
-    if (right) {
-      setScore((s) => s + points(streak));
-      setStreak((s) => s + 1);
-      setMood("happy");
-      play("right"); say(Math.random() < 0.5 ? "right-1" : "right-2");
-      const b = (el ?? card.current)?.getBoundingClientRect();
-      if (b) embers.current?.burst(b.left + b.width / 2, b.top + b.height / 2);
-    } else {
-      const left = lives - 1;
-      setLives(left);
-      setStreak(0);
-      setMood(left === 0 ? "out" : "sad");
-      play("wrong"); say(left === 1 ? "last-ember" : Math.random() < 0.5 ? "wrong-1" : "wrong-2");
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setShake(true); setTimeout(() => setShake(false), 500); }
-    }
-  }, [round, picked, streak, lives]);
+  const open = (i: number) => { setCi(i); setScreen("intro"); play("tap"); };
+  const start = () => { setRi(0); setResults([]); setExplain(false); setScreen("play"); play("tap"); if (ci === 0) say("game-intro"); };
+
+  const onResult = useCallback((_: string, right: boolean) => {
+    setResults((r) => [...r, right]);
+    if (right) { setScore((s) => s + points(streak)); setStreak((s) => s + 1); } else setStreak(0);
+  }, [streak]);
 
   const next = useCallback(() => {
-    if (!picked) return;
-    if (out || i + 1 >= rounds.length) {
-      setPhase("end");
-      setMood(out ? "out" : "win");
-      play(out ? "lose" : "win"); say(out ? "lose" : "win");
-      return;
-    }
-    setI(i + 1); setPicked(null); setMood("idle"); play("tap");
-  }, [picked, out, i, rounds.length]);
+    if (!explain) return;
+    if (ri + 1 < chapter.rounds.length) { setRi(ri + 1); setExplain(false); play("tap"); return; }
+    const got = stars(results.filter(Boolean).length, chapter.rounds.length);
+    const nb = { ...best, [chapter.id]: Math.max(best[chapter.id] ?? 0, got) };
+    setBest(nb); saveStars(nb);
+    setScreen("end");
+    play(got >= 2 ? "win" : "lose"); say(got >= 2 ? "win" : "lose");
+  }, [explain, ri, chapter, results, best]);
 
-  // Focus "Next" once the answer is shown; keys 1–4 answer, Enter goes on.
-  useEffect(() => { if (picked) nextBtn.current?.focus({ preventScroll: true }); }, [picked]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (phase !== "play" || !round || e.altKey || e.ctrlKey || e.metaKey) return;
-      const k = Number(e.key);
-      if (!picked && k >= 1 && k <= round.choices.length) {
-        e.preventDefault();
-        answer(round.choices[k - 1].id, document.querySelector<HTMLElement>(`[data-choice="${round.choices[k - 1].id}"]`));
-      }
+      if (e.key !== "Enter" || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (screen === "play" && explain) { e.preventDefault(); next(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, round, picked, answer]);
+  }, [screen, explain, next]);
 
-  function toggleSound() {
-    const on = !sound;
-    setSoundOn(on);
-    if (on) play("tap");
-  }
-
-  const bg = phase === "end" ? (out ? loseScene : winScene) : sceneOf(round ?? pool[0] ?? null);
-  const right = results.filter((r) => r.right).length;
+  const right = results.filter(Boolean).length;
+  const got = chapter ? stars(right, chapter.rounds.length) : 0;
 
   return (
-    <div className="game" data-phase={phase}>
-      <div className="game-bg" style={{ backgroundImage: `url(${bg})` }} aria-hidden="true" />
-      <EmberField ref={embers} />
+    <div className="game" data-screen={screen}>
+      <div className="game-sky" aria-hidden="true" />
       <header className="game-top">
         <Brand size={22} />
-        {phase === "play" && (
+        <nav className="game-links" aria-label="Site">
+          <Link href="/explore">Explorer</Link>
+          <Link href="/method">Method</Link>
+        </nav>
+        {screen === "play" && chapter && (
           <div className="game-hud" aria-label="Progress">
-            <span className="hud-round">Round {i + 1} of {rounds.length}</span>
-            <span className="hud-lives" role="img" aria-label={`${lives} of ${LIVES} embers left`}>
-              {Array.from({ length: LIVES }, (_, k) => <EmberIcon key={k} lit={k < lives} />)}
+            <span className="hud-chapter">Chapter {ci + 1} · {chapter.title}</span>
+            <span className="hud-dots" aria-label={`Question ${ri + 1} of ${chapter.rounds.length}`}>
+              {chapter.rounds.map((_, k) => <i key={k} className={k < results.length ? (results[k] ? "ok" : "no") : k === ri ? "now" : ""} />)}
             </span>
             <span className="hud-score" aria-live="polite">{score.toLocaleString("en-US")} pts</span>
           </div>
         )}
-        <button type="button" className="game-sound" aria-pressed={sound} onClick={toggleSound}
+        {screen !== "map" && (
+          <button type="button" className="chip-btn game-mapbtn" onClick={() => setScreen("map")}>Chapters</button>
+        )}
+        <button type="button" className="game-sound" aria-pressed={sound} onClick={() => { setSoundOn(!sound); if (!sound) play("tap"); }}
                 aria-label={sound ? "Sound on. Turn it off" : "Sound off. Turn it on"} title={sound ? "Sound on" : "Sound off"}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" stroke="none" />
@@ -130,81 +104,91 @@ export default function Game({ pool, winScene = "/media/delta-high.webp", loseSc
       </header>
 
       <main className="game-main">
-        {phase === "intro" && (
-          <section className="game-intro">
-            <Mascot mood="idle" size={140} />
-            <h1 className="display">Normal <em>or not?</em></h1>
-            <p className="game-lede">
-              Seven questions on real NASA fire records. Can you tell a strange fire season from a normal one, and spot
-              the trap that fools a raw satellite count?
-            </p>
-            <ul className="game-rules">
-              <li><EmberIcon lit /> Three embers. A wrong answer puts one out.</li>
-              <li><span className="rule-key">1–4</span> to answer, <span className="rule-key">Enter</span> for the next one.</li>
-              <li><span className="rule-key">♪</span> Sound is off; the speaker button turns it on.</li>
-            </ul>
-            <button type="button" className="btn btn-fire big-btn game-start" onClick={start} autoFocus>Start</button>
+        {screen === "map" && (
+          <section className="levels" aria-labelledby="levels-h">
+            <div className="levels-head">
+              <div className="levels-host"><Sprite sheet={sheets["host-idle"]} height={150} run="idle" loop label="Your host" /></div>
+              <div className="levels-copy">
+                <p className="eyebrow">A game on real NASA fire data</p>
+                <h1 id="levels-h" className="display">Normal <em>or not?</em></h1>
+                <p className="game-lede">Five short chapters, two answers every time. Learn what a satellite fire record can and can&apos;t
+                  tell you, then read one like an analyst.</p>
+                <p className="levels-progress">{done} of {chapters.length} chapters · {totalStars} of {chapters.length * 3} stars</p>
+              </div>
+            </div>
+            <ol className="level-path">
+              {chapters.map((c, i) => {
+                const st = best[c.id];
+                const state = st !== undefined ? "done" : i === nextUp ? "next" : "open";
+                return (
+                  <li key={c.id} className={`level ${state}`}>
+                    <button type="button" onClick={() => open(i)} autoFocus={i === nextUp}
+                            aria-label={`Chapter ${i + 1}: ${c.title}. ${st !== undefined ? `${st} of 3 stars` : state === "next" ? "Up next" : "Not played yet"}`}>
+                      <span className="level-art"><Illus name={c.illus} /></span>
+                      <span className="level-n">Chapter {i + 1}</span>
+                      <span className="level-title">{c.title}</span>
+                      <span className="level-tag">{c.tagline}</span>
+                      <span className="level-stars" aria-hidden="true">{[0, 1, 2].map((k) => <i key={k} className={st !== undefined && k < st ? "on" : ""}>★</i>)}</span>
+                      {state === "next" && <span className="level-badge">Start here</span>}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
           </section>
         )}
 
-        {phase === "play" && round && (
-          <section key={round.id} className={`game-card${shake ? " shake" : ""}`} ref={card} aria-labelledby="q">
-            <div className="game-ask">
-              <Mascot mood={mood} size={104} />
-              <div className="bubble">
-                <span className="bubble-place">{round.place}</span>
-                <h1 id="q" className="bubble-q">{round.prompt}</h1>
-                {round.context && <p className="bubble-ctx">{round.context}</p>}
+        {screen === "intro" && chapter && (
+          <section className="intro" aria-labelledby="intro-h">
+            <div className="intro-art"><Illus name={chapter.illus} /></div>
+            <div className="intro-text">
+              <p className="eyebrow">Chapter {ci + 1} of {chapters.length}</p>
+              <h1 id="intro-h" className="display">{chapter.title}</h1>
+              <ol className="intro-steps">{chapter.intro.map((l, k) => <li key={k}><span>{k + 1}</span>{l}</li>)}</ol>
+              <p className="intro-how">{chapter.rounds.length} questions. Pick a block and Khalid jumps to it.</p>
+              <div className="intro-row">
+                <button type="button" className="btn btn-fire big-btn" onClick={start} autoFocus>Start chapter</button>
+                <button type="button" className="btn btn-glass big-btn" onClick={() => setScreen("map")}>All chapters</button>
               </div>
             </div>
-            {round.hint && <RevealViz r={picked ? round.reveal : round.hint} answered={Boolean(picked)} />}
-            <div className={`choices n${round.choices.length}`} role="group" aria-label="Answers">
-              {round.choices.map((c, k) => {
-                const state = !picked ? "" : c.id === round.answer ? " right" : c.id === picked ? " wrong" : " dim";
-                return (
-                  <button key={c.id} type="button" data-choice={c.id} className={`choice${state}`} disabled={Boolean(picked)}
-                          onClick={(e) => answer(c.id, e.currentTarget)}>
-                    <span className="choice-key" aria-hidden="true">{k + 1}</span>{c.label}
+          </section>
+        )}
+
+        {screen === "play" && round && (
+          <>
+            <Stage key={`${chapter.id}-${round.id}`} round={round} sheets={sheets} index={ri + 1} total={chapter.rounds.length}
+                   onResult={onResult} onSettled={() => setExplain(true)} />
+            {explain && (
+              <div className={`explain ${results[ri] ? "ok" : "no"}`} role="status">
+                <p className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</p>
+                <p className="explain-text">{round.explain}</p>
+                <div className="explain-row">
+                  <button type="button" className="btn btn-fire" onClick={next} autoFocus>
+                    {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
                   </button>
-                );
-              })}
-            </div>
-            {picked && (
-              <div className="answer" role="status">
-                <p className={`answer-flag ${picked === round.answer ? "ok" : "no"}`}>
-                  {picked === round.answer ? `Right! +${points(Math.max(0, streak - 1))}` : out ? "Wrong, and that was your last ember." : "Not quite."}
-                </p>
-                {!round.hint && <RevealViz r={round.reveal} answered />}
-                <p className="answer-text">{round.explain}</p>
-                <div className="answer-row">
-                  <button ref={nextBtn} type="button" className="btn btn-fire" onClick={next}>
-                    {out || i + 1 >= rounds.length ? "See your result" : "Next question"}
-                  </button>
-                  {round.link && <Link className="answer-link" href={round.link}>See it in the calendar</Link>}
+                  {round.link && <Link className="explain-link" href={round.link}>See it in the calendar →</Link>}
                 </div>
               </div>
             )}
-          </section>
+          </>
         )}
 
-        {phase === "end" && (
-          <section className="game-end" aria-labelledby="end-h">
-            <Mascot mood={out ? "out" : "win"} size={140} />
-            <h1 id="end-h" className="display">{right} of {results.length} <em>right</em></h1>
-            <p className="end-score">{score.toLocaleString("en-US")} points</p>
-            <p className="game-lede">{verdictLine(right, results.length, out)}</p>
-            <ol className="end-list">
-              {results.map(({ round: r, right: ok }) => (
-                <li key={r.id} className={ok ? "ok" : "no"}>
-                  <span className="end-mark" aria-label={ok ? "right" : "wrong"}>{ok ? "✓" : "✗"}</span>
-                  <span className="end-q"><b>{r.place}</b> · {r.prompt}</span>
-                  {r.link && <Link href={r.link}>Open</Link>}
-                </li>
-              ))}
-            </ol>
+        {screen === "end" && chapter && (
+          <section className="chapter-end" aria-labelledby="end-h">
+            <Sprite sheet={got >= 2 ? sheets["host-right"] : sheets["host-idle"]} height={(got >= 2 ? sheets["host-right"] : sheets["host-idle"]).frameH * (150 / sheets["host-idle"].frameH)}
+                    run="end" loop label="Your host" />
+            <p className="eyebrow">Chapter {ci + 1} done</p>
+            <h1 id="end-h" className="display">{right} of {chapter.rounds.length} <em>right</em></h1>
+            <p className="end-stars" aria-label={`${got} of 3 stars`}>{[0, 1, 2].map((k) => <i key={k} className={k < got ? "on" : ""}>★</i>)}</p>
+            <p className="end-learned"><b>What you learned:</b> {chapter.learned}</p>
             <div className="end-row">
-              <button type="button" className="btn btn-fire big-btn" onClick={start}>Play again</button>
-              <Link className="btn btn-glass big-btn" href="/explore">Open the calendar</Link>
+              {ci + 1 < chapters.length ? (
+                <button type="button" className="btn btn-fire big-btn" onClick={() => open(ci + 1)} autoFocus>Chapter {ci + 2}: {chapters[ci + 1].title}</button>
+              ) : (
+                <Link className="btn btn-fire big-btn" href="/explore">Now read your own place</Link>
+              )}
+              <button type="button" className="btn btn-glass big-btn" onClick={() => setScreen("map")}>All chapters</button>
+              {right < chapter.rounds.length && <button type="button" className="btn btn-glass big-btn" onClick={start}>Try again</button>}
             </div>
             <p className="end-note">Every number comes from NASA FIRMS fire data, harmonized by Almatafi.</p>
           </section>
