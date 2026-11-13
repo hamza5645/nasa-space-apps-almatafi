@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from almatafi.grid import build as build_grid
+from almatafi import clouds
 from almatafi.harmonize.build import build as harmonize
 from almatafi.ingest import ingest
 from almatafi.mock.generate import firms_files, generate, write
@@ -29,6 +30,8 @@ def built(tmp_path_factory):
     ingest(files, root / "clean", root / "rep", "mock", today=end)
     build_grid(root / "clean", root / "grid", root / "rep")
     harmonize(root / "grid", root / "harmonized", root / "rep", validation_dir=root / "validation")
+    ids, last = clouds.grid_cmg_ids(root / "grid")
+    clouds.write(clouds.build_mock(ids, last), root / "clouds", "mock")
     settings = Settings(data_dir=root, today=TODAY)
     index = build_cache(settings, root / "cache")
     return root, index, TestClient(create_app(settings))
@@ -108,3 +111,17 @@ def test_real_bundle_without_cache_drops_the_mock_cache(tmp_path):
     install("https://data.example.org/b.tar.gz", hashlib.sha256(body).hexdigest(), data,
             httpx.MockTransport(lambda r: httpx.Response(200, content=body)))
     assert not (data / "cache").exists()
+
+
+def test_cloud_corrected_copy(built):
+    """X27: with a cloud product, the offline copy also holds the cloud-corrected calendar and stats."""
+    root, _, client = built
+    doc = _load(root, "rio-negro.json")
+    aoi = {"type": "region", "region_id": "rio-negro"}
+    live = client.post("/api/calendar", json={"aoi": aoi, "clouds": "correct"}).json()
+    assert _no_time(doc["calendar_clouds"]) == _no_time(live) and live["clouds"]["source"] == "mock"
+    assert set(doc["stats_clouds"]) == set(doc["stats"])
+    month = doc["region"]["default_month"]
+    live = client.post("/api/stats", json={"aoi": aoi, "month": month, "clouds": "correct"}).json()
+    assert _no_time(doc["stats_clouds"][month]) == _no_time(live)
+    assert doc["stats_clouds"][month]["value"] > doc["stats"][month]["value"]  # cloud only ever adds

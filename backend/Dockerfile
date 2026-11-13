@@ -21,7 +21,7 @@ COPY backend/app backend/app
 RUN cd backend && uv sync --locked --no-dev
 
 FROM base AS data
-# The full mock pipeline: generate → ingest → grid → harmonize + validate (about a minute).
+# The full mock pipeline: generate → ingest → grid → harmonize + validate → mock clouds (about a minute).
 # Adds matplotlib (the pipeline's locked "plots" extra) for the validation charts; this stage
 # is thrown away, so the API image never carries it.
 RUN cd pipeline && uv export --locked --no-dev --extra plots --no-hashes --no-emit-project -o /tmp/plots.txt \
@@ -32,6 +32,7 @@ RUN python -m almatafi.mock --out /data/raw/mock --messy-year 0 \
  && python -m almatafi.grid --clean /data/clean --out /data/grid --reports /data/reports \
  && python -m almatafi.harmonize --grid /data/grid --out /data/harmonized --validation /data/validation \
         --truth /data/raw/mock/truth --reports /data/reports \
+ && python -m almatafi.clouds mock --grid /data/grid --out /data/clouds \
  && rm -rf /data/raw
 
 FROM base AS runtime

@@ -71,6 +71,18 @@ def test_a_bundle_without_a_cache_drops_the_mock_one(data):
     assert not (data / "cache").exists()
 
 
+
+def test_cloud_product_follows_the_bundle(data):
+    """X27: the built-in (mock grid) cloud product never stays next to a bundle's data."""
+    (data / "clouds").mkdir()
+    (data / "clouds" / "cloud_monthly.parquet").write_bytes(b"built-in mock clouds")
+    body = _bundle(GOOD | {"clouds/cloud_monthly.parquet": b"bundle clouds"})
+    install(URL, hashlib.sha256(body).hexdigest(), data, _transport(body))
+    assert (data / "clouds" / "cloud_monthly.parquet").read_bytes() == b"bundle clouds"
+    body = _bundle(GOOD | {"harmonized/extra": b"2"})
+    install(URL, hashlib.sha256(body).hexdigest(), data, _transport(body))
+    assert not (data / "clouds").exists()
+
 def test_same_bundle_is_not_downloaded_twice(data):
     body, seen = _bundle(GOOD), []
     sha = hashlib.sha256(body).hexdigest()

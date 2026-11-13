@@ -181,6 +181,59 @@ def test_harmonized_stats(harmonized):
     assert s["baseline"]["sd"] == 0.0 and s["z"] is None and s["status"] == "unusual_high"
 
 
+
+def _clouds(root, rows, source=b"mock"):
+    """Cloud product rows: (cmg cell of a 0.1° cell, year, month, platform, cloud fraction)."""
+    from almatafi import clouds
+    table = pa.table({"cmg_id": pa.array([int(clouds.cmg_of_cell(r[0])) for r in rows], pa.int32()),
+                      "year": pa.array([r[1] for r in rows], pa.int16()), "month": pa.array([r[2] for r in rows], pa.int8()),
+                      "platform": [r[3] for r in rows], "cloud_fraction": pa.array([r[4] for r in rows], pa.float32())})
+    (root / "clouds").mkdir()
+    pq.write_table(table.replace_schema_metadata({b"source": source}), root / "clouds" / "cloud_monthly.parquet")
+
+
+def test_cloud_cover_and_correction(tmp_path):
+    """X27: every calendar says how cloudy each month was; clouds=correct divides each cell's
+    count by its clear share (floored at 0.2), using Aqua's pass, Terra's before July 2002."""
+    c = _harmonized_client(tmp_path)
+    c1 = cells.cell_id(30.55, 31.05)  # both fixture cells share this 0.5° cloud cell
+    _clouds(tmp_path, [(c1, 2010, 10, "Aqua", 0.5),
+                       (c1, 2010, 10, "Terra", 0.0),     # ignored: Aqua's pass stands for 2010
+                       (c1, 2001, 3, "Terra", 0.9)])     # cloudier than the floor allows
+    plain = _post(c, "calendar", aoi=NILE_BOX, start="2001-01", end="2010-12").json()
+    by_year = dict(zip(plain["years"], plain["cloud"]))
+    assert plain["clouds"]["mode"] == "off" and plain["clouds"]["source"] == "mock" and plain["clouds"]["note"]
+    assert by_year[2010][9] == 0.5 and by_year[2001][2] == 0.9 and by_year[2005][0] is None
+    assert dict(zip(plain["years"], plain["matrix"]))[2010][9] == 41
+
+    fixed = _post(c, "calendar", aoi=NILE_BOX, start="2001-01", end="2010-12", clouds="correct").json()
+    m = dict(zip(fixed["years"], fixed["matrix"]))
+    assert m[2010][9] == 81        # (40.4 + 0.2) / 0.5 = 81.2
+    assert m[2001][2] == 18        # (2.5 + 1.0) / max(0.1, 0.2) = 17.5 → 18 (half up): at most 5×
+    assert m[2005][0] == 0         # no cloud row: no change
+    assert fixed["unit"].endswith("corrected for cloud cover") and fixed["clouds"]["mode"] == "correct"
+
+    s = _post(c, "stats", aoi=NILE_BOX, month="2010-10", baseline=[2001, 2009], clouds="correct").json()
+    assert s["value"] == 81.2 and s["cloud_fraction"] == 0.5 and s["clouds"]["mode"] == "correct"
+    assert _post(c, "stats", aoi=NILE_BOX, month="2010-10").json()["cloud_fraction"] == 0.5
+
+    bad = _post(c, "calendar", aoi=NILE_BOX, metric="fire_days", clouds="correct")
+    assert bad.status_code == 422 and "detections" in bad.json()["error"]["message"]
+
+
+def test_no_cloud_product_no_cloud_fields(harmonized):
+    d = _post(harmonized, "calendar", aoi=NILE_BOX, start="2010-01", end="2010-12").json()
+    assert "cloud" not in d and "clouds" not in d
+    s = _post(harmonized, "stats", aoi=NILE_BOX, month="2010-10").json()
+    assert "cloud_fraction" not in s
+    r = _post(harmonized, "calendar", aoi=NILE_BOX, clouds="correct")
+    assert r.status_code == 503 and r.json()["error"]["details"]["dataset"] == "clouds"
+
+
+def test_cloud_correction_is_harmonized_only(client):
+    r = _post(client, "calendar", aoi=RIO, start="2020-01", end="2020-12", view="viirs", clouds="correct")
+    assert r.status_code == 422
+
 # --- /stats
 
 def test_stats_rio_negro_july_2026(client):

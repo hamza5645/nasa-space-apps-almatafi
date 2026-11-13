@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import errors
 from app.admin import GeoBoundaries
 from app.admin import router as admin_router
+from app.alerts import router as alerts_router
 from app.aoi import AdminStore
 from app.config import Settings
 from app.data import DataStore
@@ -64,6 +65,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(search_router)
     app.include_router(admin_router)
     app.include_router(nrt_router)
+    app.include_router(alerts_router)
     return app
 
 

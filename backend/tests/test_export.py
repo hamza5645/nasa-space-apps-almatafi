@@ -154,6 +154,35 @@ def test_hotspot_exports_have_every_point(client, fmt):
     assert r.headers["content-disposition"].endswith(f'almatafi_hotspots_2026-10-01_2026-10-31.{fmt}"')
 
 
+
+def test_hotspot_kml(client):
+    """X27: KML with one placemark per hotspot, its pixel footprint and a FIRMS credit."""
+    import xml.etree.ElementTree as ET
+    body = {"aoi": BOX, "start": "2026-10-01", "end": "2026-10-31"}
+    total = client.post("/api/hotspots", json=body | {"limit": 1}).json()["total"]
+    r = _export(client, what="hotspots", format="kml", **body)
+    assert r.headers["content-type"].startswith("application/vnd.google-earth.kml+xml")
+    assert r.headers["content-disposition"].endswith('almatafi_hotspots_2026-10-01_2026-10-31.kml"')
+    ns = {"k": "http://www.opengis.net/kml/2.2"}
+    root = ET.fromstring(r.content)
+    marks = root.findall(".//k:Placemark", ns)
+    assert len(marks) == total > 0
+    assert "NASA FIRMS" in root.find("k:Document/k:description", ns).text
+    ring = marks[0].find(".//k:Polygon//k:coordinates", ns).text.split()
+    assert len(ring) == 5 and ring[0] == ring[-1]
+    folders = {f.find("k:name", ns).text for f in root.findall(".//k:Folder", ns)}
+    assert folders <= {"Terra", "Aqua", "SNPP", "NOAA20", "NOAA21"}
+
+
+def test_footprint_size():
+    from app.export import footprint
+    ring = footprint(31.0, 30.0, 1.0, 1.0)
+    w = (ring[1][0] - ring[0][0]) * 111.32 * 0.8660254
+    h = (ring[2][1] - ring[1][1]) * 110.57
+    assert abs(w - 1.0) < 1e-6 and abs(h - 1.0) < 1e-6
+    assert footprint(31.0, 30.0, None, 0.4) is None
+
+
 @pytest.mark.parametrize("kw,status,code", [
     ({"what": "grid", "format": "geojson", "start": "2025-01", "end": "2025-12"}, 400, "bad_request"),
     ({"what": "calendar", "format": "csv", "start": "2025-01-01", "end": "2025-12-31"}, 400, "bad_request"),

@@ -5,7 +5,9 @@ fall back to static files when the backend is asleep or down:
 
     data/cache/index.json            regions, data_version, when the cache was made
     data/cache/{region_id}.json      region, 6 calendars (view × metric), /stats for every
-                                     month, /hotspots for the region's default month
+                                     month, /hotspots for the region's default month; with a
+                                     cloud product also the cloud-corrected harmonized calendar
+                                     and stats (`calendar_clouds`, `stats_clouds`, X27)
     data/cache/validation.json       /api/validation, for the method page
 
 Run after the pipeline:  python -m app.cache [--out data/cache] [--today YYYY-MM-DD]
@@ -47,8 +49,12 @@ def build_cache(settings: Settings, out: Path) -> dict:
                 if r.status_code == 200:
                     calendars[view][metric] = r.json()
 
-        stats = {}
+        stats, stats_clouds, calendar_clouds = {}, {}, None
         harmonized = calendars["harmonized"].get("detections")
+        with_clouds = bool(harmonized and harmonized.get("clouds"))
+        if with_clouds:
+            r = client.post("/api/calendar", json={"aoi": aoi, "clouds": "correct"})
+            calendar_clouds = r.json() if r.status_code == 200 else None
         if harmonized:
             for y, row in zip(harmonized["years"], harmonized["matrix"]):
                 for m, v in zip(harmonized["months"], row):
@@ -58,6 +64,10 @@ def build_cache(settings: Settings, out: Path) -> dict:
                     r = client.post("/api/stats", json={"aoi": aoi, "month": month})
                     if r.status_code == 200:
                         stats[month] = r.json()
+                    if calendar_clouds:
+                        r = client.post("/api/stats", json={"aoi": aoi, "month": month, "clouds": "correct"})
+                        if r.status_code == 200:
+                            stats_clouds[month] = r.json()
 
         y, m = (int(x) for x in region["default_month"].split("-"))
         last = calendar.monthrange(y, m)[1]
@@ -67,6 +77,8 @@ def build_cache(settings: Settings, out: Path) -> dict:
 
         doc = {"region": region, "data_version": data_version, "generated_at": index["generated_at"],
                "calendar": calendars, "stats": stats, "hotspots": {region["default_month"]: hotspots}}
+        if calendar_clouds:
+            doc |= {"calendar_clouds": calendar_clouds, "stats_clouds": stats_clouds}
         path = out / f"{region['region_id']}.json"
         path.write_text(json.dumps(doc, separators=(",", ":")))
         index["regions"].append({"region_id": region["region_id"], "file": path.name,

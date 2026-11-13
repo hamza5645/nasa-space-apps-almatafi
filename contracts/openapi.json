@@ -76,6 +76,15 @@
             ],
             "title": "Aoi"
           },
+          "clouds": {
+            "default": "off",
+            "enum": [
+              "off",
+              "correct"
+            ],
+            "title": "Clouds",
+            "type": "string"
+          },
           "end": {
             "anyOf": [
               {
@@ -171,7 +180,8 @@
               "csv",
               "geojson",
               "json",
-              "geotiff"
+              "geotiff",
+              "kml"
             ],
             "title": "Format",
             "type": "string"
@@ -478,6 +488,74 @@
         "title": "PolygonAoi",
         "type": "object"
       },
+      "PreviewRequest": {
+        "properties": {
+          "aoi": {
+            "discriminator": {
+              "mapping": {
+                "admin": "#/components/schemas/AdminAoi",
+                "bbox": "#/components/schemas/BboxAoi",
+                "point": "#/components/schemas/PointAoi",
+                "polygon": "#/components/schemas/PolygonAoi",
+                "region": "#/components/schemas/RegionAoi"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonAoi"
+              },
+              {
+                "$ref": "#/components/schemas/BboxAoi"
+              },
+              {
+                "$ref": "#/components/schemas/PointAoi"
+              },
+              {
+                "$ref": "#/components/schemas/AdminAoi"
+              },
+              {
+                "$ref": "#/components/schemas/RegionAoi"
+              }
+            ],
+            "title": "Aoi"
+          },
+          "clouds": {
+            "default": "off",
+            "enum": [
+              "off",
+              "correct"
+            ],
+            "title": "Clouds",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "threshold": {
+            "default": "above_normal",
+            "enum": [
+              "above_normal",
+              "unusual_high"
+            ],
+            "title": "Threshold",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aoi"
+        ],
+        "title": "PreviewRequest",
+        "type": "object"
+      },
       "RegionAoi": {
         "properties": {
           "region_id": {
@@ -549,6 +627,15 @@
               }
             ],
             "title": "Baseline"
+          },
+          "clouds": {
+            "default": "off",
+            "enum": [
+              "off",
+              "correct"
+            ],
+            "title": "Clouds",
+            "type": "string"
           },
           "metric": {
             "default": "detections",
@@ -676,6 +763,42 @@
           }
         },
         "summary": "Admin"
+      }
+    },
+    "/api/alerts/preview": {
+      "post": {
+        "operationId": "preview_api_alerts_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview"
       }
     },
     "/api/calendar": {

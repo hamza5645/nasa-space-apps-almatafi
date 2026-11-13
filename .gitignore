@@ -18,6 +18,8 @@ data/reports/
 data/cache/
 data/admin/
 data/firms/
+data/clouds/
+data/alerts/
 dist/
 
 # Higgsfield raw outputs (processed copies live in frontend/public/media)

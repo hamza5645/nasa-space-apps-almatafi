@@ -84,6 +84,20 @@ def _platform_sql(view: str) -> str:
     return f"CASE WHEN {ym} <= {ym_index(SNPP_LAST)} THEN 'SNPP' ELSE 'NOAA20' END"
 
 
+# The cloud correction never scales a cell by more than 1 / CLEAR_MIN (pipeline almatafi.clouds).
+CLEAR_MIN = 0.2
+# AOI-mean cloud fraction from which a month is called cloudy in the API.
+CLOUDY = 0.5
+# 0.1° cell id → its 0.5° CMG cell (the 0.5° grid nests the 0.1° one, 5 × 5).
+CMG_SQL = "((cell_id // 3600) // 5) * 720 + (cell_id % 3600) // 5"
+
+
+def cloud_platform_sql() -> str:
+    """Which MODIS pass's cloud cover stands for a month: Aqua's 13:30 (VIIRS's overpass time),
+    Terra's 10:30 before Aqua flew."""
+    return f"CASE WHEN year * 12 + month - 1 >= {ym_index(AQUA_FIRST)} THEN 'Aqua' ELSE 'Terra' END"
+
+
 @dataclass
 class Monthly:
     values: dict[YM, float | None]
@@ -109,15 +123,50 @@ class Reader:
             raise ApiError(503, "data_unavailable", f"{what} is not loaded yet.", {"dataset": dataset})
         return path.as_posix()
 
-    def monthly(self, view: str, metric: str, first: YM, last: YM) -> Monthly:
+    def monthly(self, view: str, metric: str, first: YM, last: YM, cloud_correct: bool = False) -> Monthly:
         wanted = months(first, last)
         if view == "harmonized":
-            return self._harmonized(metric, wanted)
+            return self._harmonized(metric, wanted, cloud_correct)
+        if cloud_correct:
+            raise ApiError(422, "bad_request", "The cloud correction is for the harmonized view.")
         return self._raw(view, metric, wanted)
 
-    def _harmonized(self, metric: str, wanted: list[YM]) -> Monthly:
+    def _cells_with_clouds(self) -> str:
+        """A view of the AOI's cells with their CMG cell, for joins with the cloud product."""
+        self.con.execute(f"CREATE OR REPLACE TEMP VIEW aoi_cmg AS SELECT cell_id, {CMG_SQL} AS cmg_id FROM aoi_cells")
+        return self.data.clouds.as_posix()
+
+    def cloud_cover(self, first: YM, last: YM) -> dict[YM, float | None]:
+        """AOI-mean cloud fraction per month (each 0.1° cell counts once), or {} without the
+        cloud product. Months the product doesn't cover are None."""
+        if not self.data.clouds.exists():
+            return {}
+        path = self._cells_with_clouds()
+        lo, hi = ym_index(first), ym_index(last)
+        rows = self.con.execute(f"""
+            SELECT year, month, AVG(cloud_fraction) FROM aoi_cmg JOIN read_parquet('{path}') USING (cmg_id)
+            WHERE platform = {cloud_platform_sql()} AND year * 12 + month - 1 BETWEEN {lo} AND {hi}
+            GROUP BY ALL""").fetchall()
+        got = {(int(y), int(m)): float(v) for y, m, v in rows}
+        return {ym: got.get(ym) for ym in months(first, last)}
+
+    def _harmonized(self, metric: str, wanted: list[YM], cloud_correct: bool = False) -> Monthly:
         path = self._need(self.data.harmonized, "Harmonized data", "harmonized")
         col = "value" if metric == "detections" else "value_fire_days"
+        if cloud_correct and metric != "detections":
+            raise ApiError(422, "bad_request", "The cloud correction is for detections, not fire days.")
+        source = f"read_parquet('{path}') JOIN aoi_cells USING (cell_id)"
+        if cloud_correct:
+            clouds = self._need(self.data.clouds, "Cloud data", "clouds")
+            self._cells_with_clouds()
+            # Each cell's count over its clear share (Giglio et al. 2006); no cloud row = no change.
+            source = f"""(SELECT h.year, h.month, h.origin,
+                            h.{col} / GREATEST(1 - COALESCE(c.cloud_fraction, 0), {CLEAR_MIN}) AS {col}
+                          FROM read_parquet('{path}') h JOIN aoi_cmg a USING (cell_id)
+                          LEFT JOIN read_parquet('{clouds}') c ON c.cmg_id = a.cmg_id AND c.year = h.year
+                            AND c.month = h.month
+                            AND c.platform = CASE WHEN h.year * 12 + h.month - 1 >= {ym_index(AQUA_FIRST)}
+                                                  THEN 'Aqua' ELSE 'Terra' END)"""
         meta = pq.read_schema(path).metadata or {}
         if b"covered_start" in meta and b"covered_end" in meta:
             covered = (parse_ym(meta[b"covered_start"].decode()), parse_ym(meta[b"covered_end"].decode()))
@@ -130,7 +179,7 @@ class Reader:
         origins = json.loads(meta[b"month_origins"]) if b"month_origins" in meta else None
         rows = self.con.execute(f"""
             SELECT year, month, origin, SUM({col}) AS v
-            FROM read_parquet('{path}') JOIN aoi_cells USING (cell_id)
+            FROM {source}
             GROUP BY ALL
         """).fetchall()
         sums: dict[YM, float] = {}

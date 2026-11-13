@@ -18,13 +18,15 @@ from app import analytics
 from app.aoi import LIMIT_GRID_KM2, LIMIT_POINTS_KM2, Aoi, cells_touching, resolve
 from app.errors import ApiError
 from app.meta import build_meta
-from app.series import UNITS, YM, Reader, months, parse_ym
+from app.series import CLOUDY, UNITS, YM, Reader, months, parse_ym
 
 router = APIRouter(prefix="/api")
 
 Month = Annotated[str, StringConstraints(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")]
 View = Literal["harmonized", "modis", "viirs"]
 Metric = Literal["detections", "fire_days"]
+# "correct": harmonized detections over each cell's clear-sky share (docs/method.md §6).
+Clouds = Literal["off", "correct"]
 FIRST_MONTH: YM = (2000, 11)  # Terra's first FIRMS data
 MAX_HOTSPOT_DAYS = 366
 # A 500k km² AOI touches ~5k cells at the equator and ~25k near 80°; slivers beyond this are refused.
@@ -41,6 +43,7 @@ class CalendarRequest(BaseModel):
     end: Month | None = None
     view: View = "harmonized"
     metric: Metric = "detections"
+    clouds: Clouds = "off"
 
 
 class StatsRequest(BaseModel):
@@ -49,6 +52,7 @@ class StatsRequest(BaseModel):
     baseline: tuple[int, int] | None = None
     view: View = "harmonized"
     metric: Metric = "detections"
+    clouds: Clouds = "off"
 
 
 PlatformName = Literal["Terra", "Aqua", "SNPP", "NOAA20", "NOAA21"]
@@ -87,10 +91,20 @@ def _resolve(request: Request, aoi, limit: float, what: str):
 
 @router.post("/calendar")
 def calendar(body: CalendarRequest, request: Request):
-    return calendar_payload(request, body.aoi, body.start, body.end, body.view, body.metric)
+    return calendar_payload(request, body.aoi, body.start, body.end, body.view, body.metric, body.clouds)
 
 
-def calendar_payload(request: Request, aoi_body, start: str, end: str | None, view: str, metric: str) -> dict:
+def cloud_fields(request: Request, cover: dict, clouds: str) -> dict:
+    """The response's cloud block, when the backend has a cloud product."""
+    source = request.app.state.data.cloud_source()
+    if source is None:
+        return {}
+    return {"clouds": {"mode": clouds, "source": source, "cloudy_from": CLOUDY,
+                       "note": "Simulated cloud cover until MOD14CMH/MYD14CMH are loaded." if source == "mock" else None}}
+
+
+def calendar_payload(request: Request, aoi_body, start: str, end: str | None, view: str, metric: str,
+                     clouds: str = "off") -> dict:
     """The /calendar response; /export reuses it for calendar files."""
     today = _today(request)
     first = parse_ym(start)
@@ -98,7 +112,8 @@ def calendar_payload(request: Request, aoi_body, start: str, end: str | None, vi
     _check_months(first, last, today)
     aoi = _resolve(request, aoi_body, LIMIT_GRID_KM2, "calendars and statistics")
     reader = Reader(request.app.state.data, aoi.cell_ids, today)
-    series = reader.monthly(view, metric, first, last)
+    series = reader.monthly(view, metric, first, last, cloud_correct=clouds == "correct")
+    cover = reader.cloud_cover(first, last)
 
     years = list(range(first[0], last[0] + 1))
     in_range = set(months(first, last))
@@ -124,12 +139,17 @@ def calendar_payload(request: Request, aoi_body, start: str, end: str | None, vi
     if last == (today.year, today.month):
         partial = {"month": f"{last[0]}-{last[1]:02d}", "days_observed": reader.days_observed(view, last)}
 
+    unit = UNITS[(view, metric)] + (", corrected for cloud cover" if clouds == "correct" else "")
     out = {
-        "view": view, "metric": metric, "unit": UNITS[(view, metric)],
+        "view": view, "metric": metric, "unit": unit,
         "years": years, "months": list(range(1, 13)), "matrix": matrix,
     }
     if view == "harmonized":
         out["origin"] = origin
+    if cover:
+        out["cloud"] = [[None if (y, m) not in in_range or cover.get((y, m)) is None else round(cover[(y, m)], 2)
+                         for m in range(1, 13)] for y in years]
+        out |= cloud_fields(request, cover, clouds)
     out |= {"year_totals": year_totals, "month_medians": month_medians,
             "max": max(values) if values else None, "partial_month": partial,
             "meta": build_meta(request.app.state.data.data_version(), aoi)}
@@ -149,7 +169,9 @@ def stats(body: StatsRequest, request: Request):
     aoi = _resolve(request, body.aoi, LIMIT_GRID_KM2, "calendars and statistics")
     reader = Reader(request.app.state.data, aoi.cell_ids, today)
     first_year = min(y0, target[0], 2000)
-    series = reader.monthly(body.view, body.metric, (first_year, 1), (today.year, today.month))
+    series = reader.monthly(body.view, body.metric, (first_year, 1), (today.year, today.month),
+                            cloud_correct=body.clouds == "correct")
+    cover = reader.cloud_cover(target, target)
 
     value = series.values.get(target)
     if value is None:
@@ -184,6 +206,8 @@ def stats(body: StatsRequest, request: Request):
         **{k: c[k] for k in ("percentile", "rank", "z", "ratio_to_median", "status")},
         "partial": partial,
         "trend": analytics.trend(annual),
+        **({"cloud_fraction": None if cover.get(target) is None else round(cover[target], 2)} if cover else {}),
+        **cloud_fields(request, cover, body.clouds),
         "meta": build_meta(request.app.state.data.data_version(), aoi),
     }
 

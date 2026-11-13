@@ -1,7 +1,7 @@
 """Swap the built-in mock data for a real data bundle at start-up.
 
 Set ALMATAFI_DATA_URL to an https URL of a .tar.gz holding the data products
-(clean/ grid/ harmonized/ validation/, optionally admin/ and cache/) and ALMATAFI_DATA_SHA256
+(clean/ grid/ harmonized/ validation/, optionally admin/, cache/ and clouds/) and ALMATAFI_DATA_SHA256
 to its checksum. The bundle is downloaded (size-capped), checked against the checksum,
 unpacked safely and swapped in. Without ALMATAFI_DATA_URL the built-in data is used.
 
@@ -23,7 +23,7 @@ from pathlib import Path
 import httpx
 
 MAX_BYTES = 4 * 1024**3
-PRODUCTS = ("clean", "grid", "harmonized", "validation", "admin", "cache")
+PRODUCTS = ("clean", "grid", "harmonized", "validation", "admin", "cache", "clouds")
 REQUIRED = "harmonized/harmonized_monthly.parquet"
 MARKER = ".bundle_sha256"
 
@@ -67,6 +67,7 @@ def install(url: str, sha256: str, data_dir: Path, transport: httpx.BaseTranspor
             raise BundleError(f"bundle has no {REQUIRED}")
 
         has_cache = (staged / "cache").exists()  # checked before the move below empties staged/
+        has_clouds = (staged / "clouds").exists()
         for name in PRODUCTS:
             if (staged / name).exists():
                 shutil.rmtree(data_dir / name, ignore_errors=True)
@@ -74,6 +75,9 @@ def install(url: str, sha256: str, data_dir: Path, transport: httpx.BaseTranspor
         if not has_cache:
             # The built-in demo cache belongs to the mock data; never serve it next to real data.
             shutil.rmtree(data_dir / "cache", ignore_errors=True)
+        if not has_clouds:
+            # Same for the built-in cloud product: it only covers the mock grid's cells.
+            shutil.rmtree(data_dir / "clouds", ignore_errors=True)
     marker.write_text(sha256 + "\n")
     return True
 

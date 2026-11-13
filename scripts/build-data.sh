@@ -5,7 +5,7 @@
 #   scripts/build-data.sh real          # from data/raw/firms/ (already downloaded)
 #   scripts/build-data.sh real --fetch  # download first (FIRMS_MAP_KEY for this year, NOAA-21, NRT)
 #
-# Runbook: docs/runbook.md. Output: data/{clean,grid,harmonized,validation,cache},
+# Runbook: docs/runbook.md. Output: data/{clean,grid,harmonized,validation,clouds,cache},
 # frontend/public/cache/, and dist/almatafi-data.tar.gz with its SHA-256 for the backend's
 # ALMATAFI_DATA_URL / ALMATAFI_DATA_SHA256 (backend/app/bootstrap.py).
 # Options (env): DATA_DIR, DIST_DIR, COUNTRIES, API_COUNTRIES, YEARS, SKIP_ADMIN=1, FRONTEND_CACHE=0.
@@ -79,6 +79,9 @@ TRUTH=()
 py pipeline -m almatafi.harmonize --grid "$DATA/grid" --out "$DATA/harmonized" --validation "$DATA/validation" \
   --reports "$DATA/reports" ${TRUTH[@]+"${TRUTH[@]}"}
 
+step "cloud cover (simulated until MOD14CMH/MYD14CMH are read; docs/method.md §6)"
+py pipeline -m almatafi.clouds mock --grid "$DATA/grid" --out "$DATA/clouds"
+
 if [ "$MODE" = real ] && [ "${SKIP_ADMIN:-0}" != 1 ]; then
   step "admin boundaries for the demo countries"
   ALMATAFI_DATA_DIR=$DATA py backend -m app.admin EGY:1 ARG:1 CHL:1 || echo "admin prefetch failed; the app fetches them on first use" >&2
@@ -99,7 +102,7 @@ fi
 step "bundle"
 mkdir -p "$DIST" "$DATA/admin"
 BUNDLE=$DIST/almatafi-data-$MODE.tar.gz
-tar -czf "$BUNDLE" -C "$DATA" clean grid harmonized validation admin cache
+tar -czf "$BUNDLE" -C "$DATA" clean grid harmonized validation admin cache clouds
 SHA=$(shasum -a 256 "$BUNDLE" | cut -d' ' -f1)
 echo "$SHA  $(basename "$BUNDLE")" > "$BUNDLE.sha256"
 

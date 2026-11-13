@@ -28,6 +28,17 @@ class DataStore:
     def clean(self) -> Path:
         return self.root / "clean"
 
+    @property
+    def clouds(self) -> Path:
+        """Cloud cover per 0.5° cell and month (pipeline `almatafi.clouds`; mock until MOD14CMH)."""
+        return self.root / "clouds" / "cloud_monthly.parquet"
+
+    def cloud_source(self) -> str | None:
+        if not self.clouds.exists():
+            return None
+        meta = pq.read_schema(self.clouds).metadata or {}
+        return meta.get(b"source", b"unknown").decode()
+
     def has_points(self) -> bool:
         return any(self.clean.glob("sensor=*/year=*/*.parquet")) if self.clean.exists() else False
 

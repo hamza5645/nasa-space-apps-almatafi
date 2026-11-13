@@ -5,7 +5,9 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 from datetime import date
+from xml.sax.saxutils import escape
 from typing import Literal
 
 import numpy as np
@@ -37,10 +39,11 @@ MAX_TIFF_PIXELS = 10_000_000
 # Point exports are built in memory; a year of a 500k km² area in a busy fire region stays under this.
 MAX_EXPORT_POINTS = 200_000
 NODATA = -1.0
-FORMATS = {"hotspots": ("csv", "geojson"), "calendar": ("csv", "json"), "grid": ("geotiff", "csv")}
+FORMATS = {"hotspots": ("csv", "geojson", "kml"), "calendar": ("csv", "json"), "grid": ("geotiff", "csv")}
 CONTENT_TYPES = {"csv": "text/csv; charset=utf-8", "geojson": "application/geo+json",
-                 "json": "application/json", "geotiff": "image/tiff; application=geotiff; profile=cloud-optimized"}
-EXTENSIONS = {"csv": "csv", "geojson": "geojson", "json": "json", "geotiff": "tif"}
+                 "json": "application/json", "geotiff": "image/tiff; application=geotiff; profile=cloud-optimized",
+                 "kml": "application/vnd.google-earth.kml+xml"}
+EXTENSIONS = {"csv": "csv", "geojson": "geojson", "json": "json", "geotiff": "tif", "kml": "kml"}
 POINT_CSV = ["point_id", "lat", "lon", "sensor", "platform", "acq_datetime_utc", "daynight", "frp",
              "confidence_class", "confidence_pct", "fire_type", "brightness_k", "scan_km", "track_km",
              "cell_id", "source"]
@@ -49,7 +52,7 @@ POINT_CSV = ["point_id", "lat", "lon", "sensor", "platform", "acq_datetime_utc",
 class ExportRequest(BaseModel):
     aoi: Aoi
     what: Literal["hotspots", "calendar", "grid"]
-    format: Literal["csv", "geojson", "json", "geotiff"]
+    format: Literal["csv", "geojson", "json", "geotiff", "kml"]
     start: str = Field(pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     end: str = Field(pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     view: View = "harmonized"
@@ -113,6 +116,8 @@ def _hotspots(body: ExportRequest, request: Request) -> Response:
         doc = {"type": "FeatureCollection", "features": features, "total": len(features),
                "meta": build_meta(request.app.state.data.data_version(), aoi)}
         content = json.dumps(doc).encode()
+    elif body.format == "kml":
+        content = hotspots_kml(features, f"Almatafi hotspots {body.start} to {body.end}")
     else:
         rows = []
         for f in features:
@@ -120,6 +125,63 @@ def _hotspots(body: ExportRequest, request: Request) -> Response:
             rows.append(["" if p[c] is None else p[c] for c in POINT_CSV])
         content = _csv(POINT_CSV, rows)
     return _file(content, body.format, "hotspots", body.start, body.end)
+
+
+# KML colours are aabbggrr. Fire radiative power classes, low to high (the map's ember ramp).
+FRP_STYLES = [(5, "frp-low", "ff4fb7ff"), (20, "frp-mid", "ff2a8cff"), (100, "frp-high", "ff1a4ef0"),
+              (math.inf, "frp-extreme", "ff3b1fb4")]
+KML_FIELDS = [("platform", "Satellite"), ("sensor", "Sensor"), ("acq_datetime_utc", "Time (UTC)"),
+              ("daynight", "Day/night"), ("frp", "FRP (MW)"), ("confidence_class", "Confidence"),
+              ("confidence_pct", "Confidence (%)"), ("brightness_k", "Brightness (K)"),
+              ("scan_km", "Pixel along scan (km)"), ("track_km", "Pixel along track (km)"), ("source", "Source")]
+
+
+def footprint(lon: float, lat: float, scan_km, track_km) -> list[tuple[float, float]] | None:
+    """The pixel's ground footprint as a closed ring: scan × track km around the centre,
+    scan taken east-west and track north-south (polar orbits; an approximation, as in FIRMS's
+    footprint KMZ files). None without a pixel size."""
+    if not scan_km or not track_km:
+        return None
+    dlon = scan_km / 2 / (111.32 * max(math.cos(math.radians(lat)), 0.01))
+    dlat = track_km / 2 / 110.57
+    return [(lon - dlon, lat - dlat), (lon + dlon, lat - dlat), (lon + dlon, lat + dlat),
+            (lon - dlon, lat + dlat), (lon - dlon, lat - dlat)]
+
+
+def hotspots_kml(features: list[dict], title: str) -> bytes:
+    """Hotspots as KML for Google Earth and GIS tools: one placemark per hotspot with its pixel
+    footprint, coloured by fire radiative power, in one folder per satellite."""
+    def style_of(frp):
+        return next(sid for top, sid, _ in FRP_STYLES if (frp or 0) < top)
+
+    folders: dict[str, list[str]] = {}
+    for f in features:
+        p = f["properties"]
+        lon, lat = f["geometry"]["coordinates"][:2]
+        rows = "".join(f"<tr><td>{escape(label)}</td><td>{escape(str(p.get(k)))}</td></tr>"
+                       for k, label in KML_FIELDS if p.get(k) is not None)
+        ring = footprint(lon, lat, p.get("scan_km"), p.get("track_km"))
+        geom = f"<Point><coordinates>{lon:.5f},{lat:.5f}</coordinates></Point>"
+        if ring:
+            coords = " ".join(f"{x:.5f},{y:.5f}" for x, y in ring)
+            geom = (f"<MultiGeometry>{geom}<Polygon><outerBoundaryIs><LinearRing><coordinates>{coords}"
+                    f"</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>")
+        when = p.get("acq_datetime_utc") or ""
+        folders.setdefault(str(p.get("platform") or "Unknown"), []).append(
+            f"<Placemark><name>{escape(str(p.get('platform')))} {escape(when[:16].replace('T', ' '))}</name>"
+            f"<TimeStamp><when>{escape(when)}</when></TimeStamp><styleUrl>#{style_of(p.get('frp'))}</styleUrl>"
+            f"<description><![CDATA[<table>{rows}</table>]]></description>{geom}</Placemark>")
+    styles = "".join(f'<Style id="{sid}"><IconStyle><color>{col}</color><scale>0.6</scale><Icon><href>'
+                     "https://maps.google.com/mapfiles/kml/shapes/shaded_dot.png</href></Icon></IconStyle>"
+                     f"<LineStyle><color>{col}</color><width>1</width></LineStyle>"
+                     f"<PolyStyle><color>66{col[2:]}</color></PolyStyle></Style>" for _, sid, col in FRP_STYLES)
+    body = "".join(f"<Folder><name>{escape(name)}</name>{''.join(marks)}</Folder>"
+                   for name, marks in sorted(folders.items()))
+    credit = ("Fire data: NASA FIRMS (MODIS C6.1, VIIRS 375 m). Footprints are approximate: scan × track "
+              "kilometres around the pixel centre.")
+    return (f'<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'
+            f"<name>{escape(title)}</name><description>{escape(credit)}</description>{styles}{body}"
+            "</Document></kml>\n").encode()
 
 
 def _calendar(body: ExportRequest, request: Request, start: str, end: str) -> Response:
