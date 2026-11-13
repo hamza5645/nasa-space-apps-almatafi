@@ -83,7 +83,8 @@
 .il-tiny { font: 500 10px var(--body); }
 .il-q { font: 700 34px var(--display); }
 .il-big { font: 700 20px var(--display); }
-.il-flicker { animation: il-flicker 1.1s ease-in-out infinite alternate; transform-box: fill-box; }
+/* A flame flickers in place: it stretches from the middle of its own base and never travels. */
+.il-flicker { animation: il-flicker 1.1s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
 .il-float { animation: il-float 3.2s ease-in-out infinite; }
 .il-pulse { animation: il-pulse 1.6s ease-in-out infinite; }
 /* `scale` and `translate`, not `transform`: a CSS transform would replace the SVG element's own
