@@ -91,7 +91,7 @@
 @keyframes il-pulse { 50% { opacity: .45; } }
 
 /* The stage: card + host */
-.stage { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; }
+.stage { position: relative; flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; }
 .stage-card-wrap { position: relative; width: min(860px, 100%); margin: 0 auto; min-height: 0; display: flex; flex-direction: column; }
 .host { position: absolute; left: 50%; transform: translateX(-50%); z-index: 25; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .45)); }
 .q-card { position: relative; z-index: 2; flex: 1 1 auto; min-height: 0; overflow: hidden; background: #FBF8F3; color: #1A1714; border-radius: 24px; padding: 14px 20px 16px; display: flex; flex-direction: column; gap: 8px;
@@ -162,15 +162,16 @@
 
 /* The lane: blocks, Khalid, the ground, the decor */
 .lane { position: relative; width: min(860px, 100%); margin: 0 auto; height: calc(var(--lift) + 64px * var(--unit, 1)); }
+.block { width: min(300px, 38%); }
 .ground { position: absolute; left: -9999px; right: -9999px; bottom: 0; height: var(--ground); background: linear-gradient(180deg, #4C5A2A, #2E3618);
   border-top: 3px solid #6E7F3C; }
 .ground-hint { position: absolute; left: calc(9999px + 50%); transform: translateX(-50%); top: -22px; white-space: nowrap; font-size: 12.5px; color: var(--muted); }
-.block { position: absolute; bottom: var(--lift); width: min(300px, 40%); min-height: calc(58px * var(--unit, 1)); display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+.block { position: absolute; bottom: var(--lift); width: min(300px, 38%); min-height: calc(58px * var(--unit, 1)); display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 16px;
   border-radius: 16px; border: 3px solid #E9A23B; background: linear-gradient(180deg, #FFD27A, #F2A13A); color: #2A1404; cursor: pointer; z-index: 4;
   font-size: clamp(15px, 1vw + 8px, 18px); font-weight: 800; text-align: left; box-shadow: 0 6px 0 #B4671C, 0 14px 30px -12px rgba(0, 0, 0, .7);
   transition: transform .15s, filter .2s, opacity .3s, background .25s, border-color .25s, box-shadow .25s; }
-.block-0 { left: 0; }
-.block-1 { right: 0; }
+.block-0 { left: 8%; }
+.block-1 { right: 8%; }
 .block:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.06); }
 .block:disabled { cursor: default; }
 .block:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
@@ -182,7 +183,7 @@
 .block.wrong { background: linear-gradient(180deg, #FF9A8A, #E0473A); border-color: #A82A20; box-shadow: 0 6px 0 #7E1D16, 0 0 32px rgba(240, 106, 90, .6); color: #2A0905; }
 .block.was-right { border-color: #3FAE65; box-shadow: 0 6px 0 #22683A, 0 0 0 3px rgba(92, 203, 126, .55); }
 .block.dim { opacity: .5; }
-.block-mark { margin-left: auto; font-size: 26px; animation: pop .4s cubic-bezier(.3, 1.8, .5, 1) both; }
+.block-mark { margin-left: 4px; font-size: 26px; animation: pop .4s cubic-bezier(.3, 1.8, .5, 1) both; }
 .block-burst { position: absolute; left: 50%; top: 50%; pointer-events: none; }
 .block-burst i { position: absolute; width: 8px; height: 8px; border-radius: 50%; left: -4px; top: -4px;
   animation: burst .7s ease-out forwards; transform: rotate(var(--a)) translateX(0); }
@@ -204,7 +205,7 @@
 @keyframes ft-blink { 0% { opacity: 1; } 50% { opacity: .15; } }
 
 /* After an answer */
-.explain { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; max-height: 72%; overflow: auto; padding: 14px 20px 16px; border-radius: 18px; background: rgba(14, 16, 24, .94); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, .8);
+.explain { position: absolute; left: 0; right: 0; bottom: calc(var(--ground) + 6px); width: min(860px, 100%); margin: 0 auto; z-index: 6; max-height: 62%; overflow: auto; padding: 14px 20px 16px; border-radius: 18px; background: rgba(14, 16, 24, .94); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, .8);
   display: flex; flex-direction: column; gap: 10px; animation: card-in .35s ease-out both; }
 .explain.ok { border-color: rgba(92, 203, 126, .5); }
 .explain.no { border-color: rgba(240, 106, 90, .5); }
@@ -251,7 +252,8 @@
   .vv-vs { display: none; }
   .vis-maps, .vis-trap { grid-template-columns: 1fr; }
   .block { width: 44%; min-height: 64px; font-size: 16px; padding: 8px 10px; gap: 8px; }
-  .block-key { display: none; }
+  .block-0 { left: 2%; }
+  .block-1 { right: 2%; }
   .explorer-guy { left: 24px; bottom: -8px; transform: scale(.6); transform-origin: bottom left; }
   .hud-chapter { display: none; }
 }
@@ -403,3 +405,49 @@
 .explain.no .explain-flag { color: #B8291C; }
 .explain-link { color: #B4561C; }
 .intro-art .illus { border-color: #3A3E78; }
+
+/* ---- X36: the stage after Khalid's mockup. The Higgsfield plate behind it when it exists. ---- */
+.scene-plate { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+.scene-plate img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; display: block; }
+.scene-plate::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 10, 30, .35), transparent 30%); }
+.game[data-screen="map"] .scene-plate img, .game[data-screen="intro"] .scene-plate img, .game[data-screen="end"] .scene-plate img { filter: brightness(.55) saturate(.8); }
+/* The pavement: warm tiles the characters stand on (drawn on the plate's sidewalk when there is one). */
+.ground { height: var(--ground); background: #D9A86C; border-top: 4px solid #8A5A2B; box-shadow: inset 0 4px 0 #EBC08A; background-image:
+  linear-gradient(90deg, rgba(120, 70, 30, .35) 0 2px, transparent 2px), linear-gradient(180deg, rgba(120, 70, 30, .35) 0 2px, transparent 2px);
+  background-size: 34px 34px; }
+.on-plate .ground { background: none; border-top: 0; box-shadow: none; }
+.ground-hint { top: auto; bottom: calc(100% + 6px); }
+.on-plate .ground-hint { bottom: calc(100% + 10px); }
+/* The host stands left of centre; the flame burns on the card's top edge, in the middle. */
+.host { left: 36%; }
+.card-flame { position: absolute; left: 61%; transform: translateX(-50%); z-index: 24; pointer-events: none; filter: drop-shadow(0 0 18px rgba(255, 140, 40, .55)); }
+/* The notepad: four rings at the top left, a curled corner, the question underlined by hand. */
+.q-card::before { left: 36px; right: auto; width: 192px; top: -18px; height: 34px;
+  background: radial-gradient(circle at 50% 50%, transparent 6px, #4A4A62 6.5px 11px, transparent 11.5px) 0 0 / 48px 34px repeat-x; }
+.q-card { border-radius: 10px 10px 18px 10px; box-shadow: 0 0 0 3px #E8D6B4, 0 10px 0 3px #3A2A1E, 0 30px 60px -20px rgba(0, 0, 0, .9); }
+.q-text { text-decoration: underline; text-decoration-color: #D13A2C; text-decoration-thickness: 3px; text-underline-offset: 6px; text-decoration-skip-ink: none; }
+.q-text::after { content: " ✦"; color: #F7C948; text-decoration: none; display: inline-block; }
+.q-ctx { font-size: 15px; }
+.vis-years figcaption, .vis-months figcaption { display: inline-block; align-self: center; padding: 4px 12px; border-radius: 8px; background: #E8D6B4; color: #3A2A1E; font-size: 13px; }
+/* The decor characters stand closer to the stage, bigger. */
+.truck { left: calc(-120px * var(--unit, 1)); }
+.firefighter { right: calc(-90px * var(--unit, 1)); }
+@media (max-width: 1240px) { .truck { left: 0; transform: scale(.72); } .firefighter { right: 0; transform: scale(.8); } }
+@media (max-width: 760px) { .truck { transform: scale(.42); } .firefighter { transform: scale(.5); } .host { left: 20%; } .q-card::before { width: 144px; left: 24px; } }
+/* The card hugs its question (like a real notepad) instead of stretching to the blocks; pictures keep a sane height. */
+.q-card { flex: 0 1 auto; max-height: 100%; }
+.q-visual { flex: 0 1 auto; }
+.vis-map img { height: auto; max-height: min(36vh, 320px); }
+.vis-maps .vis-map img { max-height: min(30vh, 260px); }
+.vis-illus .illus { height: auto; max-height: min(32vh, 280px); }
+.fl-chart { flex: 0 0 auto; }
+.ground { z-index: 2; }
+.stage-card-wrap { justify-content: flex-start; }
+/* The typical pill sits at the left end of its line, clear of this year's column and its number. */
+.fl-typical span { right: auto; left: 0; }
+/* Short screens: the card gives up its caption and some padding so the chart's labels stay in view. */
+@media (max-height: 700px) {
+  .vis-years figcaption, .vis-months figcaption { display: none; }
+  .q-card { padding: 10px 16px 10px; gap: 5px; }
+  .fl-chart { padding-top: 10px; }
+}

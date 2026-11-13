@@ -2,6 +2,7 @@ import { SeriesChart } from "@/components/Charts";
 import CompareSlider from "@/components/CompareSlider";
 import "@/components/compare.css";
 import Footer from "@/components/Footer";
+import Narration from "@/components/Narration";
 import Nav from "@/components/Nav";
 import OrbitStory, { type StoryNumbers } from "@/components/OrbitStory";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -50,6 +51,7 @@ export default function Home() {
     <>
       <SmoothScroll />
       <Nav />
+      <Narration />
       <main>
         <OrbitStory n={n} />
 

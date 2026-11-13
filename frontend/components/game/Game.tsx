@@ -10,7 +10,7 @@ import Brand from "@/components/Brand";
 import { points, stars, type Chapter } from "@/lib/game";
 import { play, say, setSoundOn, soundOn, subscribeSound } from "@/lib/sound";
 import Illus from "./Illus";
-import { Sky } from "./Scene";
+import { Backdrop, Sky } from "./Scene";
 import Sprite, { type Sheets } from "./Sprite";
 import Stage from "./Stage";
 import "./game.css";
@@ -25,7 +25,9 @@ function saveStars(s: Record<string, number>) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* not remembered */ }
 }
 
-export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets: Sheets }) {
+export type Plate = { wide: boolean; tall: boolean };
+
+export default function Game({ chapters, sheets, plate = null }: { chapters: Chapter[]; sheets: Sheets; plate?: Plate | null }) {
   const [screen, setScreen] = useState<Screen>("map");
   const [ci, setCi] = useState(0);
   const [ri, setRi] = useState(0);
@@ -76,7 +78,7 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
 
   return (
     <div className="game" data-screen={screen}>
-      <Sky />
+      {plate ? <Backdrop tall={plate.tall} /> : <Sky />}
       <header className="game-top">
         <Brand size={22} />
         <nav className="game-links" aria-label="Site">
@@ -157,7 +159,7 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
 
         {screen === "play" && round && (
           <>
-            <Stage key={`${chapter.id}-${round.id}`} round={round} sheets={sheets} index={ri + 1} total={chapter.rounds.length}
+            <Stage key={`${chapter.id}-${round.id}`} round={round} sheets={sheets} index={ri + 1} total={chapter.rounds.length} plate={!!plate}
                    onResult={onResult} onSettled={() => setExplain(true)}
                    explain={explain && (
                      <div className={`explain ${results[ri] ? "ok" : "no"}`} role="status">

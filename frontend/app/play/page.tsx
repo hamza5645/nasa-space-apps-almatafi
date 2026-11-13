@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Game from "@/components/game/Game";
 import type { Sheets } from "@/components/game/Sprite";
@@ -28,5 +28,7 @@ export default function PlayPage() {
   const chapters = buildChapters(gameDocs(), week, json<MapShots>("game", "maps", "maps.json") ?? {});
   const sheets = json<Sheets>("game", "sprites", "sprites.json");
   if (!sheets) throw new Error("public/game/sprites/sprites.json is missing: run design/sprites/process.py");
-  return <Game chapters={chapters} sheets={sheets} />;
+  // X36: the Higgsfield street plates (design/higgsfield: game_street, game_street_tall), when generated.
+  const plate = { wide: existsSync(join(process.cwd(), "public", "media", "game-street.webp")), tall: existsSync(join(process.cwd(), "public", "media", "game-street-tall.webp")) };
+  return <Game chapters={chapters} sheets={sheets} plate={plate.wide ? plate : null} />;
 }
