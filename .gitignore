@@ -21,6 +21,7 @@ data/firms/
 data/clouds/
 data/alerts/
 dist/
+.wrangler/
 
 # Higgsfield raw outputs (processed copies live in frontend/public/media)
 design/higgsfield/out/
