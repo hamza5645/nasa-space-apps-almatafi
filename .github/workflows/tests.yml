@@ -71,6 +71,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: The site's Worker bundles (worker/index.ts)
+        run: npx --yes wrangler@4.156.2 deploy --dry-run
 
   docker:
     # The deploy image (backend/Dockerfile) builds, starts, and answers with its built-in mock data.
