@@ -5,15 +5,13 @@
 /* ---------- the button and the panel ---------- */
 /* The button stands left of Wel3a's flame (60 px at right 20, bottom 20), level with its middle: Wel3a's
    bubble and chat open above the flame, so nothing of ours may sit there. Our panel opens above both. */
-.a11y-fab { position: fixed; right: 90px; bottom: 28px; z-index: 70; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; min-width: 44px;
-  padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(14, 15, 20, .78); color: #fff; cursor: pointer;
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 14px; font-weight: 600; }
+.a11y-fab { position: fixed; right: 90px; bottom: 28px; z-index: 70; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  padding: 0; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .22); background: rgba(14, 15, 20, .78); color: #fff; cursor: pointer;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 /* On the game page the flame is 48 px at right 12, bottom 12, and its chat starts 64 px up. */
 body:has(.wel3a[data-page="play"]) .a11y-fab { right: 68px; bottom: 14px; }
 .a11y-fab:hover { border-color: var(--blue); }
 .a11y-fab[data-on] { color: var(--blue); border-color: rgba(107, 208, 228, .55); }
-.a11y-fab-text { display: none; }
-.a11y-fab:hover .a11y-fab-text, .a11y-fab:focus-visible .a11y-fab-text, .a11y-fab[aria-expanded="true"] .a11y-fab-text { display: inline; }
 .a11y-panel { position: fixed; right: 20px; bottom: 90px; z-index: 71; width: min(400px, calc(100vw - 24px)); max-height: calc(100vh - 106px); max-height: calc(100dvh - 106px); overflow: auto;
   padding: 14px 16px 16px; border-radius: 16px; background: #1D1915; color: var(--text); border: 1px solid var(--line); box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .9);
   display: flex; flex-direction: column; gap: 12px; font-size: 14.5px; }
