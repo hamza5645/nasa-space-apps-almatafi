@@ -143,7 +143,7 @@ export default function Stage({ round, sheets, index, total, plate = false, onRe
   const feetOf = (sheet: { frameH: number; baseline: number }, h: number) => FEET - (sheet.frameH - sheet.baseline) * (h / sheet.frameH);
 
   return (
-    <section className={`stage stage-${phase}${plate ? " on-plate" : ""}`} aria-labelledby="q"
+    <section className={`game-stage game-stage-${phase}${plate ? " on-plate" : ""}`} aria-labelledby="q"
              style={{ ["--unit" as string]: unit, ["--ground" as string]: `${GROUND}px`, ["--feet" as string]: `${FEET}px` }}>
       <div className="stage-card-wrap" style={{ paddingTop: band }}>
         <div className="host" aria-hidden={hostRun ? undefined : true} style={{ top: band - 6 - host.baseline * hs }}>
