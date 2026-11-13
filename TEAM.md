@@ -61,6 +61,8 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
+- X42 after a visit to the game, the landing's and Method's globe scrolled away or was missing: the game's `.stage` style overrode the story pages' `.stage` (stylesheets stay loaded between pages); the game's class is now `game-stage` — Khalid (with Claude), PR open. `frontend/components/game/` only
+
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
@@ -120,6 +122,12 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (44)
+- Did: X42, from Khalid's screenshot: after opening the game and going to another page, the landing showed its chapters over a black screen. The game's stylesheet has a rule for `.stage` (its play area), and the story pages' pinned globe stage is also `.stage`. A stylesheet stays loaded after you leave its page, so from then on the globe's stage was no longer pinned: it scrolled away with the page (from the top it slid off as you scrolled; with the Back button the page reopened further down with the globe already off screen). The game's class is now `game-stage` (`Stage.tsx`, `game.css`); no other class name in `game.css` is shared unscoped with the rest of the site (checked by script).
+  - Checked in headless Chrome on the dev build: landing, scroll down, Play, Back: the stage is pinned again and the globe's canvas is what sits under the chapters (before: the stage was 3,240 px above the screen). All five chapters played at 1280×720 and 1000×610: no page scroll, nothing clipped. 102 frontend tests, lint and typecheck pass.
+- Next: Hamza's look (it is a two-line rename). Seen, not changed: coming back with the Back button, the top bar stays tucked away until you scroll up, because the restored scroll position counts as scrolling down.
+- Broken / blocked: one sprite canvas was blank for one sample in the 1280×720 run (chapter 2, question 3, right after answering) and not in the 1000×610 run; not looked into. Not checked in Safari or on a phone.
 
 ### Nov 13 — Hamza (with Claude) (6)
 - Did: X39. With X35 and X37 both on `main`, the Accessibility button (bottom 100 px) sat on top of Wel3a's tip bubble and open chat, which grow upward from the flame in the same corner.
