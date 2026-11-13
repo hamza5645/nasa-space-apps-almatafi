@@ -55,10 +55,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X41 the 30-second promo video for the judges (Khalid's voice-over, the pixel-art characters acting on recordings of the real site; Remotion, Higgsfield for the space shot) — Khalid (with Claude), Nov 14. The edit lives outside the repo (`~/Documents/video-editor-bassam/projects/almatafi-promo`); in the repo only `design/higgsfield/shots.json` and this file change
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
+- X41 the 30-second promo video for the judges — Khalid (with Claude), Nov 14. The video is `~/Downloads/almatafi-promo.mp4` on Khalid's Mac (not in the repo); the PR only carries the two Higgsfield shots and this file. Hamza and Khalid: watch it with sound before it is submitted
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
@@ -121,6 +121,21 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (44)
+- Did: X41, the 30-second promo video, from Khalid's brief, his 28 s voice-over and the five character sheets. 1920×1080, 30 fps, 29.96 s: `~/Downloads/almatafi-promo.mp4` on Khalid's Mac. The edit (Remotion) is outside the repo, in `~/Documents/video-editor-bassam/projects/almatafi-promo` (`render.sh`, `bed.py` for the music, `cap/capture.mjs` for the site captures).
+  - **The site in it is the real one:** captures of the live site in headless Chrome (the Nile Delta, October 2026: the three views, the cloud-corrected toggle, October 2007/2016/2021, the raw → harmonized slider at five positions, Wel3a's chat with a real AI answer, the accessibility panel at 100/115/150 % text, the game's stage), with each button's position, so the characters touch the real controls.
+  - **Scenes, timed to the voice's words:** two satellites over the Earth with the real week's counts (MODIS 58,127, VIIRS 300,095) → Khalid pushes the raw → harmonized slider (11.6× → 0.80×), the firefighter washes noise points off the map, Khalid bumps MODIS only / VIIRS only / Harmonized (45 / 589), the explorer pulls a lever for the cloud-corrected view (589 → 665) → the Nile Delta from orbit with "50% cloud cover" → the calendar's October column and three past Octobers → the game (the "Not normal" block) → Wel3a's chat → the microphone ("bigger text") and the text size → the team around the logo.
+  - **Characters:** the game's own sprite strips (`frontend/public/game/sprites/`), not redrawn.
+  - **Higgsfield:** two Kling 2.5 Turbo clips, $0.36, ledger $3.58 of $5 (`design/higgsfield/README.md`): the Earth turning (from `planet`), and clouds drifting over NASA's real MODIS Terra image of the Delta on 20 Oct 2026 (from GIBS). The video says on screen that the cloud motion is AI-animated.
+  - **Sound:** Khalid's voice-over as recorded, plus a chiptune bed and effects synthesized in `bed.py` (no outside music). Burned-in captions of the voice-over.
+  - Checked: contact sheets of the whole video and of each scene change; peak −1.5 dB, mean −16 dB. Not checked by ear (I can't hear it).
+- Next: Khalid and Hamza watch it with sound. If the Cairo form wants under 30 s exactly, it is 29.96 s.
+- Broken / blocked:
+  - **"50% cloud cover" is the voice-over's number, not the site's.** The site's tile still says "Cloud cover (simulated) 11%" for the Delta's October 2026 (visible in the video's calendar scene). The real-cloud check in entry (38) gave Aqua 0.54 and Terra 0.46 for that month, which is where 50% comes from; the video labels it "preliminary". Until the real cloud product is in the demo cache, a judge who opens the site will see 11%.
+  - The purple "noise points" and the two satellites' dots in the first scene are drawings, not data (the counts are real).
+  - Manus wasn't used: its connector here can only start a task, not return files, so nothing it made could have gone into the video.
+  - The host has no running frames, so he hops.
 
 ### Nov 13 — Hamza (with Claude) (6)
 - Did: X39. With X35 and X37 both on `main`, the Accessibility button (bottom 100 px) sat on top of Wel3a's tip bubble and open chat, which grow upward from the flame in the same corner.

@@ -242,5 +242,29 @@
    "batch_size": 1,
    "prompt": "Pixel-art video game background, 16-bit style, clean crisp pixels, a quiet city street at night in Cairo, Egypt, tall portrait framing for a phone screen, perfectly horizontal sidewalk at the bottom. Deep indigo-blue starry sky fills the upper two thirds with a small bright crescent moon at the upper left, scattered tiny stars and a few soft dark-purple night clouds. Far away on the horizon, a low dark-purple silhouette of an old city skyline with minarets, domes and small flat-roofed houses, a few tiny warm lit windows. In the foreground, a flat paved sidewalk made of warm tan and orange square tiles runs along the very bottom of the frame, with a thin strip of grass and small bushes at its back edge. Along the sidewalk: two ornate black lamp posts with warm glowing orange lanterns and soft light pools, one near the left edge and one near the right edge, a wooden park bench, a small red fire hydrant, and round leafy green trees lit warmly by the lamps at both sides. The middle of the street is empty, no people, no vehicles, no text, no signs, no logos, no UI, no frame, no border. Warm and cosy, saturated colours, soft glow, detailed pixel art, SNES RPG aesthetic."
   }
+ },
+ {
+  "id": "promo_orbit",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "planet",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, spacecraft, satellites, people, cuts",
+   "prompt": "Locked camera in deep space. The Earth rotates very slowly, the tiny orange wildfire embers on its night side flicker and pulse gently, the thin turquoise airglow shimmers, faint stars. The planet stays in the right half of the frame, the left half stays black empty space. Calm, cinematic, photoreal."
+  }
+ },
+ {
+  "id": "promo_delta_clouds",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "promo_delta_sat",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, spacecraft, satellites, people, cuts",
+   "prompt": "Top-down satellite view, locked camera. The white clouds drift slowly from left to right across the river delta and thicken over it, their soft shadows sliding over the green farmland and the desert. The land, the coastline and the sea do not move or change. Photoreal satellite imagery, calm."
+  }
  }
 ]
