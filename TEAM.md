@@ -56,10 +56,9 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 
 ### In progress
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
-- X35 Wel3a, a small flame character on every page: written fun facts and highlights for what's on screen, and typed questions answered by Cloudflare Workers AI through a new `/api/wel3a` function in the site's Worker — Hamza (with Claude), Nov 13. `frontend/` and `frontend/wrangler.jsonc` only. (X34 is Khalid's explorer tour, on `khalid/x34-tour-sources`.)
 
 ### In review (PR open, merge in this order)
-- (nothing)
+- X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
@@ -116,6 +115,17 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Hamza (with Claude) (3)
+- Did: X35, Wel3a (ولعة, "a little flame"), at Hamza's ask: a 2D character that shares fun facts and points out what matters. PR hamza5645/nasa-space-apps-almatafi#2.
+  - **The character:** a flame with a face, drawn in SVG, in the bottom corner of every page (four moods: idle, talking, thinking, happy).
+  - **Tips, no AI:** it pops up with the page's most important point or a fun fact (`lib/wel3a.ts`). In the explorer it leads with the selected month's verdict for the area, then warns about raw views, unfinished months and the Terra-only months. The bubble hides after 12 s; "Pop-up tips" can be switched off. No pop-ups on the game page.
+  - **AI chat:** typed questions go to `POST /api/wel3a`, a new function in the site's Worker (`frontend/worker/index.ts`), answered by Gemma on Cloudflare Workers AI from a fixed fact sheet and what's on screen. No API key. Same-origin only, 8 questions a minute per visitor, nothing stored. Pages and files are still served without running the Worker (`run_worker_first: ["/api/*"]`).
+  - **When the AI can't answer** (offline, `next dev`, allowance used up) the chat says so and the tips keep working.
+  - Checked with `wrangler dev` on the built site against the real Workers AI (English answer 1.6 s, Arabic 8 s, an off-topic question refused, bad requests refused) and in the browser at desktop width and 375 px on the landing, the explorer and the game. 78 frontend tests (11 new), lint, typecheck and build pass.
+  - Docs: the AI-use disclosure in `docs/submission.md`, `deploy/README.md`, `frontend/README.md`.
+- Next: Khalid looks at the PR (it sits next to his X34 tour; the only shared file is `Providers.tsx`). After the merge, check the deployed chat. The Oct 31 "no gamification" decision still needs a word between us, now for the game and for Wel3a.
+- Broken / blocked: not checked on the deployed site: the deploy token may need a Workers AI permission for the Worker's `ai` binding, and the frontend deploy still waits for the `CLOUDFLARE_API_TOKEN` secret in this repo. Workers AI is free up to 10,000 neurons a day (about 800 answers); past that a Free plan refuses and a Paid plan bills. On a 375 px phone the flame covers the end of the landing hero's caption. Safari and a real phone not checked.
 
 ### Nov 13 — Hamza (with Claude)
 - Did: moved the auto-deploy to this repo (hamza5645/nasa-space-apps-almatafi). The API image is now `ghcr.io/hamza5645/almatafi-api` (`deploy.yml`, the VPS unit, `deploy/README.md`); the VPS runs it, healthy, and podman auto-update watches it. khalidstark/nasa-space-apps-modis's `deploy` workflow is disabled (its `tests` still run). The old unit is backed up on the VPS at `~almatafi/almatafi-api.container.bak-khalidstark`.
