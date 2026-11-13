@@ -157,6 +157,7 @@ export default function MethodPage() {
           </div>
           {hasMedia("clouds-fire.webp") && (
             <figure className="gen-figure" data-reveal>
+              {/* eslint-disable-next-line @next/next/no-img-element -- static WebP, sized by CSS */}
               <img src="/media/clouds-fire.webp" alt="" loading="lazy" decoding="async" />
               <figcaption>
                 <span className="tag gen">Generated scene · Higgsfield</span>
