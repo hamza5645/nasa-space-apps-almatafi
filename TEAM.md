@@ -56,6 +56,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 
 ### In progress
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
+- X39 the Accessibility button overlaps Wel3a's bubble and chat (same corner, since X35 and X37 both merged) — Hamza (with Claude), Nov 13. `frontend/components/a11y/a11y.css` only
 
 ### In review (PR open, merge in this order)
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
