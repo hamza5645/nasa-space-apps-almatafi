@@ -59,12 +59,12 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - X35 Wel3a, a small flame character on every page: written fun facts and highlights for what's on screen, and typed questions answered by Cloudflare Workers AI through a new `/api/wel3a` function in the site's Worker — Hamza (with Claude), Nov 13. `frontend/` and `frontend/wrangler.jsonc` only. (X34 is Khalid's explorer tour, on `khalid/x34-tour-sources`.)
 
 ### In review (PR open, merge in this order)
-- X34 explorer tour + the three FIRMS sources made explicit + "try it in two minutes" + real cloud product from GIBS (X28) — Khalid (with Claude), PR on the new repo (`khalid/x34-tour-sources`). Touches `frontend/` (Hamza's area) at Khalid's request and `pipeline/almatafi/clouds.py`.
 - (nothing)
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
+- [x] X34 explorer tour + the three FIRMS sources told apart + "try it in two minutes" + the game's night-city theme with Khalid's fire and truck sheets + X28 real cloud product from GIBS — Khalid (with Claude) (PR #1 on the new repo, merged Nov 13 at Khalid's call, **not reviewed by Hamza**). Open: the 2000 → now cloud build is still running; the demo cache still carries simulated clouds until it lands
 - [x] X33 "Normal or not?" game (five chapters, Khalid's pixel-art characters, pixel theme) + the raw-vs-harmonized bar slider + phone overlap fixes + page connections — Khalid (with Claude) (PR #38, merged Nov 13 at Khalid's call, **not yet reviewed by Hamza**: Hamza, please look at `frontend/components/game/`, `CompareSlider.tsx` and the page links, and say whether the Oct 31 "no gamification" decision can change)
 - [x] X27 FIRMS gaps: country fetch through the area API, cloud correction on a mock cloud product, alert previews, day image, smoke and footprints on the map, KML export, FIRMS credits — Khalid (with Claude); reviewed and fixed by Hamza (with Claude) (PR #37, merged Nov 13). Open: Khalid to look at the review fixes in `pipeline/` and `backend/` (`docs/reviews/pr-37-x27-firms-gaps.md`); Safari and phone check
 - [x] X26 4K day map everywhere + "Open the calendar" transition fades — Hamza (with Claude) (PR #36, merged Nov 5). Open: Safari and phone check
@@ -153,6 +153,11 @@ _Newest first. One entry per work session._
   - Checked: dev and the static build at 1440 px and 390 px, a full playthrough (right, wrong, out of embers), keyboard and sound toggle. 63 frontend tests, lint, typecheck and build pass.
 - Next: Hamza reviews PR #37, then PR #38. Khalid: sprite sheets for the host; recordings for `docs/narration.md`; `python gen.py clouds_fire game_win game_lose && ./process.sh` with the HF key ($0.03; ledger would be $3.24 of $5).
 - Broken / blocked: Higgsfield needs the HF key, so nothing new was generated (spend still $3.21). The "no gamification" decision needs Hamza.
+### Nov 13 — Khalid (with Claude) (39)
+- Did: merged PR #1 on the new repo (f2f5d09) at Khalid's call, all checks green. Hamza has not reviewed it; the Board says so.
+- Next: the real cloud product (building, ~2 h) → `data/clouds`, demo cache and `public/cache/` rebuilt, one more small PR. Hamza's review after the fact.
+- Broken / blocked: nothing known.
+
 ### Nov 13 — Khalid (with Claude) (38)
 - Did: X34 + X28, on the new repo (hamza5645/nasa-space-apps-almatafi; the old one is left as it is, as Khalid asked).
   - **From the Cairo judging guide** (judges test the site themselves with the 30 s video or 7 slides and a description; no pitch; five criteria: Impact, Creativity, Validity, Relevance, Presentation): the site must explain itself cold. So: a **ten-step tour** in the explorer (spotlight + card, Back/Next/Skip, arrow keys, Escape; opens by itself on a first visit, replays from a Tour button); a **Data** button and a landing section ("NASA FIRMS, three ways") that separate the three sources: the yearly archive (2000 → last year, science quality, with the fire type), this year through the API (standard, then NRT), and the public 24h/48h/7-day CSVs (no key; the globe's week, too short for the record); the globe caption names its source; the Method page lists the same three. The landing's light part opens with **"Try it in two minutes"**: Río Negro July 2026, the Delta on MODIS then VIIRS, one game chapter.
