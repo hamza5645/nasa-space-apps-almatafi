@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Stats } from "./api.ts";
 import { ASK, FACTS, contextLines, highlights, pageOf } from "./wel3a.ts";
-import { LIMITS, answerText, messages, parseChat } from "./wel3a-chat.ts";
+import { LIMITS, answerText, messages, parseChat, recentTurns, type Turn } from "./wel3a-chat.ts";
 
 function stats(extra: Partial<Stats> = {}): Stats {
   const past = [200, 220, 236, 250, 300];
@@ -41,9 +41,15 @@ test("highlights lead with the selected month's verdict for the area", () => {
   assert.deepEqual(rest, []);
 });
 
+test("a long place name leaves room for the verdict in a context line", () => {
+  const [first] = highlights(stats(), { ...sel, label: "Municipio de ".repeat(20) });
+  assert.ok(first.length <= LIMITS.line, String(first.length));
+  assert.match(first, /…\. October 2026: 589 hotspots\. .*in 6 years\.$/);
+});
+
 test("highlights warn about raw views, unfinished months and the Terra-only months", () => {
   assert.match(highlights(stats(), { ...sel, view: "modis" }).at(-1)!, /raw MODIS view.*2012/);
-  assert.match(highlights(undefined, { ...sel, view: "viirs" })[0], /raw VIIRS view/);
+  assert.match(highlights(stats(), { ...sel, view: "viirs" }).at(-1)!, /raw VIIRS view/);
   assert.match(highlights(stats({ partial: { days_observed: 13, comparison: "" } }), sel)[1], /isn't over/);
   assert.match(highlights(stats({ month: "2002-06" }), sel)[1], /Terra/);
   assert.equal(highlights(stats({ month: "2002-07" }), sel).length, 1);
@@ -100,20 +106,30 @@ test("parseChat keeps a few short context lines and drops the rest", () => {
   assert.equal(r.context[1].length, LIMITS.line);
 });
 
-test("messages put the rules and page notes first and the question last", () => {
+test("recentTurns sends what parseChat keeps, and a full request fits the body limit", () => {
+  // Arabic: 2 bytes a letter. A long chat, the longest question and a full set of page notes.
+  const log: Turn[] = Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? "assistant" : "user", content: `${i} ` + "ح".repeat(900) }));
+  const sent = { question: "س".repeat(LIMITS.question), history: recentTurns(log), context: Array(LIMITS.context).fill("ن".repeat(LIMITS.line)) };
+  assert.ok(new TextEncoder().encode(JSON.stringify(sent)).length <= LIMITS.body);
+  const kept = parseChat(sent);
+  assert.ok(typeof kept !== "string");
+  assert.deepEqual(kept.history, sent.history);
+  assert.ok(kept.history.at(-1)!.content.startsWith("39 "));
+});
+
+test("messages keep the rules alone in the system message; page notes travel with the question", () => {
   const m = messages({ question: "Why 2012?", history: [{ role: "user", content: "hi" }, { role: "assistant", content: "hello" }],
                        context: ["The visitor is on the explorer page."] });
   assert.deepEqual(m.map((x) => x.role), ["system", "user", "assistant", "user"]);
   assert.match(m[0].content, /Wel3a/);
-  assert.match(m[0].content, /The visitor is on the explorer page\./);
-  assert.equal(m.at(-1)!.content, "Why 2012?");
-  assert.doesNotMatch(messages({ question: "q", history: [], context: [] })[0].content, /what the visitor sees right now/);
+  assert.doesNotMatch(m[0].content, /The visitor is on the explorer page\./);
+  assert.match(m.at(-1)!.content, /^Page notes .*\n- The visitor is on the explorer page\.\n\nThe visitor asks: Why 2012\?$/);
+  assert.equal(messages({ question: "q", history: [], context: [] }).at(-1)!.content, "q");
 });
 
-test("answerText reads both Workers AI answer shapes", () => {
-  assert.equal(answerText({ response: "  Hi.  " }), "Hi.");
-  assert.equal(answerText({ choices: [{ message: { role: "assistant", content: "Hello." } }] }), "Hello.");
-  for (const bad of [null, "x", {}, { response: "" }, { response: 4 }, { choices: [] }, { choices: [{ message: {} }] }]) {
+test("answerText reads a Workers AI answer", () => {
+  assert.equal(answerText({ choices: [{ message: { role: "assistant", content: "  Hello.  " } }] }), "Hello.");
+  for (const bad of [null, "x", {}, { response: "Hi." }, { choices: [] }, { choices: [{ message: {} }] }, { choices: [{ message: { content: " " } }] }]) {
     assert.equal(answerText(bad), null, JSON.stringify(bad));
   }
 });

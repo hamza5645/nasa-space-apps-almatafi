@@ -17,7 +17,7 @@ export function pageOf(pathname: string): Page {
 /** The first tip of a page is its most important point; the rest are fun facts. */
 export const FACTS: Record<Page, string[]> = {
   home: [
-    "The one thing to remember: VIIRS counts 3 to 5 times more hotspots than MODIS for the same fires. Glue the two records together and 2012 looks like the world caught fire.",
+    "The one thing to remember: VIIRS counts several times more hotspots than MODIS for the same fires, over 10 times where fires are small. Glue the two records together and 2012 looks like the world caught fire.",
     "A hotspot isn't always a fire. Gas flares, volcanoes and factories glow hot from orbit too.",
     "Terra passes over at about 10:30 in the morning. Aqua and the VIIRS satellites come at about 1:30 in the afternoon, when fires are usually at their busiest.",
     "A fire doesn't have to fill a pixel to be seen. A hot one much smaller than the pixel is enough.",
@@ -56,14 +56,13 @@ export const ASK: Record<Page, [string, string, string]> = {
 const RAW: Record<Exclude<View, "harmonized">, string> = { modis: "MODIS", viirs: "VIIRS" };
 
 /** The explorer's important points for the current selection, most important first. */
-export function highlights(stats: Stats | undefined, sel: { label: string; view: View; metric: Metric }): string[] {
-  const out: string[] = [];
-  if (stats) {
-    const v = verdict(stats, sel.metric, sel.view);
-    out.push(`${sel.label}. ${v.headline}. ${v.detail}`);
-    if (stats.partial) out.push("This month isn't over yet, so I compare it with the same days in past years.");
-    if (stats.month < "2002-07") out.push("Only Terra, a morning satellite, was flying before July 2002. Treat this month as less certain.");
-  }
+export function highlights(stats: Stats, sel: { label: string; view: View; metric: Metric }): string[] {
+  const v = verdict(stats, sel.metric, sel.view);
+  // A searched place's full name can run long; the verdict after it has to fit in LIMITS.line.
+  const place = sel.label.length > 80 ? `${sel.label.slice(0, 79)}…` : sel.label;
+  const out = [`${place}. ${v.headline}. ${v.detail}`];
+  if (stats.partial) out.push("This month isn't over yet, so I compare it with the same days in past years.");
+  if (stats.month < "2002-07") out.push("Only Terra, a morning satellite, was flying before July 2002. Treat this month as less certain.");
   if (sel.view !== "harmonized") {
     out.push(`You're on the raw ${RAW[sel.view]} view. Don't compare years across 2012 here: the two sensors count the same fires differently.`);
   }

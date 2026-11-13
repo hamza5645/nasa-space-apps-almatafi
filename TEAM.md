@@ -116,6 +116,21 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 
 _Newest first. One entry per work session._
 
+### Nov 13 — Hamza (with Claude) (4)
+- Did: a code review of the Wel3a PR (hamza5645/nasa-space-apps-almatafi#2) and its fixes, on the same branch.
+  - **Long chats broke:** the browser sent the whole chat and the Worker refused requests over 8 KB, so after about 10 to 18 questions every answer failed until a reload. The browser now sends only the last 6 turns, and the limit (20 KB) has room for a full request in Arabic.
+  - **Wrong month:** while a month's numbers were loading or had failed, Wel3a still showed and sent the AI the previous month's verdict. It now falls back to the page's general tips.
+  - **The AI's inputs:** page notes travel with the question, not in the system message; a request must carry this site's Origin header. Gemma returns the OpenAI `choices` shape, so the other shape's code is gone.
+  - **Facts:** "3 to 5 times" contradicted the pages (5.2× worldwide, 12× in the Delta). Tips and the fact sheet now say several times, typically 3 to 5, over 10 where fires are small. The fact sheet says what the harmonized view is for.
+  - **Pop-ups:** in the explorer the bubble pops only for an unusual month or one with a warning (unfinished, Terra-only, raw view), not on every click, and not when the chat closes.
+  - **Smaller:** a 30 s timeout on a question; refusals show their own message; a failed question no longer overwrites what was typed meanwhile; a long place name no longer cuts the verdict out of the AI's notes; answers may be a little longer (320 tokens); keys typed in the chat no longer depend on where React listens.
+  - **Load:** Wel3a's code and styles load after the page (26 KB, no longer in any page's first load).
+  - **Landing:** the hero caption moved clear of the flame (it was covered at 375 px and at 1280 to 1400 px wide).
+  - **Tests and CI:** 7 tests for the Worker's request handling with stand-in bindings, 86 frontend tests in all; the `tests` workflow's frontend job now bundles the Worker (`wrangler deploy --dry-run`, no credentials needed). Khalid: that is one new step in `.github/workflows/tests.yml`.
+  - Checked with `wrangler dev` against the real Workers AI (English and Arabic, a 7.6 KB Arabic chat, a note that tries to change the rules is ignored, no Origin gives 403), in the browser (explorer tips, the game's keys, Escape) and in iOS Safari in the simulator (the keyboard doesn't cover the chat box).
+- Next: Khalid looks at the PR. Decide on a daily cap for AI answers: the only limit is 50 questions a minute per visitor, so one visitor can use up the free day (about 800 answers) in about 16 minutes. A real cap needs a counter on the Cloudflare account (KV or a Durable Object).
+- Broken / blocked: the PR conflicts with `main` (not looked at yet), and a PR with conflicts doesn't run the `tests` workflow. Not changed: Cloudflare's request logs are on for the chat function. Still not checked on the deployed site or a real phone.
+
 ### Nov 13 — Hamza (with Claude) (3)
 - Did: X35, Wel3a (ولعة, "a little flame"), at Hamza's ask: a 2D character that shares fun facts and points out what matters. PR hamza5645/nasa-space-apps-almatafi#2.
   - **The character:** a flame with a face, drawn in SVG, in the bottom corner of every page (four moods: idle, talking, thinking, happy).

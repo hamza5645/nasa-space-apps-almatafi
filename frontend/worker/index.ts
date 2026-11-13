@@ -1,6 +1,8 @@
 // The site's only Worker code. Pages and files are served straight from out/ without it:
 // wrangler.jsonc sends just /api/* here. POST /api/wel3a answers one question for Wel3a, the
-// flame guide (components/wel3a/), with Workers AI. Nothing is stored, and questions aren't logged.
+// flame guide (components/wel3a/), with Workers AI. This code keeps nothing and never logs a
+// question's text; Cloudflare's own request logs (`observability` in wrangler.jsonc) note that a
+// request was made, not what it said.
 
 import { LIMITS, answerText, messages, parseChat } from "../lib/wel3a-chat.ts";
 
@@ -38,9 +40,9 @@ const worker = {
     const url = new URL(request.url);
     if (url.pathname !== "/api/wel3a") return env.ASSETS.fetch(request);
     if (request.method !== "POST") return json(405, { error: "Use POST." }, { allow: "POST" });
-    // Browsers on other sites can't spend this site's AI allowance.
-    const origin = request.headers.get("origin");
-    if (origin && origin !== url.origin) return json(403, { error: "Wel3a only answers on this site." });
+    // Only this site's own pages may ask (browsers send Origin with every POST). A script can
+    // fake the header; the rate limit below is what bounds that.
+    if (request.headers.get("origin") !== url.origin) return json(403, { error: "Wel3a only answers on this site." });
 
     const visitor = request.headers.get("cf-connecting-ip") ?? "unknown";
     if (!(await env.WEL3A_LIMIT.limit({ key: visitor })).success) {
@@ -56,7 +58,7 @@ const worker = {
 
     try {
       const out = await env.AI.run(MODEL, {
-        messages: messages(chat), max_tokens: 220, temperature: 0.3,
+        messages: messages(chat), max_tokens: 320, temperature: 0.3,
         chat_template_kwargs: { enable_thinking: false },
       });
       const answer = answerText(out);

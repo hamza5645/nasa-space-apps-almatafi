@@ -2,9 +2,12 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { shouldRetry } from "@/lib/retry";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import WarpOverlay from "./WarpOverlay";
-import Wel3a from "./wel3a/Wel3a";
+
+// Loaded after the page, so the guide and the data code it reads aren't in any page's first load.
+const Wel3a = dynamic(() => import("./wel3a/Wel3a"), { ssr: false });
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   // One client per browser tab. Answers for an area and month don't change within a session.

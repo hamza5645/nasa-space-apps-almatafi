@@ -10,12 +10,13 @@ import { useEffect, useRef, useState } from "react";
 import { useStats } from "@/lib/queries";
 import { useSelection } from "@/lib/store";
 import { ASK, FACTS, contextLines, highlights, pageOf } from "@/lib/wel3a";
-import { LIMITS, type Turn } from "@/lib/wel3a-chat";
+import { LIMITS, recentTurns, type Turn } from "@/lib/wel3a-chat";
 import Flame, { type Mood } from "./Flame";
 import "./wel3a.css";
 
 const QUIET_KEY = "wel3a-quiet";
 const BUBBLE_MS = 12_000;
+const ASK_MS = 30_000;
 const DOWN = "I can't reach my AI brain right now. My tips still work: try “Another fact”.";
 
 function storedQuiet(): boolean {
@@ -27,20 +28,26 @@ export default function Wel3a() {
   const onExplore = page === "explore";
   const { aoi, aoiLabel, month, view, metric, clouds } = useSelection();
   // The same query the explorer runs, so this reads its cached answer.
-  const stats = useStats(aoi, onExplore ? month : null, view, metric, clouds).data;
+  const statsQuery = useStats(aoi, onExplore ? month : null, view, metric, clouds);
+  const stats = statsQuery.data;
+  const [open, setOpen] = useState(false);
 
-  // What Wel3a is talking about: the page, or in the explorer the selected month once its
-  // numbers are in. A new subject starts again from the most important point and pops up.
-  const points = onExplore && stats ? highlights(stats, { label: aoiLabel, view, metric }) : null;
-  const head = onExplore ? points?.join("|") : page;
+  // What Wel3a is talking about: the page, or in the explorer the selected month while its
+  // numbers are on screen. A new subject starts again from the most important point. It pops
+  // up for a new page and for a month worth a word (unusual, or with a warning), but not while
+  // the numbers load, and not while the chat is open, where the tip already shows.
+  const points = onExplore && stats ? highlights(stats, { label: aoiLabel, view, metric }) : [];
+  const head = points.length ? points.join("|") : page;
   const [subject, setSubject] = useState({ head: page as string, points: [] as string[], i: 0, bubble: true });
-  if (head !== undefined && head !== subject.head) setSubject({ head, points: points ?? [], i: 0, bubble: true });
+  if (head !== subject.head) {
+    const worth = points.length ? points.length > 1 || stats?.status !== "normal" : !statsQuery.isLoading;
+    setSubject({ head, points, i: 0, bubble: worth && !open });
+  }
   const tips = [...subject.points, ...FACTS[page]];
   const tip = tips[subject.i % tips.length];
 
   const [ready, setReady] = useState(false);   // a moment after load, so it doesn't pop over the first paint
-  const [quiet, setQuiet] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [quiet, setQuiet] = useState(storedQuiet);   // this component only renders in the browser (Providers.tsx)
   const [log, setLog] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
@@ -50,6 +57,7 @@ export default function Wel3a() {
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const flameRef = useRef<HTMLButtonElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
 
   const react = (mood: Mood) => {
     if (flashTimer.current) clearTimeout(flashTimer.current);
@@ -58,8 +66,12 @@ export default function Wel3a() {
   };
 
   useEffect(() => {
-    const t = setTimeout(() => { setQuiet(storedQuiet()); setReady(true); }, 1500);
-    return () => { clearTimeout(t); if (flashTimer.current) clearTimeout(flashTimer.current); };
+    const t = setTimeout(() => setReady(true), 1500);
+    // Keys typed here stay here: the game listens on the window for 1, 2, the arrows and Enter.
+    const el = asideRef.current;
+    const stop = (e: KeyboardEvent) => e.stopPropagation();
+    el?.addEventListener("keydown", stop);
+    return () => { clearTimeout(t); if (flashTimer.current) clearTimeout(flashTimer.current); el?.removeEventListener("keydown", stop); };
   }, []);
 
   const bubble = ready && !open && !quiet && subject.bubble && page !== "play";
@@ -73,8 +85,9 @@ export default function Wel3a() {
     if (!open) return;
     if (window.matchMedia("(pointer: fine)").matches) inputRef.current?.focus();
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); flameRef.current?.focus(); } };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    // On the way down (capture), because keys from inside the panel stop at the <aside>.
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
   }, [open]);
 
   useEffect(() => {
@@ -91,19 +104,22 @@ export default function Wel3a() {
     try {
       const r = await fetch("/api/wel3a", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question, history, context: contextLines(page, tip, subject.points, stats?.meta.data_version) }),
+        body: JSON.stringify({ question, history: recentTurns(history), context: contextLines(page, tip, subject.points, stats?.meta.data_version) }),
+        signal: AbortSignal.timeout(ASK_MS),
       });
       const data = await r.json().catch(() => null) as { answer?: unknown; error?: unknown } | null;
       if (r.ok && typeof data?.answer === "string") answer = data.answer;
-      else if (r.status === 429 && typeof data?.error === "string") why = data.error;
-    } catch { /* offline: `why` already says so */ }
+      // A refusal (too many questions, too long) says why in words meant for the visitor.
+      else if (r.status >= 400 && r.status < 500 && typeof data?.error === "string") why = data.error;
+    } catch { /* offline or too slow: `why` already says so */ }
     setPending(false);
     if (answer) {
       setLog([...history, { role: "user", content: question }, { role: "assistant", content: answer }]);
       react("happy");
     } else {
-      // Give the question back, so it can be sent again, and keep the failure out of the chat.
-      setLog(history); setInput(question); setError(why);
+      // Give the question back, so it can be sent again (unless something new was typed
+      // meanwhile), and keep the failure out of the chat.
+      setLog(history); setInput((typed) => typed || question); setError(why);
     }
   };
 
@@ -115,8 +131,7 @@ export default function Wel3a() {
 
   const mood: Mood = pending ? "think" : flash !== "idle" ? flash : bubble ? "talk" : "idle";
   return (
-    // Keys typed here stay here: the game listens on the window for 1, 2, the arrows and Enter.
-    <aside className="wel3a" data-page={page} aria-label="Wel3a, the fire guide" onKeyDown={(e) => e.stopPropagation()}>
+    <aside ref={asideRef} className="wel3a" data-page={page} aria-label="Wel3a, the fire guide">
       {open && (
         <div className="w3-panel" role="dialog" aria-label="Chat with Wel3a" data-lenis-prevent>
           <header className="w3-head">
