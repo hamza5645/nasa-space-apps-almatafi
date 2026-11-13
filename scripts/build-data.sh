@@ -8,7 +8,7 @@
 # Runbook: docs/runbook.md. Output: data/{clean,grid,harmonized,validation,clouds,cache},
 # frontend/public/cache/, and dist/almatafi-data.tar.gz with its SHA-256 for the backend's
 # ALMATAFI_DATA_URL / ALMATAFI_DATA_SHA256 (backend/app/bootstrap.py).
-# Options (env): DATA_DIR, DIST_DIR, COUNTRIES, API_COUNTRIES, YEARS, SKIP_ADMIN=1, FRONTEND_CACHE=0.
+# Options (env): DATA_DIR, DIST_DIR, COUNTRIES, API_COUNTRIES, YEARS, SKIP_ADMIN=1, FRONTEND_CACHE=0, CLOUDS=mock.
 set -euo pipefail
 
 MODE=${1:-}
@@ -77,8 +77,16 @@ TRUTH=()
 py pipeline -m almatafi.harmonize --grid "$DATA/grid" --out "$DATA/harmonized" --validation "$DATA/validation" \
   --reports "$DATA/reports" ${TRUTH[@]+"${TRUTH[@]}"}
 
-step "cloud cover (simulated until MOD14CMH/MYD14CMH are read; docs/method.md §6)"
-py pipeline -m almatafi.clouds mock --grid "$DATA/grid" --out "$DATA/clouds"
+if [ "$MODE" = real ] && [ "${CLOUDS:-real}" = real ]; then
+  # NASA GIBS's daily MODIS cloud fraction, averaged per 0.5° cell and month (docs/method.md §6).
+  # About 8 images a second; a country over 26 years is roughly an hour. CLOUDS=mock skips it.
+  step "cloud cover from NASA GIBS (MODIS Terra and Aqua daily cloud fraction) → $DATA/clouds"
+  py pipeline -m almatafi.clouds real --grid "$DATA/grid" --out "$DATA/clouds" --cache "$DATA/raw/gibs-clouds" --workers 12 \
+    || { echo "GIBS cloud build failed; falling back to the simulated product" >&2; py pipeline -m almatafi.clouds mock --grid "$DATA/grid" --out "$DATA/clouds"; }
+else
+  step "cloud cover (simulated; docs/method.md §6)"
+  py pipeline -m almatafi.clouds mock --grid "$DATA/grid" --out "$DATA/clouds"
+fi
 
 if [ "$MODE" = real ] && [ "${SKIP_ADMIN:-0}" != 1 ]; then
   step "admin boundaries for the demo countries"
