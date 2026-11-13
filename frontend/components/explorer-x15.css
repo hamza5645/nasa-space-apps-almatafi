@@ -1,0 +1,60 @@
+/* X15 look for the explorer: same layout and behaviour as X12, restyled to match the story
+   pages. Glass toolbar, the answer over a faint scene of the place, softer panels, ember glow
+   on the heaviest months, and an entrance that rises out of the page transition's smoke. */
+.explorer { position: relative; isolation: isolate; min-height: 100vh; }
+.xp-sky { position: absolute; inset: 0 0 auto 0; height: 560px; z-index: -1; background-size: cover; background-position: center 40%;
+  opacity: .55; filter: blur(1.5px) saturate(1.15);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .55) 45%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .55) 45%, transparent 100%); }
+.xp-sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(80% 110% at 12% 45%, rgba(21, 18, 15, .88), rgba(21, 18, 15, .2) 75%); }
+
+/* Toolbar: sticky glass */
+.topbar { position: sticky; top: 0; z-index: 30; background: rgba(18, 15, 12, .62); border-bottom-color: rgba(255, 255, 255, .06);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); }
+.pop-btn, .years select, .seg, .chip-btn { background: rgba(255, 255, 255, .045); border-color: rgba(255, 255, 255, .1); border-radius: 10px; transition: border-color .25s, background-color .25s; }
+.pop-btn:hover, .years select:hover, .chip-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .08); }
+.seg button { border-radius: 7px; transition: background-color .25s, color .25s; }
+.seg button[aria-pressed="true"] { background: rgba(107, 208, 228, .12); box-shadow: inset 0 0 0 1px rgba(107, 208, 228, .7); }
+.pop-panel { background: rgba(26, 22, 18, .94); border-color: rgba(255, 255, 255, .08); border-radius: 16px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8); animation: xp-pop .28s var(--ease-out) both; }
+@keyframes xp-pop { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+
+/* The answer */
+.verdict { padding-top: 44px; padding-bottom: 30px; }
+.verdict-head { font-size: clamp(36px, 4.6vw, 68px); letter-spacing: -0.035em; text-wrap: balance; text-shadow: 0 6px 40px rgba(0, 0, 0, .5); }
+.verdict-detail { font-family: var(--serif); font-style: italic; font-size: clamp(24px, 2.3vw, 34px); line-height: 1.12; max-width: 36ch; text-shadow: 0 2px 24px rgba(0, 0, 0, .6); }
+.facts { gap: 10px; border-top: 0; padding-top: 6px; }
+.facts div { background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); border-radius: 12px; padding: 10px 14px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.facts dd { font-size: 19px; }
+.strip-now { filter: drop-shadow(0 0 8px rgba(240, 138, 36, .8)); }
+
+/* Panels */
+.cal, .xp-sensors, .mapcol .box { background: linear-gradient(180deg, rgba(40, 34, 28, .72), rgba(27, 23, 19, .78)); border-color: rgba(255, 255, 255, .065);
+  border-radius: 20px; box-shadow: 0 40px 90px -60px rgba(0, 0, 0, .9); }
+.cal { padding: 22px; }
+.calhead h2, .sensors-text h2 { font-size: 24px; }
+.cal-cell { border-radius: 4px; transition: transform .2s var(--ease-out), box-shadow .25s; }
+.cal-cell:hover { transform: scale(1.08); position: relative; z-index: 2; }
+.cal-cell.hot { box-shadow: 0 0 14px -2px rgba(255, 150, 50, .55); }
+.cal-cell.sel { outline: 0; box-shadow: 0 0 0 2px var(--blue), 0 0 22px rgba(107, 208, 228, .55); position: relative; z-index: 3; }
+.map { border-radius: 20px; border-color: rgba(255, 255, 255, .08); box-shadow: 0 40px 90px -60px rgba(0, 0, 0, .9), inset 0 0 0 1px rgba(107, 208, 228, .05); }
+.maptools button, .maplayers button, .maplabel { background: rgba(18, 15, 12, .72); border-color: rgba(255, 255, 255, .1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.maptools button { border-radius: 10px; }
+.toplist button { border-radius: 10px; background: rgba(255, 255, 255, .03); border-color: rgba(255, 255, 255, .08); transition: border-color .2s, background-color .2s; }
+.toplist button:hover, .toplist button[aria-pressed="true"] { background: rgba(240, 138, 36, .08); }
+.offline { border-radius: 14px; }
+
+/* Entrance: each band rises in turn */
+@media (prefers-reduced-motion: no-preference) {
+  .explorer > .topbar { animation: xp-drop .7s var(--ease-out) both; }
+  .explorer > .verdict, .explorer > .xp-grid, .explorer > .xp-sensors, .explorer > .offline { animation: xp-rise 1s var(--ease-out) both; }
+  .explorer > .verdict { animation-delay: .12s; }
+  .explorer > .xp-grid { animation-delay: .24s; }
+  .explorer > .xp-sensors { animation-delay: .36s; }
+  .xp-sky { animation: xp-sky 2.4s var(--ease-out) both; }
+}
+@keyframes xp-drop { from { opacity: 0; transform: translateY(-14px); } }
+@keyframes xp-rise { from { opacity: 0; transform: translateY(26px); } } /* no blur: it repaints every frame, and the map sits inside */
+@keyframes xp-sky { from { opacity: 0; transform: scale(1.06); } }
+/* On narrow screens the toolbar wraps to several rows: let it scroll away instead of covering the page. */
+@media (max-width: 900px) { .topbar { position: relative; } }

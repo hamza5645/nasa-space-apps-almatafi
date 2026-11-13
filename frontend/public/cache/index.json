@@ -1,0 +1,19 @@
+{
+  "data_version": "mock-20261103",
+  "generated_at": "2026-11-03T15:33:50Z",
+  "regions": [
+    {
+      "region_id": "nile-delta",
+      "file": "nile-delta.json",
+      "stats_months": 310,
+      "bytes": 1051571
+    },
+    {
+      "region_id": "rio-negro",
+      "file": "rio-negro.json",
+      "stats_months": 310,
+      "bytes": 667606
+    }
+  ],
+  "validation": "validation.json"
+}
