@@ -138,3 +138,7 @@
 .play-band .btn { flex: none; }
 .play-band .eyebrow { color: var(--ember); }
 @media (max-width: 760px) { .play-band { flex-direction: column; align-items: flex-start; padding: 26px 22px; } .play-band .stack-lg { flex: none; } }
+
+/* X33: an outline button for the light sections. */
+.btn-ink-ghost { background: transparent; color: var(--ink); border-color: rgba(26, 23, 20, .28); font-weight: 600; }
+.btn-ink-ghost:hover { border-color: #B4470A; color: #B4470A; }

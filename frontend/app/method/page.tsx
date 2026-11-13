@@ -206,7 +206,7 @@ export default function MethodPage() {
             LANCE and imagery from GIBS.
           </p>
           <p className="row"><WarpLink className="btn btn-fire big-btn" href="/explore">Open the calendar →</WarpLink>
-            <WarpLink className="btn btn-ghost big-btn" href="/play">Test yourself: play Normal or not?</WarpLink></p>
+            <WarpLink className="btn btn-ink-ghost big-btn" href="/play">Test yourself: play Normal or not?</WarpLink></p>
         </div>
       </section>
       </main>

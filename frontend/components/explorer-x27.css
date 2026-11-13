@@ -33,9 +33,12 @@
 .maplegend-day { flex-basis: 100%; color: var(--muted); }
 
 /* X33: the explorer's page menu. */
-.pages-pop .pop-btn { min-height: 36px; }
-.pages-label { font-size: 14px; font-weight: 600; }
+.pages-pop .pop-btn { min-height: 36px; padding: 0 9px; }
+.pages-pop .pop-btn > svg:last-child { display: none; } /* no chevron on the icon button */
 .pages-menu { display: flex; flex-direction: column; gap: 2px; width: min(300px, calc(100vw - 32px)); }
 .pages-menu a { display: flex; flex-direction: column; gap: 2px; padding: 9px 10px; border-radius: 8px; text-decoration: none; color: var(--text); }
 .pages-menu a:hover { background: var(--panel-2); }
 .pages-menu a span { font-size: 13px; color: var(--muted); }
+/* The menu button made the top bar one item longer: tighter gaps keep it on one row at laptop widths. */
+.topbar { column-gap: 12px; }
+.export-msg:empty { display: none; }

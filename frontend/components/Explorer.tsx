@@ -147,7 +147,8 @@ export default function Explorer() {
       <div className="xp-sky" aria-hidden="true" style={{ backgroundImage: `url(${sky})` }} />
       <header className="topbar">
         <Brand size={24} />
-        <Popover className="pages-pop" ariaLabel="Pages" label={<span className="pages-label">Menu</span>}>
+        <Popover className="pages-pop" ariaLabel="Menu: the story, Method, the game" label={
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>}>
           {() => (
             <nav className="pages-menu" aria-label="Pages">
               <Link href="/"><strong>The story</strong><span>Why two satellites need one record</span></Link>
