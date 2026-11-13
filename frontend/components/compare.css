@@ -1,0 +1,35 @@
+/* X33: the raw-vs-harmonized slider. Two identical calendars stacked; the top one (raw) is
+   clipped at the line. */
+.cmp { margin: 0; display: flex; flex-direction: column; gap: 12px; --cmp-ink: var(--text); --cmp-muted: var(--muted);
+  --cmp-panel: rgba(255, 255, 255, .03); --cmp-line: rgba(255, 255, 255, .1); }
+.cmp-light { --cmp-ink: #1A1714; --cmp-muted: #6B5F52; --cmp-panel: #FFFFFF; --cmp-line: #E4DED5; }
+.cmp-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--cmp-muted); }
+.cmp-side { display: flex; flex-direction: column; gap: 2px; max-width: 48%; }
+.cmp-side b { color: var(--cmp-ink); font-size: 15px; }
+.cmp-side em { font-style: normal; font-weight: 700; font-size: 20px; color: var(--cmp-ink); letter-spacing: -0.01em; }
+.cmp-raw-label em { color: #E9702A; }
+.cmp-harm-label { text-align: right; align-items: flex-end; }
+.cmp-harm-label em { color: var(--blue); }
+.cmp-light .cmp-harm-label em { color: #1B7F93; }
+.cmp-body { display: grid; grid-template-columns: 38px 1fr; gap: 6px; background: var(--cmp-panel); border: 1px solid var(--cmp-line); border-radius: 16px; padding: 12px 14px 14px 8px; }
+.cmp-years { display: flex; flex-direction: column; gap: 2px; padding-top: 20px; font-size: 11px; color: var(--cmp-muted); font-variant-numeric: tabular-nums; }
+.cmp-years span { height: clamp(9px, 1.15vw, 14px); display: flex; align-items: center; justify-content: flex-end; line-height: 1; overflow: visible; white-space: nowrap; }
+.cmp-area { position: relative; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; }
+.cmp-months { display: grid; grid-template-columns: repeat(12, 1fr); height: 20px; font-size: 11px; color: var(--cmp-muted); text-align: center; }
+.cmp-layers { position: relative; }
+.cmp-top { position: absolute; inset: 0; }
+.cmp-grid { display: flex; flex-direction: column; gap: 2px; }
+.cmp-row { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; height: clamp(9px, 1.15vw, 14px); }
+.cmp-row i { border-radius: 2px; background: #262019; }
+.cmp-light .cmp-row i { background: #EFE9E0; }
+.cmp-row i.na { background: transparent; box-shadow: inset 0 0 0 1px rgba(128, 112, 96, .25); }
+.cmp-2012 { position: absolute; left: -4px; right: -4px; height: 0; border-top: 2px dashed rgba(107, 208, 228, .9); pointer-events: none; }
+.cmp-2012 span { position: absolute; right: 4px; top: -22px; font-size: 11px; font-weight: 600; color: var(--blue); background: rgba(5, 7, 11, .7); padding: 2px 6px; border-radius: 6px; }
+.cmp-light .cmp-2012 { border-top-color: #1B7F93; }
+.cmp-light .cmp-2012 span { color: #1B7F93; background: rgba(255, 255, 255, .85); }
+.cmp-line { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px solid #FFFFFF; box-shadow: 0 0 12px rgba(255, 255, 255, .55); pointer-events: none; }
+.cmp-light .cmp-line { border-left-color: #1A1714; box-shadow: 0 0 10px rgba(0, 0, 0, .25); }
+.cmp-handle { pointer-events: auto; position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid #FFFFFF; background: #E9702A; color: #FFFFFF; display: grid; place-items: center; cursor: ew-resize; box-shadow: 0 6px 20px rgba(0, 0, 0, .4); }
+.cmp-handle:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.cmp figcaption { font-size: 13.5px; line-height: 1.5; color: var(--cmp-muted); }

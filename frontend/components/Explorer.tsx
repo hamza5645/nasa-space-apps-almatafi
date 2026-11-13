@@ -19,6 +19,8 @@ import AlertMenu from "./AlertMenu";
 import AreaPanel from "./AreaPanel";
 import Brand from "./Brand";
 import Calendar from "./Calendar";
+import CompareSlider from "./CompareSlider";
+import "./compare.css";
 import ExportMenu from "./ExportMenu";
 import HotspotPanel from "./HotspotPanel";
 import Popover from "./Popover";
@@ -243,6 +245,22 @@ export default function Explorer() {
                         platform={platform} refPlatform={ref} onPlatform={setPlatform} />
         </section>
       </div>
+
+      {harm.data && modis.data && viirs.data && (
+        <section className="xp-sensors xp-compare" aria-label="Raw join against the harmonized record">
+          <div className="sensors-text">
+            <h2>Drag the line</h2>
+            <p>
+              The same calendar twice. Left of the line, MODIS glued to VIIRS as they come; right of it, our record.
+              Same colours for the same numbers.
+            </p>
+            <p className="muted">If the raw side brightens from 2012 and ours doesn&apos;t, that brightening was the satellite, not the fires.</p>
+            <Link href="/play">Test your eye: play Normal or not?</Link>
+          </div>
+          <CompareSlider harmonized={harm.data} modis={modis.data} viirs={viirs.data} place={s.aoiLabel}
+                         unit={s.metric === "detections" ? "hotspots" : "fire days"} />
+        </section>
+      )}
 
       <section className="xp-sensors" aria-label="Yearly totals by sensor">
         <div className="sensors-text">

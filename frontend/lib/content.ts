@@ -5,6 +5,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Validation } from "./api.ts";
+import type { RegionDoc } from "./game.ts";
 
 const CACHE = join(process.cwd(), "public", "cache");
 
@@ -51,6 +52,23 @@ export function demoCalendar(id = "nile-delta"): MiniCalendar | null {
   if (!cal) return null;
   const max = Math.max(...cal.matrix.flat().map((v) => v ?? 0));
   return { years: cal.years, matrix: cal.matrix, max };
+}
+
+export type CompareGrids = Record<"harmonized" | "modis" | "viirs", { years: number[]; matrix: (number | null)[][] }>;
+
+/** A demo region's three detection calendars from the offline copy, for the slider (X33). */
+export function demoCompare(id = "nile-delta"): CompareGrids | null {
+  type Cal = { years: number[]; matrix: (number | null)[][] };
+  const c = read<{ calendar: Record<"harmonized" | "modis" | "viirs", { detections?: Cal }> }>(`${id}.json`);
+  const h = c?.calendar?.harmonized?.detections, m = c?.calendar?.modis?.detections, v = c?.calendar?.viirs?.detections;
+  if (!h || !m || !v) return null;
+  const pick = (x: Cal) => ({ years: x.years, matrix: x.matrix });
+  return { harmonized: pick(h), modis: pick(m), viirs: pick(v) };
+}
+
+/** The demo regions' offline copies, as the game's round builder reads them (X33). */
+export function gameDocs(ids = ["nile-delta", "rio-negro"]): RegionDoc[] {
+  return ids.map((id) => read<RegionDoc>(`${id}.json`)).filter((d): d is RegionDoc => Boolean(d?.stats && d?.calendar));
 }
 
 /** Whether a file is in public/media/ (generated media that may not be made yet, X27). */
