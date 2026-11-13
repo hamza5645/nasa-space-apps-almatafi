@@ -9,9 +9,9 @@ import { GUIDE, SHORTCUTS } from "@/lib/a11y";
 import { SettingSwitch, TextSizeControl } from "./Controls";
 import { speak, stopSpeech } from "./runtime";
 
-type Props = { step?: number; onClose: () => void; onReadPage: () => void; onListen: (() => void) | null; onMotion: (step: number) => void };
+type Props = { step?: number; paused?: boolean; onClose: () => void; onReadPage: () => void; onListen: (() => void) | null; onMotion: (step: number) => void };
 
-export default function Guide({ step: start = 0, onClose, onReadPage, onListen, onMotion }: Props) {
+export default function Guide({ step: start = 0, paused = false, onClose, onReadPage, onListen, onMotion }: Props) {
   const [i, setI] = useState(start);
   const next = useRef<HTMLButtonElement>(null);
   // Mounted only while open, so the element that had focus is the one that opened it.
@@ -26,16 +26,18 @@ export default function Guide({ step: start = 0, onClose, onReadPage, onListen, 
   const [tourBtn] = useState<HTMLElement | null>(() => (typeof document === "undefined" ? null : document.querySelector<HTMLElement>(".tour-btn")));
   useEffect(() => { document.querySelector<HTMLElement>(".tour .tour-skip")?.click(); }, []);
 
-  // Focus first, then speak, so the step's words win over "Next, button".
+  // Focus first, then speak, so the step's words win over "Next, button". While the shortcut
+  // list is open over the guide (paused) the keys and the focus are its own; they come back after.
   useEffect(() => {
+    if (paused) return;
     next.current?.focus();
     const t = setTimeout(() => speak(`${step.speak} Step ${i + 1} of ${GUIDE.length}.`), 80);
     return () => clearTimeout(t);
-  }, [i, step]);
+  }, [i, step, paused]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (paused || e.altKey || e.ctrlKey || e.metaKey) return;
       const inField = (e.target as HTMLElement).matches("input, select, textarea");
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
       else if (e.key === "ArrowRight" && !inField) { e.preventDefault(); e.stopPropagation(); if (!last) setI(i + 1); else close(); }
@@ -54,7 +56,7 @@ export default function Guide({ step: start = 0, onClose, onReadPage, onListen, 
     // Capture phase: the explorer's tour and the calendar listen for the same keys on window.
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [i, last, close]);
+  }, [i, last, close, paused]);
 
   return (
     <div className="a11y-scrim" onClick={close}>

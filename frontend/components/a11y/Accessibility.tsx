@@ -13,7 +13,7 @@ import { bboxShape } from "@/lib/geo";
 import { useSelection } from "@/lib/store";
 import Guide from "./Guide";
 import { SettingSwitch, Switch, TextSizeControl, useA11y } from "./Controls";
-import { applyToHtml, canListen, canSpeak, describeElement, findControl, getSettings, pageText, recognitionCtor, setSettings, speak, stopSpeech } from "./runtime";
+import { applyToHtml, canListen, canSpeak, describeElement, findControl, getSettings, pageText, recognitionCtor, setSettings, speak, spokeWithin, stopSpeech } from "./runtime";
 import "./a11y.css";
 
 const REGIONS = {
@@ -93,11 +93,15 @@ export default function Accessibility() {
     const last = new WeakMap<Element, string>();
     let timer: ReturnType<typeof setTimeout> | null = null;
     const pending = new Set<Element>();
+    const LIVE = "[aria-live], [role='status'], [role='alert']";
     const mo = new MutationObserver((muts) => {
       for (const m of muts) {
         const node = m.target instanceof Element ? m.target : m.target.parentElement;
-        const region = node?.closest("[aria-live], [role='status'], [role='alert']");
-        if (region && !region.closest(".a11y-root")) pending.add(region);
+        // The region the change is in, and regions that arrive with their message already in them
+        // (an error, "nothing found", the game's explanation): there the change is on the parent.
+        const regions: (Element | null | undefined)[] = [node?.closest(LIVE)];
+        m.addedNodes.forEach((n) => { if (n instanceof Element) regions.push(n.matches(LIVE) ? n : null, ...n.querySelectorAll(LIVE)); });
+        for (const region of regions) if (region && !region.closest(".a11y-root")) pending.add(region);
       }
       if (!pending.size) return;
       if (timer) clearTimeout(timer);
@@ -160,16 +164,30 @@ export default function Accessibility() {
     setListening(always.current ? "always" : "on");
     stopSpeech();
     r.onresult = (e) => {
+      if (spokeWithin(1200)) return;   // the microphone heard the site's own voice, not a command
       const text = e.results[e.results.length - 1][0].transcript;
       setHeard(text);
       const cmd = parseCommand(text);
       if (cmd) runRef.current(cmd, "voice"); else speak(`I heard "${text}" but don't know that command. Say help for the list.`, { force: true });
     };
     r.onerror = (e) => {
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") { always.current = false; speak("The microphone isn't allowed. Check the browser's permission for this site.", { force: true }); }
-      else if (e.error !== "no-speech" && e.error !== "aborted") speak("Didn't catch that.", { force: true });
+      if (e.error === "no-speech" || e.error === "aborted") return;
+      // Anything else (no microphone, no network) fails the same way on the next try: stop, don't loop.
+      always.current = false;
+      speak(e.error === "not-allowed" || e.error === "service-not-allowed" ? "The microphone isn't allowed. Check the browser's permission for this site."
+        : "Voice commands aren't working right now. Check the microphone and the connection.", { force: true });
     };
-    r.onend = () => { if (always.current) { try { r.start(); } catch { setListening("off"); } } else setListening("off"); };
+    r.onend = () => {
+      if (rec.current !== r) return;   // stopped, or replaced by a newer one
+      const again = () => {
+        if (rec.current !== r) return;
+        if (!always.current) { setListening("off"); return; }
+        // Keep listening: the microphone stays closed while the site talks, or it hears itself.
+        if (spokeWithin(0)) { setTimeout(again, 300); return; }
+        try { r.start(); } catch { setListening("off"); }
+      };
+      again();
+    };
     try { r.start(); } catch { setListening("off"); }
   }, []);
 
@@ -178,6 +196,12 @@ export default function Accessibility() {
   const run = useCallback((cmd: Command, from: "keys" | "voice") => {
     const st = useSelection.getState();
     const onExplorer = window.location.pathname.startsWith("/explore");
+    if (guide.open) {
+      // The guide is modal: the panel waits under it, and leaving the page closes it (the
+      // explorer's own tour would open underneath and take the focus).
+      if (cmd.kind === "panel") return;
+      if (cmd.kind === "go" || (cmd.kind === "region" && !onExplorer)) closeGuide();
+    }
     switch (cmd.kind) {
       case "panel": setPanel((p) => !p); break;
       case "help": setHelp(true); break;
@@ -215,12 +239,15 @@ export default function Accessibility() {
         break;
       }
     }
-  }, [router, readPage, listenOnce, stopListening, listening]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [router, readPage, listenOnce, stopListening, listening, guide.open, closeGuide]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { runRef.current = run; }, [run]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !e.altKey) { stopSpeech(); setHelp(false); return; }
+      // In a text field Alt + key types a character (a Mac's Option + A is å, a Spanish keyboard's Option + 2 is @).
+      const t = e.target;
+      if (t instanceof HTMLElement && (t.isContentEditable || t.matches("textarea, input:not([type='checkbox'], [type='radio'], [type='range'])"))) return;
       const cmd = shortcut(e);
       if (!cmd) return;
       if (cmd.kind !== "panel" && !getSettings().on) return;   // Alt + A always works, the rest with the mode
@@ -295,6 +322,9 @@ export default function Accessibility() {
         </section>
       )}
 
+      {guide.open && <Guide step={guide.step} paused={help} onClose={closeGuide} onReadPage={readPage} onListen={listen ? () => listenOnce() : null} onMotion={onMotion} />}
+
+      {/* After the guide, so "Alt + K" pressed inside the guide shows on top of it. */}
       {help && (
         <div className="a11y-scrim" onClick={() => setHelp(false)}>
           <div className="a11y-guide a11y-help" role="dialog" aria-modal="true" aria-labelledby="a11y-help-title" onClick={(e) => e.stopPropagation()}>
@@ -307,7 +337,6 @@ export default function Accessibility() {
         </div>
       )}
 
-      {guide.open && <Guide step={guide.step} onClose={closeGuide} onReadPage={readPage} onListen={listen ? () => listenOnce() : null} onMotion={onMotion} />}
     </div>
   );
 }

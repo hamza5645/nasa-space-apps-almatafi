@@ -132,6 +132,9 @@ export function parseCommand(heard: string): Command | null {
   if (!t) return null;
   const has = (...ws: string[]) => ws.some((w) => new RegExp(`\\b${w}\\b`).test(t));
   if (has("stop", "quiet", "silence", "be quiet")) return { kind: "stop" };
+  // "click next" means the button called Next, whatever other command its name sounds like.
+  const click = t.match(/^(?:click|press) (?:on )?(.+)$/);
+  if (click) return { kind: "click", name: click[1] };
   if (has("help", "shortcuts", "commands", "what can i say")) return { kind: "help" };
   if (/\b(open |show )?(accessibility|settings)\b/.test(t)) return { kind: "panel" };
   if (has("read")) return { kind: "read" };
@@ -140,9 +143,10 @@ export function parseCommand(heard: string): Command | null {
   if (has("play", "game")) return { kind: "go", to: "/play" };
   if (has("home", "story", "landing", "start page")) return { kind: "go", to: "/" };
   if (/\b(bigger|larger|increase|zoom in)\b/.test(t)) return { kind: "text", dir: 1 };
-  if (/\b(smaller|decrease|reduce|zoom out)\b/.test(t) && !/\bmotion\b/.test(t)) return { kind: "text", dir: -1 };
+  if (/\b(smaller|decrease|reduce|zoom out)\b/.test(t) && !/\b(motion|animation|animations)\b/.test(t)) return { kind: "text", dir: -1 };
   if (/\bcontrast\b/.test(t)) return { kind: "contrast", on: !/\b(off|normal|no)\b/.test(t) };
-  if (/\b(motion|animation|animations)\b/.test(t)) return { kind: "motion", on: !/\b(on|allow|enable|back)\b/.test(t) };
+  // "reduce motion on/off" names the setting; "animations on/off" names what the setting stops.
+  if (/\b(motion|animation|animations)\b/.test(t)) return { kind: "motion", on: /\breduced?\b/.test(t) ? !/\b(off|disable|no)\b/.test(t) : !/\b(on|allow|enable|back)\b/.test(t) };
   if (/\b(nile|delta|egypt)\b/.test(t)) return { kind: "region", id: "nile-delta" };
   if (/\b(rio|negro|argentina|chile|patagonia)\b/.test(t)) return { kind: "region", id: "rio-negro" };
   if (/\b(next|following)\b/.test(t)) return { kind: "month", dir: 1 };
@@ -150,7 +154,7 @@ export function parseCommand(heard: string): Command | null {
   if (/\bharmoni[sz]ed\b/.test(t)) return { kind: "view", view: "harmonized" };
   if (/\bmodis\b/.test(t)) return { kind: "view", view: "modis" };
   if (/\bviirs\b/.test(t)) return { kind: "view", view: "viirs" };
-  const m = /^(?:click|press|open|choose|select) (.+)$/.exec(t);
+  const m = /^(?:open|choose|select) (.+)$/.exec(t);
   if (m) return { kind: "click", name: m[1] };
   return null;
 }

@@ -52,6 +52,15 @@ test("voice commands", () => {
   assert.deepEqual(parseCommand("contrast off"), { kind: "contrast", on: false });
   assert.deepEqual(parseCommand("reduce motion"), { kind: "motion", on: true });
   assert.deepEqual(parseCommand("turn animations back on"), { kind: "motion", on: false });
+  assert.deepEqual(parseCommand("reduce motion on"), { kind: "motion", on: true });
+  assert.deepEqual(parseCommand("turn on reduce motion"), { kind: "motion", on: true });
+  assert.deepEqual(parseCommand("reduce motion off"), { kind: "motion", on: false });
+  assert.deepEqual(parseCommand("turn off reduce motion"), { kind: "motion", on: false });
+  assert.deepEqual(parseCommand("animations off"), { kind: "motion", on: true });
+  assert.deepEqual(parseCommand("reduce animations"), { kind: "motion", on: true });
+  assert.deepEqual(parseCommand("click next"), { kind: "click", name: "next" });
+  assert.deepEqual(parseCommand("press back"), { kind: "click", name: "back" });
+  assert.deepEqual(parseCommand("click next question"), { kind: "click", name: "next question" });
   assert.deepEqual(parseCommand("show the Nile Delta"), { kind: "region", id: "nile-delta" });
   assert.deepEqual(parseCommand("Río Negro"), { kind: "region", id: "rio-negro" });
   assert.deepEqual(parseCommand("next month"), { kind: "month", dir: 1 });

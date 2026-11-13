@@ -38,6 +38,10 @@ export function setSettings(patch: Partial<Settings>) {
 
 export const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window;
 
+// When the voice last finished a sentence by itself; stopSpeech() (the user's own Stop, or the
+// microphone opening) doesn't count, so a command said right after it is still heard.
+let spokeAt = 0, hushed = false;
+
 /** Says text with the browser's voice when the mode and voice reading are on. Long text goes
  *  out sentence by sentence (Chrome drops utterances over ~15 s). interrupt=false queues it. */
 export function speak(text: string, { interrupt = true, force = false }: { interrupt?: boolean; force?: boolean } = {}) {
@@ -55,15 +59,23 @@ export function speak(text: string, { interrupt = true, force = false }: { inter
     if ((buf + c).length > 220 && buf) { out.push(buf); buf = c; } else buf = buf ? `${buf} ${c}` : c;
   }
   if (buf) out.push(buf);
+  hushed = false;
   for (const part of out) {
     const u = new SpeechSynthesisUtterance(part.trim());
     u.lang = "en-US";
     u.rate = 1;
+    u.onend = u.onerror = () => { if (!hushed) spokeAt = Date.now(); };
     window.speechSynthesis.speak(u);
   }
 }
 
+/** Is the site's own voice talking, or did it stop less than `ms` ago? A microphone that is open then hears it. */
+export function spokeWithin(ms: number): boolean {
+  return canSpeak() && (window.speechSynthesis.speaking || window.speechSynthesis.pending || Date.now() - spokeAt < ms);
+}
+
 export function stopSpeech() {
+  hushed = true;
   if (canSpeak()) window.speechSynthesis.cancel();
 }
 
@@ -88,7 +100,7 @@ export function nameOf(el: HTMLElement): string {
   }
   const label = el.getAttribute("aria-label");
   if (label) return label;
-  if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
+  if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement || el instanceof HTMLButtonElement) {
     const l = Array.from(el.labels ?? []).map((x) => textOf(x)).filter(Boolean).join(" ");
     if (l) return l;
     if ("placeholder" in el && el.placeholder) return el.placeholder;
@@ -153,7 +165,8 @@ export function findControl(words: string): HTMLElement | null {
   const ws = words.toLowerCase().split(/\s+/).filter(Boolean);
   const all = Array.from(document.querySelectorAll<HTMLElement>("button, a[href], [role='button'], [role='tab'], input, select, summary"));
   const match = (el: HTMLElement) => { const n = nameOf(el).toLowerCase(); return ws.every((w) => n.includes(w)); };
-  return all.find((el) => el.getClientRects().length > 0 && !el.closest("[aria-hidden='true']") && match(el)) ?? null;
+  // Not our skip links: "Skip to the downloads" comes first in the page and isn't the Download button.
+  return all.find((el) => el.getClientRects().length > 0 && !el.closest("[aria-hidden='true'], .a11y-skips") && match(el)) ?? null;
 }
 
 // ---------- Speech recognition ----------

@@ -59,7 +59,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - X35 Wel3a, a small flame character on every page: written fun facts and highlights for what's on screen, and typed questions answered by Cloudflare Workers AI through a new `/api/wel3a` function in the site's Worker — Hamza (with Claude), Nov 13. `frontend/` and `frontend/wrangler.jsonc` only. (X34 is Khalid's explorer tour, on `khalid/x34-tour-sources`.)
 
 ### In review (PR open, merge in this order)
-- X37 Accessibility mode — Khalid (with Claude), Nov 13, PR open on hamza5645/nasa-space-apps-almatafi. New files under `frontend/components/a11y/` and `frontend/lib/a11y.ts`, `lib/motion.ts`; one-line hooks in `Providers.tsx`, `layout.tsx` and the eight `prefers-reduced-motion` checks. **Hamza:** X35 also adds a line to `Providers.tsx`; whichever merges second keeps both lines. Your Wel3a button sits at bottom 20 px; the accessibility button is at bottom 100 px, same corner
+- X37 Accessibility mode — Khalid (with Claude), Nov 13, PR open on hamza5645/nasa-space-apps-almatafi. New files under `frontend/components/a11y/` and `frontend/lib/a11y.ts`, `lib/motion.ts`; one-line hooks in `Providers.tsx`, `layout.tsx` and the eight `prefers-reduced-motion` checks. **Hamza:** X35 also adds a line to `Providers.tsx`; whichever merges second keeps both lines. Your Wel3a button sits at bottom 20 px; the accessibility button is at bottom 100 px, same corner. Reviewed and fixed by Hamza (with Claude), Nov 13 (10 findings, Log entry Hamza (5)); Khalid to look at the fixes
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
@@ -119,6 +119,25 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Hamza (with Claude) (5)
+- Did: a code review of the accessibility PR (hamza5645/nasa-space-apps-almatafi#5, X37) and fixes for its 10 findings, on Khalid's branch (`frontend/components/a11y/`, `frontend/lib/a11y.ts`).
+  - **Voice reading:** the mode's own switches were read as "off, switch, not checked", with no name; they are now read by their label. Messages that appear with their text already in them (errors, the place search's "nothing found", the game's explanation) were never read; they are now.
+  - **Voice commands:** "reduce motion on" turned it off and "reduce motion off" turned it on; both now do what they say. "click next" and "click back" changed the month; "click" and "press" now always mean the button with that name. "click Download" hit the skip link "Skip to the downloads"; skip links are left out.
+  - **Microphone:** with Keep listening on, a missing microphone or a dropped connection repeated "Didn't catch that." without end; any such error now stops listening and says so. The microphone also stays closed while the site talks, and what it hears while the site talks is dropped, so the site doesn't obey its own voice.
+  - **Keyboard:** Alt shortcuts no longer fire while typing in a text field (a Mac's Option + A is å, a Spanish keyboard's Option + 2 is @).
+  - **The guide:** Alt + K opened the shortcut list under the guide; it now shows on top, and the guide's keys and focus come back when it closes. Alt + A waits while the guide is open. Leaving the page (Alt + 1 to 4, "open the explorer") closes the guide, so the explorer's own tour no longer opens underneath it.
+  - **Look:** in high contrast the focus ring on white (the guide, the light sections) was yellow on white; it is blue there. Text size now also covers loose text in `span`, `strong`, `b` and `em`: the calendar's month names, years, totals and medians grow with the cells.
+  - Checked: 81 frontend tests (9 new assertions for the commands), lint and typecheck pass. In the browser on the dev build with a stand-in voice and microphone: the four switch names, a status message added to the page, "click download" opening the Download menu, Alt + A and Alt + 2 in a text field, a network error and the site's own voice with Keep listening on, the guide with Alt + A, Alt + K, Escape and Alt + 3, the blue ring on the white guide, and the calendar at Largest (no sideways scroll at 1280 px).
+- Next: Khalid looks at the fixes. Still to try with a real microphone and VoiceOver.
+- Broken / blocked: nothing known. Left as it is, from the review:
+  - Text that sits directly in a `div` still doesn't grow with Text size.
+  - A guide opened on the explorer before the explorer's first-visit tour appears (about a second after the data) still gets that tour underneath it.
+  - Focus doesn't return anywhere when the guide closes (the control that opened it is gone by then).
+  - Turning the mode off or on with Reduce motion saved doesn't reload, so the globe keeps the state it loaded with.
+  - `REGIONS` in `Accessibility.tsx` is a third copy of the demo regions, and draws the box, not the outline from `/api/regions`.
+  - "next month" by voice reads the months from the calendar cells' labels, so a wording change there breaks it.
+  - After X35 merges: the Accessibility button sits on top of Wel3a's bubble and open chat, and the voice re-reads the start of Wel3a's chat log on every new message.
 
 ### Nov 13 — Khalid (with Claude) (42)
 - Did: X37, from the teammate's brief that Khalid forwarded (people with disabilities and older users: screen reading by voice, text size, contrast, keyboard-only control).
