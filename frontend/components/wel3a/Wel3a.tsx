@@ -19,8 +19,12 @@ const BUBBLE_MS = 12_000;
 const ASK_MS = 30_000;
 const DOWN = "I can't reach my AI brain right now. My tips still work: try “Another fact”.";
 
+// Pop-up tips: "1" is off, "0" is on. With no choice saved they are on, except on a small
+// screen (a phone, a narrow window), where the bubble covers much of the page.
 function storedQuiet(): boolean {
-  try { return localStorage.getItem(QUIET_KEY) === "1"; } catch { return false; }
+  let saved: string | null = null;
+  try { saved = localStorage.getItem(QUIET_KEY); } catch { /* private mode */ }
+  return saved === null ? window.matchMedia("(max-width: 820px)").matches : saved === "1";
 }
 
 export default function Wel3a() {
@@ -126,7 +130,7 @@ export default function Wel3a() {
   const toggleQuiet = () => {
     const next = !quiet;
     setQuiet(next);
-    try { if (next) localStorage.setItem(QUIET_KEY, "1"); else localStorage.removeItem(QUIET_KEY); } catch { /* private mode */ }
+    try { localStorage.setItem(QUIET_KEY, next ? "1" : "0"); } catch { /* private mode */ }
   };
 
   const mood: Mood = pending ? "think" : flash !== "idle" ? flash : bubble ? "talk" : "idle";

@@ -286,7 +286,6 @@ export default function Accessibility() {
           <circle cx="12" cy="4.5" r="1.9" fill="currentColor" stroke="none" />
           <path d="M4 8.5c5.3 1.4 10.7 1.4 16 0M12 9.5v4.5M12 14l-3.2 6.5M12 14l3.2 6.5" />
         </svg>
-        <span className="a11y-fab-text">Accessibility</span>
       </button>
 
       {panel && (
