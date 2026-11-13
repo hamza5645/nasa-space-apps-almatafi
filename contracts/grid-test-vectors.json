@@ -1,0 +1,36 @@
+{
+  "about": "Machine-readable copy of grid.md §4 plus extra cases. Read by pipeline/tests/test_cells.py and frontend/lib/grid.test.ts. Change only together with grid.md.",
+  "version": "1.0.2",
+  "cells": [
+    { "lat": 0.0, "lon": 0.0, "row": 900, "col": 1800, "cell_id": 3241800, "cell_lat": 0.05, "cell_lon": 0.05 },
+    { "lat": -90.0, "lon": -180.0, "row": 0, "col": 0, "cell_id": 0, "cell_lat": -89.95, "cell_lon": -179.95 },
+    { "lat": 90.0, "lon": 180.0, "row": 1799, "col": 3599, "cell_id": 6479999, "cell_lat": 89.95, "cell_lon": 179.95 },
+    { "lat": 30.1, "lon": 31.2, "row": 1201, "col": 2112, "cell_id": 4325712, "cell_lat": 30.15, "cell_lon": 31.25 },
+    { "lat": -40.84, "lon": -68.97, "row": 491, "col": 1110, "cell_id": 1768710, "cell_lat": -40.85, "cell_lon": -68.95 },
+    { "lat": 30.0999, "lon": 31.1999, "row": 1200, "col": 2111, "cell_id": 4322111, "cell_lat": 30.05, "cell_lon": 31.15 },
+    { "lat": -0.05, "lon": -0.05, "row": 899, "col": 1799, "cell_id": 3238199, "cell_lat": -0.05, "cell_lon": -0.05 },
+    { "lat": 0.3, "lon": 0.7, "row": 903, "col": 1807, "cell_id": 3252607, "cell_lat": 0.35, "cell_lon": 0.75 },
+    { "lat": 89.99999, "lon": 179.99999, "row": 1799, "col": 3599, "cell_id": 6479999, "cell_lat": 89.95, "cell_lon": 179.95 },
+    { "lat": -89.99999, "lon": -179.99999, "row": 0, "col": 0, "cell_id": 0, "cell_lat": -89.95, "cell_lon": -179.95 },
+    { "lat": 30.0999999999, "lon": 31.1999999999, "row": 1200, "col": 2111, "cell_id": 4322111, "cell_lat": 30.05, "cell_lon": 31.15, "note": "1e-10 below an edge: stays south / west" },
+    { "lat": 30.09999999996, "lon": 31.19999999996, "row": 1201, "col": 2112, "cell_id": 4325712, "cell_lat": 30.15, "cell_lon": 31.25, "note": "4e-11 below an edge: snaps north / east" },
+    { "lat": 30.1, "lon": 114.49999999994998, "row": 1201, "col": 2945, "cell_id": 4326545, "cell_lat": 30.15, "cell_lon": 114.55, "note": "near-tie at the 9th decimal: Python round(x, 9) gives col 2944; grid.md §2 steps give 2945" },
+    { "lat": -40.84000000000001, "lon": 148.09999999995, "row": 491, "col": 3281, "cell_id": 1770881, "cell_lat": -40.85, "cell_lon": 148.15, "note": "near-tie at the 9th decimal: Python round(x, 9) gives col 3280; grid.md §2 steps give 3281" }
+  ],
+  "areas": [
+    { "row": 900, "area_km2": 123.64, "tolerance": 0.005 },
+    { "row": 1200, "area_km2": 107.02, "tolerance": 0.005 }
+  ],
+  "strata": [
+    { "lat": 30.1, "lon": 31.2, "month": 10, "tile_id": 453, "chain": ["t453-m10", "t453-mall", "b12-m10", "g-m10"] },
+    { "lat": -40.84, "lon": -68.97, "month": 7, "tile_id": 155, "chain": ["t155-m07", "t155-mall", "b4-m07", "g-m07"] },
+    { "lat": 90.0, "lon": 180.0, "month": 1, "tile_id": 647, "chain": ["t647-m01", "t647-mall", "b17-m01", "g-m01"] }
+  ],
+  "invalid": [
+    { "lat": 90.0001, "lon": 0.0 },
+    { "lat": -90.5, "lon": 0.0 },
+    { "lat": 0.0, "lon": 180.0001 },
+    { "lat": 0.0, "lon": -181.0 },
+    { "lat": null, "lon": 0.0 }
+  ]
+}
