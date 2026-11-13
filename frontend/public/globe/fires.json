@@ -1,0 +1,34 @@
+{
+ "source": "NASA FIRMS near-real-time, global 7-day files",
+ "built": "2026-11-03",
+ "dates": [
+  "2026-10-27",
+  "2026-11-03"
+ ],
+ "grid_deg": 0.1,
+ "sensors": {
+  "modis": {
+   "label": "MODIS (Terra and Aqua)",
+   "rows": 61159,
+   "detections": 58127,
+   "cells": 21189
+  },
+  "viirs": {
+   "label": "VIIRS (NOAA-20)",
+   "rows": 344320,
+   "detections": 300095,
+   "cells": 55712
+  }
+ },
+ "ratio_viirs_vs_modis": 5.16,
+ "regions": {
+  "nile-delta": {
+   "modis": 7,
+   "viirs": 88
+  },
+  "rio-negro": {
+   "modis": 1,
+   "viirs": 2
+  }
+ }
+}

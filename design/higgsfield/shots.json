@@ -1,0 +1,140 @@
+[
+ {
+  "id": "delta_high",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Cinematic aerial photograph looking down from high altitude through thin broken clouds onto the Nile Delta in Egypt at golden hour. A patchwork of small rice fields, green and harvested brown, cut by silver irrigation canals and the curving Nile branch. A few thin columns of white smoke rise from burning rice straw and lean in the wind. Warm low sun, soft haze, high dynamic range, Kodak Vision3 film grade, photoreal, no text, no aircraft."
+  }
+ },
+ {
+  "id": "delta_low",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Low cinematic aerial shot about 120 metres above harvested rice fields in the Nile Delta, Egypt, at golden hour. Lines of rice straw burn with small orange flames, thick smoke drifts across the frame lit gold by the setting sun, date palms along a canal, a mudbrick village and a minaret in the hazy distance. Photoreal, anamorphic, Kodak Vision3 film grade, no text."
+  }
+ },
+ {
+  "id": "rio_negro",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Wide cinematic landscape photograph of the Patagonian steppe in Rio Negro, Argentina, in winter at dusk. A tall wildfire smoke plume rises from a ridge on the horizon, its base glowing orange. Snow-capped Andes in the far distance, frost on the low shrubs in the foreground, cold blue light against the warm fire glow. Photoreal, Kodak Vision3 film grade, no text, no people."
+  }
+ },
+ {
+  "id": "night_orbit",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Photograph taken from low Earth orbit of the night side of Earth over Africa, the curve of the planet across the frame, scattered orange wildfire glows across the savanna like embers, a few golden city lights, a thin turquoise airglow along the horizon, dark space with faint stars. Photoreal NASA astronaut photography style, long exposure, no spacecraft, no text."
+  }
+ },
+ {
+  "id": "smoke_wall",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Inside a dense bank of wildfire smoke high above farmland at sunset, the smoke glowing amber and grey, soft volumetric light rays piercing through, nothing else visible, cinematic, photoreal, no text."
+  }
+ },
+ {
+  "id": "who_responder",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "3:4",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Documentary portrait of a firefighter in a yellow protective jacket and helmet at the edge of a grass fire at dusk, looking at a rugged tablet with a satellite fire map, smoke and orange glow behind, shallow depth of field, photoreal, natural light, no text, no logos."
+  }
+ },
+ {
+  "id": "who_scientist",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "3:4",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Documentary portrait of a young Egyptian woman climate scientist wearing a light headscarf, sitting at a desk in a bright airy research office, studying a large monitor with a heatmap calendar and a world map of fire hotspots, soft daylight from a window, photoreal, no text, no logos."
+  }
+ },
+ {
+  "id": "who_farmer",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "3:4",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Documentary portrait of an Egyptian farmer in a grey galabeya and a white turban standing in a harvested rice field in the Nile Delta at golden hour, holding a phone, light smoke haze on the horizon behind him, warm light, photoreal, no text."
+  }
+ },
+ {
+  "id": "v_dive",
+  "model": "kling-video/v3.0/pro/image-to-video",
+  "usd": 0.8,
+  "from": "delta_high",
+  "last": "delta_low",
+  "args": {
+   "duration": 5,
+   "sound": "off",
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, aircraft",
+   "prompt": "One continuous smooth drone descent. The camera dives steadily from high altitude down through the golden haze toward the Nile Delta rice fields, the canals and fields growing larger, until it levels out low over burning rice straw with drifting smoke at sunset. Constant speed, no cuts, no rotation, cinematic, photoreal."
+  }
+ },
+ {
+  "id": "v_delta_loop",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "delta_low",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, aircraft",
+   "prompt": "Very slow forward drone glide over the burning rice straw rows, small flames flicker, smoke drifts gently to the left in the golden sunset light, palm trees still. Calm, cinematic, photoreal."
+  }
+ },
+ {
+  "id": "v_rio_loop",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "rio_negro",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, aircraft",
+   "prompt": "Locked-off tripod shot. The wildfire smoke plume billows and rolls slowly upward and drifts right, the fire at its base flickers and glows, the frosty shrubs in the foreground are perfectly still. Dusk light slowly deepens. Cinematic, photoreal."
+  }
+ },
+ {
+  "id": "v_smoke_clear",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "smoke_wall",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, aircraft",
+   "prompt": "The camera flies forward steadily into the glowing smoke bank, the smoke rushes past the lens, gets thinner and brighter, and opens into a clear, bright, pale sky full of soft white light. Continuous motion, no cuts, cinematic."
+  }
+ }
+]
