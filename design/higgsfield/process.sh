@@ -45,6 +45,8 @@ still delta_low nile-delta 1600
 [ -f out/clouds_fire.jpg ] && still clouds_fire clouds-fire 1600   # X27: Method page, clouds hide fires
 [ -f out/game_win.jpg ] && still game_win game-win 1600     # X33: the game's end screen, embers left
 [ -f out/game_lose.jpg ] && still game_lose game-lose 1600   # X33: the game's end screen, out of embers
+[ -f out/game_street.jpg ] && still game_street game-street 1920   # X36: the game's night street behind every question
+[ -f out/game_street_tall.jpg ] && still game_street_tall game-street-tall 1080   # X36: the same for phones
 
 rm -rf "$TMP"
 du -sh "$OUT" "$OUT/dive" "$OUT/smoke"

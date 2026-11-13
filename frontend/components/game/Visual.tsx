@@ -11,10 +11,10 @@ import { MONTHS, fmt } from "@/lib/format";
 import Illus from "./Illus";
 import Sprite, { type Sheets } from "./Sprite";
 
-export default function Visual({ v, answered, sheets }: { v: V; answered: boolean; sheets: Sheets | null }) {
-  if (v.type === "years") return <Years v={v} answered={answered} sheets={sheets} />;
+export default function Visual({ v, answered, sheets, unit = 1 }: { v: V; answered: boolean; sheets: Sheets | null; unit?: number }) {
+  if (v.type === "years") return <Years v={v} answered={answered} sheets={sheets} unit={unit} />;
   if (v.type === "versus") return <Versus v={v} answered={answered} />;
-  if (v.type === "months") return <Months v={v} answered={answered} sheets={sheets} />;
+  if (v.type === "months") return <Months v={v} answered={answered} sheets={sheets} unit={unit} />;
   if (v.type === "trap") return <Trap v={v} />;
   if (v.type === "map") return <MapShot src={v.src} label={v.label} dots={answered ? v.dots : null} sheets={sheets} />;
   if (v.type === "maps") return <TwoMaps v={v} answered={answered} sheets={sheets} />;
@@ -38,15 +38,16 @@ const eased = (v: number, max: number, H: number) => Math.max(10, Math.pow(Math.
  *  the sheet's frame is 0.72 wide for 1 tall, and a flame may overlap its neighbours by half. */
 const chartHeight = (n: number, max = 130) => Math.round(Math.min(max, Math.max(56, (820 / (n + 1.3)) * 2.0)));
 
-function Years({ v, answered, sheets }: { v: Extract<V, { type: "years" }>; answered: boolean; sheets: Sheets | null }) {
-  const past = [...v.past].sort((a, b) => a.year - b.year);
+function Years({ v, answered, sheets, unit }: { v: Extract<V, { type: "years" }>; answered: boolean; sheets: Sheets | null; unit: number }) {
+  // The last 12 years, so each flame is big enough to read (the question's numbers still use every year).
+  const past = [...v.past].sort((a, b) => a.year - b.year).slice(-12);
   const max = Math.max(1, v.value, ...past.map((p) => p.value));
-  const H = chartHeight(past.length);
+  const H = chartHeight(past.length, Math.round(150 * unit ** 1.8));   // much shorter on short screens, so the card fits
   const typicalTop = H - eased(v.typical, max, H);
   return (
     <figure className="vis-years">
       <div className="fl-chart" role="img"
-           aria-label={`${v.monthName} in ${past.length} other years as flames; a typical one has ${fmt(v.typical)}${answered ? `; ${v.year} has ${fmt(v.value)}` : ""}.`}>
+           aria-label={`${v.monthName} in the last ${past.length} years as flames; a typical one has ${fmt(v.typical)}${answered ? `; ${v.year} has ${fmt(v.value)}` : ""}.`}>
         <div className="fl-typical" style={{ top: typicalTop }}><span>Typical {v.monthName}: {fmt(v.typical)}</span></div>
         <div className="fl-row" style={{ height: H }}>
           {past.map((p, i) => (
@@ -65,7 +66,7 @@ function Years({ v, answered, sheets }: { v: Extract<V, { type: "years" }>; answ
           </div>
         </div>
       </div>
-      <figcaption>Each flame is {v.monthName} in another year: the taller, the more hotspots.</figcaption>
+      <figcaption>Each flame is {v.monthName} in one of the last {past.length} years: the taller, the more hotspots.</figcaption>
     </figure>
   );
 }
@@ -102,9 +103,9 @@ function Versus({ v, answered }: { v: Extract<V, { type: "versus" }>; answered: 
   );
 }
 
-function Months({ v, answered, sheets }: { v: Extract<V, { type: "months" }>; answered: boolean; sheets: Sheets | null }) {
+function Months({ v, answered, sheets, unit }: { v: Extract<V, { type: "months" }>; answered: boolean; sheets: Sheets | null; unit: number }) {
   const max = Math.max(1, ...v.values.map((x) => x ?? 0));
-  const H = chartHeight(12, 120);
+  const H = chartHeight(12, Math.round(130 * unit ** 1.8));
   return (
     <figure className="vis-months">
       <div className="fl-chart" role="img" aria-label={`A typical year, month by month${answered ? `: highest in ${MONTHS[v.peak]}` : ""}.`}>
