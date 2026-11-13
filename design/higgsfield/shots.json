@@ -187,5 +187,16 @@
    "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, extra people",
    "prompt": "Slow push-in. The firefighter studies the tablet, then looks up toward the fire. Smoke drifts and glows orange behind, a few embers float past. Subtle natural motion, cinematic, photoreal."
   }
+ },
+ {
+  "id": "clouds_fire",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Photograph taken from the International Space Station in late afternoon, looking down on a flat farming river delta. A deck of broken white cumulus clouds covers about half of the frame. In the clear gaps, small orange agricultural fires glow and thin grey smoke trails drift the same way; a few smoke trails run in under the cloud edge, their fires hidden. Patchwork fields, silver canals, soft haze, natural colours, realistic Earth observation photograph, high dynamic range, no text, no spacecraft parts."
+  }
  }
 ]

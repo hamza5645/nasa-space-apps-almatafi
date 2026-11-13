@@ -42,6 +42,7 @@ still who_scientist who-scientist 720
 still who_farmer who-farmer 720
 still rio_negro rio-negro 1600
 still delta_low nile-delta 1600
+[ -f out/clouds_fire.jpg ] && still clouds_fire clouds-fire 1600   # X27: Method page, clouds hide fires
 
 rm -rf "$TMP"
 du -sh "$OUT" "$OUT/dive" "$OUT/smoke"

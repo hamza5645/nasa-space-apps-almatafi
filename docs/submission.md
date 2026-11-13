@@ -16,15 +16,18 @@ Almatafi merges 25 years of NASA FIRMS fire detections from MODIS and VIIRS into
 2. Cleaning: low confidence detections, volcanoes and other static sources removed.
 3. Grid: a global 0.1° grid of monthly detections and fire days, per satellite and pass, stored as Parquet.
 4. Harmonization: VIIRS is split at MODIS's detection floor (Sofiev and Kouznetsov 2026). Fires above it convert from MODIS by a ratio per 10° tile and month; fires below it come from each cell's own VIIRS record, scaled by the year's activity. Four models are scored by leave one year out, plus placebo break years, and the best one converts 2001 to 2012. NOAA 20 and NOAA 21 carry the record since S NPP stopped on Nov 2, 2026. Result on real data: R² [real], raw jump at 2012 [real]×, harmonized [real]×.
-5. App: a FastAPI backend (DuckDB over Parquet) and a Next.js web app with a MapLibre map on NASA GIBS imagery, the burning calendar, statistics, and CSV, GeoJSON and Cloud Optimized GeoTIFF exports.
+5. App: a FastAPI backend (DuckDB over Parquet) and a Next.js web app with a MapLibre map on NASA GIBS imagery (each detection's pixel footprint, the day's satellite image and smoke), the burning calendar with cloudy months marked and an optional cloud correction, statistics, a preview of "unusual month" alerts (not sent yet), and CSV, GeoJSON, KML and Cloud Optimized GeoTIFF exports.
 
 **NASA data used**
 
 1. FIRMS MODIS C6.1 active fires: https://firms.modaps.eosdis.nasa.gov/
 2. FIRMS VIIRS 375 m active fires (S NPP, NOAA 20, NOAA 21): https://firms.modaps.eosdis.nasa.gov/
-3. GIBS Blue Marble imagery: https://earthdata.nasa.gov/gibs
+3. GIBS imagery: Blue Marble, and the day's MODIS/VIIRS corrected reflectance and OMPS/OMI aerosol index (smoke) on the map: https://earthdata.nasa.gov/gibs
+4. Cloud correction method: MOD14CMH/MYD14CMH (MODIS climate modelling grid fire products, monthly 0.5°). The app uses simulated cloud cover until these are loaded, and says so.
 
-**Other data:** geoBoundaries (admin areas), OpenStreetMap via Nominatim (place search), CARTO basemap.
+**Acknowledgement:** We acknowledge the use of data and imagery from NASA's Fire Information for Resource Management System (FIRMS), part of NASA's Earth Science Data and Information System (ESDIS), with near real-time data from LANCE. MODIS: Giglio et al. 2016, doi:10.1016/j.rse.2016.02.054. VIIRS: Schroeder et al. 2014, doi:10.1016/j.rse.2013.12.008. FIRMS: Davies et al. 2009, doi:10.1109/TGRS.2008.2002076.
+
+**Other data:** geoBoundaries (admin areas), OpenStreetMap via Nominatim (place search), OpenFreeMap basemap (OpenStreetMap data).
 
 **AI use disclosure:** We used Claude Code (Anthropic) as a coding assistant for parts of the pipeline, backend and web app. We designed the method, reviewed the code, and checked every result against the data ourselves.
 

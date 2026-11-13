@@ -102,7 +102,7 @@ M0 to M2 can only put the small fires where MODIS happened to see something, so 
 The build writes `validation.json` (served at `/api/validation`), 4 charts and `validation.md`. It also writes a season check: the share of each calendar month in the year, MODIS era against VIIRS era (mock: correlation 0.994, same peak month).
 
 **Considered, not done yet:**
-- Cloud and overpass normalization (Giglio 2006): FIRMS files carry no cloud information. It would need MOD14CMQ/MYD14CMQ.
+- Cloud correction from real data (Giglio 2006): FIRMS files carry no cloud information. The correction is built (§6) on a simulated cloud product; reading MOD14CMH/MYD14CMH (monthly 0.5° CMG, HDF4, UMD sftp) is not.
 - Land cover strata (GFED5): this needs MCD12Q1.
 - Duplicate removal across overlapping swaths (Li 2018): FIRMS times are to the minute, so it can't be done exactly. Fire days are not affected.
 
@@ -123,6 +123,14 @@ For an area and a month, the count is the sum of harmonized values over the cell
 
 **Small areas:** areas under 4 cells get a coarse grid warning.
 
+**Cloud correction (optional, X27, `pipeline/almatafi/clouds.py`, `backend/app/series.py`).** A fire under cloud is not detected, so a cloudy month looks quieter than it was. Each harmonized cell count is divided by its clear share:
+
+    corrected = Σ over the area's cells  value ÷ max(1 − cloud fraction, 0.2)
+
+The cloud fraction is the monthly mean of the 0.5° cell holding the 0.1° cell (the 0.5° grid nests the 0.1° one), from Aqua's 13:30 pass, VIIRS's overpass time, and Terra's 10:30 pass before July 2002. The 0.2 floor caps the factor at 5. It assumes fires under cloud burn at the same rate as in clear parts of the cell (Giglio et al. 2006); where cloud and fire seasons are tied (monsoon burning), that over- or under-corrects. It applies to harmonized hotspots only (fire days can't exceed the days of a month), and the baseline is corrected the same way, so z and percentile compare like with like. Every calendar also reports the area's mean cloud fraction per month and marks months above 50%.
+
+**The cloud product is simulated for now** (`source: mock`, shown in the app): a latitude and season pattern with dry deserts and year-to-year noise. The real input is MOD14CMH/MYD14CMH (monthly, 0.5°), the products FIRMS's FAQ points to for cloud-aware analysis. The mock sensors aren't thinned by cloud, so the correction can't be validated on the mock.
+
 ## 7. Limits
 
 - **M3's small fires come from the 2012 to 2022 average.** A month in those years is partly inside the small-fire part of every converted year before 2012, so a spike made of small fires is compared with a slightly raised pre-2012 baseline. The demo months (2026) are outside that window.
@@ -131,6 +139,9 @@ For an area and a month, the count is the sum of harmonized values over the cell
 - **A static source's cell is left out for the whole record.** A cell flagged as a static source (gas flares, industry, volcanoes) is masked in every month from 2001 on, so a real fire in that cell is never counted.
 - **The first 18 months are Terra only (2001-01 → 2002-06).** Aqua starts in July 2002. Where Terra sees few fires, single Terra months are unreliable even when the period's total is right: in the Nile Delta, where fires burn in the afternoon after Terra's 10:30 pass, Terra sees 0–4 hotspots a month, and on the mock half of those months came out as 0 against the true fires. Read 2001 and early 2002 with care there.
 - The record sits on a 0.1° grid (about 10 km), so small areas are coarse.
+- **Day and night are defined differently by FIRMS's products.** Standard files call a pixel night when the solar zenith angle is above 85°; NRT files use the orbit (ascending day, descending night). The day and night floors (§4.4) take the field as given, so standard months and NRT months split slightly differently near the terminator and at high latitudes. Monthly totals add both passes, so the effect there is small.
+- **South Atlantic Anomaly.** FIRMS removes low-confidence night pixels over 11°E–110°W, 7°N–55°S from NRT data (we drop low confidence everywhere, so standard and NRT agree), but a few spurious nominal pixels still come through, about 2–3 a night across the whole region. Río Negro is inside it; a night-heavy spike there deserves a look at the day/night split.
+- **Cloud cover is simulated** until MOD14CMH/MYD14CMH are read (§6). The cloud marks and the corrected view show how the correction works, not real cloud.
 - The conversion is learned from the overlap years, so it assumes the relation between the sensors in a region and season was the same before 2012.
 
 ## 8. Sources for the method
@@ -143,3 +154,9 @@ For an area and a month, the count is the sum of harmonized values over the cell
 - Sofiev and Kouznetsov 2026, EGUsphere preprint, doi:10.5194/egusphere-2026-89 (we used the preprint's coefficients; check the final GMD version)
 - Giglio 2025, LANCE user group slides on Terra and Aqua orbit drift
 - MODIS C6/C6.1 and VNP14IMG user guides; FIRMS FAQ (S NPP end date)
+- Giglio, Schroeder and Justice 2016, Remote Sensing of Environment 178, doi:10.1016/j.rse.2016.02.054 (MODIS Collection 6 active fires)
+- Davies, Ilavajhala, Wong and Justice 2009, IEEE Transactions on Geoscience and Remote Sensing 47, doi:10.1109/TGRS.2008.2002076 (FIRMS)
+
+## 9. Acknowledgement
+
+We acknowledge the use of data and imagery from NASA's Fire Information for Resource Management System (FIRMS) (https://www.earthdata.nasa.gov/data/tools/firms), part of NASA's Earth Science Data and Information System (ESDIS), and from NASA's Global Imagery Browse Services (GIBS), part of ESDIS. Near real-time data come from LANCE (Land, Atmosphere Near real-time Capability for Earth observation), operated by ESDIS.
