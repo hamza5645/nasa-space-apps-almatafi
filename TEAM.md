@@ -55,9 +55,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X33 v2 — Khalid (with Claude), PR #38 (`khalid/x33-game-slider`), back in progress Nov 13 afternoon with Khalid's pixel-art sprite sheets: the game becomes chapters on a level map with illustrated intros; two answer blocks with the Khalid character running and jumping to the chosen one, the top character celebrating or panicking (fire), the firefighter spraying, the map explorer folding his map beside map-snapshot questions, a glowing ALMATAFI fire truck as decor; pictures instead of dot strips; the raw-vs-harmonized slider redone so it reads at a glance; a pass on how the pages connect. Touches `frontend/` (Hamza's area) at Khalid's request.
+- (nothing)
 
 ### In review (PR open, merge in this order)
+- X33 "Normal or not?" game (v2: five chapters with Khalid's pixel-art characters) + the raw-vs-harmonized slider + phone overlap fixes + page connections — Khalid (with Claude), PR #38 (`khalid/x33-game-slider`), stacked on PR #37 (merge #37 first). Touches `frontend/` (Hamza's area) at Khalid's request. The game goes against the Oct 31 "no gamification" decision: Khalid's call; Decisions unchanged until Hamza agrees (suggested wording: an educational quiz on our real data is fine; no badges or leaderboards)
 - X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
@@ -113,6 +114,19 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Khalid (with Claude) (36)
+- Did: X33 v2, from Khalid's brief and his five pixel-art sprite sheets.
+  - **Five chapters on a level map** (What's a hotspot?, Two eyes in orbit, Normal or not?, The 2012 trap, Read the map), each with an illustrated intro, two or three questions, stars (kept on this device) and a "what you learned". Two answers per question.
+  - **The stage:** the question card with the host (the boy with glasses) standing on it; two answer blocks over the ground with Khalid between them. Pick one: Khalid runs under it (runner sheet, mirrored to run left) and jumps; on the jump's peak frame the block bumps and turns green ✓ or red ✗ (and the right one gets a green outline). The host then celebrates, or his shoes catch fire and he runs off in smoke; on a wrong answer the firefighter sprays at once (otherwise every 3 s). The ALMATAFI fire truck glows on the left (Khalid wrote "maradi"; read as Matafi: t/r and f/d are neighbouring keys).
+  - **Map questions** use snapshots of our own explorer (same Delta month seen by MODIS, 45 hotspots, and VIIRS, 589; Río Negro July 2026). The explorer character folds and opens his map at the start, on hover and every 3 s.
+  - **Pictures instead of the dot strip:** past years as flames with this year hidden until you answer, two satellites side by side, the raw vs harmonized step, the season month by month; SVG illustrations for the chapter intros.
+  - **Sprites:** `design/sprites/process.py` cleans, slices and registers the sheets (sources kept in `design/sprites/source/`, 6.4 MB) into strips + `sprites.json`; `components/game/Sprite.tsx` plays them frame by frame so effects land on a given frame. `design/game/capture-maps.mjs` retakes the map snapshots after a data change (do it after the real-data build).
+  - **The slider** is now one bar chart that morphs from the raw join to our record (Nile Delta mock: 11.6× → 0.80×), with Raw/Harmonized buttons and one auto sweep. "No jump" only between 0.8× and 1.25×.
+  - **Pages connected:** a menu in the explorer's top bar (the story, Method, the game), the game's header links to the explorer and Method, Method ends with "Test yourself", the landing band shows the host.
+  - Checked: all five chapters played (dev), 1440/900/390 px, keyboard, no page errors; 67 frontend tests, lint, typecheck and the static build pass.
+- Next: Hamza reviews PR #37, then #38. After the real-data build: rerun `design/game/capture-maps.mjs` and rebuild `public/cache/` so the game's numbers are real. Voice lines (`docs/narration.md`) when recorded.
+- Broken / blocked: nothing. Higgsfield still not used (no key here); the truck and illustrations are drawn in SVG.
 
 ### Nov 13 — Khalid (with Claude) (35)
 - Did: X33, after looking at Connected Earth (the museum project with the game that Khalid pointed to): borrow the playful parts, built on our own data.
