@@ -15,7 +15,7 @@ concurrency:
 
 env:
   API_URL: https://almatafi-api.monitorthesituations.com
-  IMAGE: ghcr.io/khalidstark/almatafi-api
+  IMAGE: ghcr.io/hamza5645/almatafi-api
   # The commit the tests passed on (workflow_run), else the pushed or chosen one.
   SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 

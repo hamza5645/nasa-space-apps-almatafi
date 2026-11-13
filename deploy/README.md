@@ -9,7 +9,7 @@ Health check: https://almatafi-api.monitorthesituations.com/api/health. If the A
 
 ```
 merge to main ─▶ tests ─▶ deploy.yml ─┬─▶ frontend: next build ─▶ wrangler deploy ─▶ Cloudflare Workers
-                                      └─▶ backend: docker build ─▶ ghcr.io/khalidstark/almatafi-api:main
+                                      └─▶ backend: docker build ─▶ ghcr.io/hamza5645/almatafi-api:main
                                                                         ▲ pulled every 5 min
 VPS, user almatafi (rootless Podman) ───────────────────────────────────┘
   almatafi-api (no published port) ◀── almatafi-tunnel (cloudflared, outbound) ◀── Cloudflare
@@ -44,7 +44,7 @@ No secret value is in git. Everything below is Hamza's unless noted.
 `.github/workflows/deploy.yml` runs after the `tests` workflow passes on `main`:
 
 - **Frontend:** `npm run build` with `NEXT_PUBLIC_API_URL`, then `wrangler deploy`. Live in about a minute.
-- **Backend:** builds `backend/Dockerfile` on GitHub and pushes `ghcr.io/khalidstark/almatafi-api:main` (plus `:sha-<commit>`). The VPS checks GHCR every 5 minutes and swaps in a new image. If the new one doesn't answer `/api/health`, Podman rolls back to the previous one.
+- **Backend:** builds `backend/Dockerfile` on GitHub and pushes `ghcr.io/hamza5645/almatafi-api:main` (plus `:sha-<commit>`). The VPS checks GHCR every 5 minutes and swaps in a new image. If the new one doesn't answer `/api/health`, Podman rolls back to the previous one.
 
 GitHub never connects to the VPS; the VPS pulls. Repo secrets: `CLOUDFLARE_API_TOKEN` (Workers deploys on monitorthesituations.com only) and `CLOUDFLARE_ACCOUNT_ID`. Run it by hand: Actions → deploy → Run workflow.
 
@@ -79,7 +79,7 @@ $A podman auto-update --dry-run                              # is there a newer 
 $A nano /home/almatafi/.config/almatafi/api.env               # settings, then restart
 ```
 
-**Roll back by hand** to a known commit: `$A podman pull ghcr.io/khalidstark/almatafi-api:sha-<commit>`, `$A podman tag ghcr.io/khalidstark/almatafi-api:sha-<commit> ghcr.io/khalidstark/almatafi-api:main`, then restart. The next auto-update moves it forward again if `main` has a newer image.
+**Roll back by hand** to a known commit: `$A podman pull ghcr.io/hamza5645/almatafi-api:sha-<commit>`, `$A podman tag ghcr.io/hamza5645/almatafi-api:sha-<commit> ghcr.io/hamza5645/almatafi-api:main`, then restart. The next auto-update moves it forward again if `main` has a newer image.
 
 ### Install from scratch
 
@@ -89,11 +89,11 @@ $A nano /home/almatafi/.config/almatafi/api.env               # settings, then r
 4. GHCR login: `$A podman login ghcr.io --authfile /home/almatafi/.config/containers/auth.json -u <github user>` with a classic token that has only `read:packages`.
 5. Fill in `api.env`, then run `sh install.sh` again.
 
-Without the GHCR image (before the first workflow run), build it on the VPS under a memory cap and tag it as `ghcr.io/khalidstark/almatafi-api:main`:
+Without the GHCR image (before the first workflow run), build it on the VPS under a memory cap and tag it as `ghcr.io/hamza5645/almatafi-api:main`:
 
 ```sh
 $A systemd-run --user --unit=almatafi-build --collect -p MemoryMax=1200M -p CPUQuota=150% \
-  --working-directory=/home/almatafi/src podman build -f backend/Dockerfile -t ghcr.io/khalidstark/almatafi-api:main .
+  --working-directory=/home/almatafi/src podman build -f backend/Dockerfile -t ghcr.io/hamza5645/almatafi-api:main .
 ```
 
 ## Frontend by hand

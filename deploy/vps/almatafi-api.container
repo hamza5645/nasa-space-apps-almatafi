@@ -5,7 +5,7 @@ Description=ALMATAFI API (FastAPI + DuckDB)
 
 [Container]
 ContainerName=almatafi-api
-Image=ghcr.io/khalidstark/almatafi-api:main
+Image=ghcr.io/hamza5645/almatafi-api:main
 Network=almatafi.network
 AutoUpdate=registry
 EnvironmentFile=%h/.config/almatafi/api.env
