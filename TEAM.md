@@ -46,7 +46,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- (nothing)
+- X27 FIRMS gaps — Khalid (with Claude), branch `khalid/x27-firms-gaps`, started Nov 13. From a comparison with NASA FIRMS's own tools and docs: (1) `build-data.sh` stops using FIRMS's `/api/country` (marked "currently not available" on the FIRMS API page) and fetches each country's box from the area API, clipped to the country; (2) cloud correction, on a mock cloud product for now; (3) "unusual month" alert previews and a local outbox, no real email; (4) explorer: the day's satellite image and smoke, pixel footprints, KML export; (5) FIRMS's acknowledgement and data citations; (6) the landing globe falls back to its still image when it can't load. Touches `frontend/` (Hamza's area) at Khalid's request.
 
 ### In review (PR open, merge in this order)
 - (nothing)
