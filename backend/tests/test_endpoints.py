@@ -210,7 +210,7 @@ def test_cloud_cover_and_correction(tmp_path):
     m = dict(zip(fixed["years"], fixed["matrix"]))
     assert m[2010][9] == 81        # (40.4 + 0.2) / 0.5 = 81.2
     assert m[2001][2] == 18        # (2.5 + 1.0) / max(0.1, 0.2) = 17.5 → 18 (half up): at most 5×
-    assert m[2005][0] == 0         # no cloud row: no change
+    assert m[2005][0] is None      # no cloud data that month: not observed, never left uncorrected
     assert fixed["unit"].endswith("corrected for cloud cover") and fixed["clouds"]["mode"] == "correct"
 
     s = _post(c, "stats", aoi=NILE_BOX, month="2010-10", baseline=[2001, 2009], clouds="correct").json()
@@ -219,6 +219,50 @@ def test_cloud_cover_and_correction(tmp_path):
 
     bad = _post(c, "calendar", aoi=NILE_BOX, metric="fire_days", clouds="correct")
     assert bad.status_code == 422 and "detections" in bad.json()["error"]["message"]
+
+
+def test_cloud_correction_never_mixes_corrected_and_uncorrected_months(tmp_path):
+    """The real cloud product trails the fire data by months. A month it doesn't reach can't be
+    corrected; compared as it is with corrected months it would read as below normal."""
+    c = _harmonized_client(tmp_path)
+    c1 = cells.cell_id(30.55, 31.05)
+    _clouds(tmp_path, [(c1, y, 10, "Aqua", 0.5) for y in range(2005, 2010)])   # stops before 2010
+    ask = dict(aoi=NILE_BOX, month="2010-10", baseline=[2001, 2009])
+    r = _post(c, "stats", **ask, clouds="correct")
+    assert r.status_code == 422 and r.json()["error"]["code"] == "out_of_range"
+    assert r.json()["error"]["details"] == {"month": "2010-10", "dataset": "clouds"}
+    assert _post(c, "stats", **ask).json()["value"] == 40.6                    # as seen, it still answers
+    cal = _post(c, "calendar", aoi=NILE_BOX, start="2009-01", end="2010-12", clouds="correct").json()
+    assert cal["matrix"][0][9] == 0 and cal["matrix"][1][9] is None
+
+    (tmp_path / "clouds" / "cloud_monthly.parquet").unlink()
+    (tmp_path / "clouds").rmdir()
+    _clouds(tmp_path, [(c1, y, 10, "Aqua", 0.5) for y in range(2005, 2011)])
+    s = _post(c, "stats", **ask, clouds="correct").json()
+    assert s["value"] == 81.2 and s["baseline"]["n_years"] == 5                # 2001–2004 have no cloud data
+
+
+def test_exports_follow_the_cloud_correction(tmp_path):
+    """The file has the numbers on the screen, and its value column says they are corrected."""
+    import rasterio
+    from rasterio.io import MemoryFile
+    c = _harmonized_client(tmp_path)
+    _clouds(tmp_path, [(cells.cell_id(30.55, 31.05), 2010, 10, "Aqua", 0.5)])
+    ask = dict(aoi=NILE_BOX, start="2010-10", end="2010-10")
+    plain = _post(c, "export", **ask, what="calendar", format="csv").text.splitlines()
+    assert plain == ["year,month,value,origin", "2010,10,41,converted_aqua"]
+    fixed = _post(c, "export", **ask, what="calendar", format="csv", clouds="correct").text.splitlines()
+    assert fixed == ["year,month,value_cloud_corrected,origin", "2010,10,81,converted_aqua"]
+    grid = _post(c, "export", **ask, what="grid", format="csv", clouds="correct").text.splitlines()
+    assert grid[0] == "cell_id,cell_lat,cell_lon,value_cloud_corrected"
+    assert sum(float(ln.split(",")[3]) for ln in grid[1:]) == pytest.approx(81.2, abs=0.01)
+    tif = _post(c, "export", **ask, what="grid", format="geotiff", clouds="correct")
+    with MemoryFile(tif.content) as mem, mem.open() as ds:
+        band = ds.read(1)
+        assert ds.tags()["unit"].endswith("corrected for cloud cover")
+        assert band[band != ds.nodata].sum() == pytest.approx(81.2, abs=0.01)
+    bad = _post(c, "export", **ask, what="grid", format="csv", view="modis", clouds="correct")
+    assert bad.status_code == 422
 
 
 def test_no_cloud_product_no_cloud_fields(harmonized):

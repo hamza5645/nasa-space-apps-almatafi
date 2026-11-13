@@ -24,8 +24,9 @@ from almatafi import cells
 from app.aoi import LIMIT_GRID_KM2, Aoi
 from app.errors import ApiError
 from app.meta import build_meta
-from app.routes import Metric, View, _check_months, _resolve, _today, calendar_payload, feature, hotspot_frame
-from app.series import UNITS, Reader, parse_ym
+from app.routes import (Clouds, Metric, View, _check_months, _resolve, _today, calendar_payload, feature,
+                        hotspot_frame, unit_of)
+from app.series import Reader, parse_ym
 
 router = APIRouter(prefix="/api")
 
@@ -38,6 +39,9 @@ MAX_CSV_ROWS = 5_000_000
 MAX_TIFF_PIXELS = 10_000_000
 # Point exports are built in memory; a year of a 500k km² area in a busy fire region stays under this.
 MAX_EXPORT_POINTS = 200_000
+# KML is ~930 bytes per hotspot (a table and a footprint each) and is built as text: 200k points
+# took 940 MB here, on an API capped at 1 GB. 50k take 230 MB, like the GeoTIFF cap.
+MAX_KML_POINTS = 50_000
 NODATA = -1.0
 FORMATS = {"hotspots": ("csv", "geojson", "kml"), "calendar": ("csv", "json"), "grid": ("geotiff", "csv")}
 CONTENT_TYPES = {"csv": "text/csv; charset=utf-8", "geojson": "application/geo+json",
@@ -57,6 +61,7 @@ class ExportRequest(BaseModel):
     end: str = Field(pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     view: View = "harmonized"
     metric: Metric = "detections"
+    clouds: Clouds = "off"  # calendar and grid: as /calendar; the CSV value column says so
     aggregate: Literal["sum", "monthly"] = "sum"
     sensors: list[Literal["MODIS", "VIIRS"]] = Field(default=["MODIS", "VIIRS"], min_length=1)
     include_filtered: bool = False
@@ -108,9 +113,10 @@ def export(body: ExportRequest, request: Request):
 def _hotspots(body: ExportRequest, request: Request) -> Response:
     start, end = _date_arg(body.start, "start"), _date_arg(body.end, "end")
     df, aoi, _ = hotspot_frame(request, body.aoi, start, end, body.sensors, body.include_filtered)
-    if len(df) > MAX_EXPORT_POINTS:
-        raise ApiError(422, "too_large", f"{len(df):,} points; exports are limited to {MAX_EXPORT_POINTS:,}. "
-                       "Narrow the dates or the area.", {"points": len(df), "limit_points": MAX_EXPORT_POINTS})
+    limit = MAX_KML_POINTS if body.format == "kml" else MAX_EXPORT_POINTS
+    if len(df) > limit:
+        raise ApiError(422, "too_large", f"{len(df):,} points; {body.format.upper()} exports are limited to "
+                       f"{limit:,}. Narrow the dates or the area.", {"points": len(df), "limit_points": limit})
     features = [feature(r) for r in df.itertuples(index=False)]
     if body.format == "geojson":
         doc = {"type": "FeatureCollection", "features": features, "total": len(features),
@@ -185,7 +191,8 @@ def hotspots_kml(features: list[dict], title: str) -> bytes:
 
 
 def _calendar(body: ExportRequest, request: Request, start: str, end: str) -> Response:
-    cal = calendar_payload(request, body.aoi, start, end, body.view, body.metric)
+    cal = calendar_payload(request, body.aoi, start, end, body.view, body.metric, body.clouds,
+                           with_cover=body.format == "json")
     if body.format == "json":
         return _file(json.dumps(cal).encode(), "json", "calendar", start, end)
     origin = cal.get("origin")
@@ -197,7 +204,11 @@ def _calendar(body: ExportRequest, request: Request, start: str, end: str) -> Re
             v = cal["matrix"][i][j]
             o = origin[i][j] if origin else None
             rows.append([y, m, "" if v is None else v, o or ""])
-    return _file(_csv(["year", "month", "value", "origin"], rows), "csv", "calendar", start, end)
+    return _file(_csv(["year", "month", _value_column(body), "origin"], rows), "csv", "calendar", start, end)
+
+
+def _value_column(body: ExportRequest) -> str:
+    return "value_cloud_corrected" if body.clouds == "correct" else "value"
 
 
 def _grid(body: ExportRequest, request: Request, start: str, end: str) -> Response:
@@ -208,7 +219,7 @@ def _grid(body: ExportRequest, request: Request, start: str, end: str) -> Respon
     if body.format == "geotiff" and aoi.bbox[0] > aoi.bbox[2]:
         raise ApiError(422, "invalid_aoi", "GeoTIFF exports can't cross the 180° meridian; export each side.")
     reader = Reader(request.app.state.data, aoi.cell_ids, today)
-    values, observed = reader.per_cell(body.view, body.metric, first, last)
+    values, observed = reader.per_cell(body.view, body.metric, first, last, body.clouds == "correct")
     if body.aggregate == "monthly" and len(observed) > MAX_BANDS:
         raise ApiError(422, "too_large", f"{len(observed)} months; monthly exports are limited to {MAX_BANDS}.",
                        {"months": len(observed), "limit_months": MAX_BANDS})
@@ -224,13 +235,13 @@ def _grid(body: ExportRequest, request: Request, start: str, end: str) -> Respon
             layers[f"{y}-{m:02d}"] = month.reindex(ids, fill_value=0.0).to_numpy()
 
     tags = {"data_version": request.app.state.data.data_version(), "view": body.view, "metric": body.metric,
-            "unit": UNITS[(body.view, body.metric)], "start": start, "end": end}
+            "unit": unit_of(body.view, body.metric, body.clouds), "start": start, "end": end}
     if body.format == "csv":
-        return _file(_grid_csv(ids, layers, body.aggregate), "csv", "grid", start, end)
+        return _file(_grid_csv(ids, layers, body.aggregate, _value_column(body)), "csv", "grid", start, end)
     return _file(_geotiff(aoi, ids, layers, tags), "geotiff", "grid", start, end)
 
 
-def _grid_csv(ids: np.ndarray, layers: dict, aggregate: str) -> bytes:
+def _grid_csv(ids: np.ndarray, layers: dict, aggregate: str, value: str = "value") -> bytes:
     if len(layers) * ids.size > MAX_CSV_ROWS:
         raise ApiError(422, "too_large", "Too many cell-months for a CSV; use GeoTIFF or a shorter period.",
                        {"rows": len(layers) * int(ids.size), "limit_rows": MAX_CSV_ROWS})
@@ -238,12 +249,12 @@ def _grid_csv(ids: np.ndarray, layers: dict, aggregate: str) -> bytes:
     if aggregate == "sum":
         vals = layers.get("sum", np.full(ids.size, np.nan))
         rows = [[int(c), lat, lon, "" if np.isnan(v) else round(float(v), 3)] for c, (lat, lon), v in zip(ids, centres, vals)]
-        return _csv(["cell_id", "cell_lat", "cell_lon", "value"], rows)
+        return _csv(["cell_id", "cell_lat", "cell_lon", value], rows)
     rows = []
     for label, vals in layers.items():
         y, m = int(label[:4]), int(label[5:])
         rows += [[int(c), lat, lon, y, m, round(float(v), 3)] for c, (lat, lon), v in zip(ids, centres, vals)]
-    return _csv(["cell_id", "cell_lat", "cell_lon", "year", "month", "value"], rows)
+    return _csv(["cell_id", "cell_lat", "cell_lon", "year", "month", value], rows)
 
 
 def _geotiff(aoi, ids: np.ndarray, layers: dict, tags: dict) -> bytes:

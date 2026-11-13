@@ -112,6 +112,7 @@ class Reader:
         self.con = duckdb.connect()
         self.con.execute("SET TimeZone = 'UTC'")
         self.con.register("aoi_cells", pa.table({"cell_id": pa.array(cell_ids, pa.int32())}))
+        self._cover: dict[YM, float] | None = None  # cloud_cover's one query per request
 
     @property
     def current(self) -> YM:
@@ -141,14 +142,26 @@ class Reader:
         cloud product. Months the product doesn't cover are None."""
         if not self.data.clouds.exists():
             return {}
-        path = self._cells_with_clouds()
-        lo, hi = ym_index(first), ym_index(last)
-        rows = self.con.execute(f"""
-            SELECT year, month, AVG(cloud_fraction) FROM aoi_cmg JOIN read_parquet('{path}') USING (cmg_id)
-            WHERE platform = {cloud_platform_sql()} AND year * 12 + month - 1 BETWEEN {lo} AND {hi}
-            GROUP BY ALL""").fetchall()
-        got = {(int(y), int(m)): float(v) for y, m, v in rows}
-        return {ym: got.get(ym) for ym in months(first, last)}
+        if self._cover is None:
+            path = self._cells_with_clouds()
+            rows = self.con.execute(f"""
+                SELECT year, month, AVG(cloud_fraction) FROM aoi_cmg JOIN read_parquet('{path}') USING (cmg_id)
+                WHERE platform = {cloud_platform_sql()} GROUP BY ALL""").fetchall()
+            self._cover = {(int(y), int(m)): float(v) for y, m, v in rows}
+        return {ym: self._cover.get(ym) for ym in months(first, last)}
+
+    def _cloud_corrected(self, path: str, col: str) -> str:
+        """The AOI's harmonized rows with `col` over each cell's clear share (Giglio et al. 2006),
+        as a FROM source. A cell without a cloud row in a month the product covers is unchanged."""
+        clouds = self._need(self.data.clouds, "Cloud data", "clouds")
+        self._cells_with_clouds()
+        return f"""(SELECT cell_id, h.year, h.month, h.origin,
+                      h.{col} / GREATEST(1 - COALESCE(c.cloud_fraction, 0), {CLEAR_MIN}) AS {col}
+                    FROM read_parquet('{path}') h JOIN aoi_cmg a USING (cell_id)
+                    LEFT JOIN read_parquet('{clouds}') c ON c.cmg_id = a.cmg_id AND c.year = h.year
+                      AND c.month = h.month
+                      AND c.platform = CASE WHEN h.year * 12 + h.month - 1 >= {ym_index(AQUA_FIRST)}
+                                            THEN 'Aqua' ELSE 'Terra' END)"""
 
     def _harmonized(self, metric: str, wanted: list[YM], cloud_correct: bool = False) -> Monthly:
         path = self._need(self.data.harmonized, "Harmonized data", "harmonized")
@@ -156,17 +169,13 @@ class Reader:
         if cloud_correct and metric != "detections":
             raise ApiError(422, "bad_request", "The cloud correction is for detections, not fire days.")
         source = f"read_parquet('{path}') JOIN aoi_cells USING (cell_id)"
+        no_cloud: set[YM] = set()
         if cloud_correct:
-            clouds = self._need(self.data.clouds, "Cloud data", "clouds")
-            self._cells_with_clouds()
-            # Each cell's count over its clear share (Giglio et al. 2006); no cloud row = no change.
-            source = f"""(SELECT h.year, h.month, h.origin,
-                            h.{col} / GREATEST(1 - COALESCE(c.cloud_fraction, 0), {CLEAR_MIN}) AS {col}
-                          FROM read_parquet('{path}') h JOIN aoi_cmg a USING (cell_id)
-                          LEFT JOIN read_parquet('{clouds}') c ON c.cmg_id = a.cmg_id AND c.year = h.year
-                            AND c.month = h.month
-                            AND c.platform = CASE WHEN h.year * 12 + h.month - 1 >= {ym_index(AQUA_FIRST)}
-                                                  THEN 'Aqua' ELSE 'Terra' END)"""
+            source = self._cloud_corrected(path, col)
+            # A month the cloud product doesn't reach (the real one trails the fire data by months)
+            # can't be corrected. Left as it is, it would be compared with corrected months (up to
+            # 5× higher) and read as below normal, so it counts as not observed.
+            no_cloud = {ym for ym, v in self.cloud_cover(wanted[0], wanted[-1]).items() if v is None}
         meta = pq.read_schema(path).metadata or {}
         if b"covered_start" in meta and b"covered_end" in meta:
             covered = (parse_ym(meta[b"covered_start"].decode()), parse_ym(meta[b"covered_end"].decode()))
@@ -191,7 +200,7 @@ class Reader:
         out = Monthly({}, {})
         for ym in wanted:
             known = origins.get(f"{ym[0]}-{ym[1]:02d}") if origins is not None else "?"
-            if covered[0] <= ym <= covered[1] and ym <= self.current and known is not None:
+            if covered[0] <= ym <= covered[1] and ym <= self.current and known is not None and ym not in no_cloud:
                 out.values[ym] = sums.get(ym, 0.0)
                 out.origin[ym] = known if known != "?" else (best[ym][1] if ym in best else era_origin(ym))
             else:
@@ -222,15 +231,20 @@ class Reader:
             out.values[ym] = sums.get(ym, 0.0) if ok else None
         return out
 
-    def per_cell(self, view: str, metric: str, first: YM, last: YM) -> tuple[pd.DataFrame, list[YM]]:
+    def per_cell(self, view: str, metric: str, first: YM, last: YM,
+                 cloud_correct: bool = False) -> tuple[pd.DataFrame, list[YM]]:
         """Values per AOI cell and month (rows only where non-zero), and the observed months.
         A cell missing in an observed month is 0; unobserved months have no value at all."""
-        observed = [ym for ym, v in self.monthly(view, metric, first, last).values.items() if v is not None]
+        observed = [ym for ym, v in self.monthly(view, metric, first, last, cloud_correct).values.items()
+                    if v is not None]
         lo, hi = ym_index(first), ym_index(last)
         if view == "harmonized":
             col = "value" if metric == "detections" else "value_fire_days"
-            sql = f"""SELECT cell_id, year, month, {col} AS value FROM read_parquet('{self.data.harmonized.as_posix()}')
-                      JOIN aoi_cells USING (cell_id) WHERE year * 12 + month - 1 BETWEEN {lo} AND {hi}"""
+            path = self.data.harmonized.as_posix()
+            source = self._cloud_corrected(path, col) if cloud_correct else \
+                f"read_parquet('{path}') JOIN aoi_cells USING (cell_id)"
+            sql = f"""SELECT cell_id, year, month, {col} AS value FROM {source}
+                      WHERE year * 12 + month - 1 BETWEEN {lo} AND {hi}"""
         else:
             agg = "SUM(detections)" if metric == "detections" else "MAX(fire_days)"
             sql = f"""SELECT cell_id, year, month, {agg} AS value FROM read_parquet('{self.data.grid.as_posix()}')

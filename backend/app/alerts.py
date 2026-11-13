@@ -75,7 +75,9 @@ def evaluate(request: Request, aoi, threshold: str = "above_normal", clouds: str
         try:
             s = stats(StatsRequest(aoi=aoi, month=month, clouds=clouds), request)
         except ApiError as e:
-            if e.status == 422:
+            # Only "this month isn't observed yet" is worth a second try; a refused area
+            # (too large, invalid) would just do the same slow work twice.
+            if e.code == "out_of_range":
                 last_error = e
                 continue
             raise
@@ -83,6 +85,11 @@ def evaluate(request: Request, aoi, threshold: str = "above_normal", clouds: str
         triggered = status is not None and LEVEL[status] >= LEVEL[threshold]
         return {"month": month, "stats": s, "triggered": triggered}
     raise last_error  # type: ignore[misc]
+
+
+def _num(v: float) -> str:
+    """A number for the email: up to 2 decimals, never scientific notation (`:g` writes 1.23457e+06)."""
+    return f"{v:,.2f}".rstrip("0").rstrip(".")
 
 
 def render(result: dict, name: str | None, threshold: str) -> dict:
@@ -98,10 +105,10 @@ def render(result: dict, name: str | None, threshold: str) -> dict:
     ratio = s.get("ratio_to_median")
     unit = "VIIRS-equivalent hotspots" + (", corrected for cloud cover" if s.get("clouds", {}).get("mode") == "correct" else "")
     if status is None:
-        verdict = f"{label}{so_far}: {s['value']:g} {unit}. Not enough past years to compare."
+        verdict = f"{label}{so_far}: {_num(s['value'])} {unit}. Not enough past years to compare."
     else:
-        times = f", {ratio:g} times a typical {MONTHS[m - 1]}" if ratio else ""
-        verdict = f"{label}{so_far}: {s['value']:g} {unit}. That is {SAYS[status]}{times}."
+        times = f", {_num(ratio)} times a typical {MONTHS[m - 1]}" if ratio else ""
+        verdict = f"{label}{so_far}: {_num(s['value'])} {unit}. That is {SAYS[status]}{times}."
     head = f"Fire alert: {place} is {SAYS.get(status, 'not comparable')} in {label}" if result["triggered"] \
         else f"No alert: {place} in {label}"
     lines = [

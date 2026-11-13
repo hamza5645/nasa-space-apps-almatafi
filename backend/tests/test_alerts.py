@@ -44,6 +44,21 @@ def test_preview_falls_back_to_last_month_and_escapes(tmp_path):
     assert "60 VIIRS-equivalent hotspots" in e["text"] and "NASA FIRMS" in e["text"]
 
 
+def test_big_counts_are_written_out(tmp_path):
+    c = _client(tmp_path, date(2026, 11, 2), spike=1_234_567.75)
+    text = c.post("/api/alerts/preview", json={"aoi": BOX}).json()["email"]["text"]
+    assert "1,234,567.8 VIIRS-equivalent hotspots" in text and "e+" not in text
+
+
+def test_a_refused_area_is_checked_once(tmp_path, monkeypatch):
+    """Only a month with no data yet falls back to the month before."""
+    c = _client(tmp_path, date(2026, 11, 2))
+    asked, real = [], alerts.stats
+    monkeypatch.setattr(alerts, "stats", lambda body, request: asked.append(body.month) or real(body, request))
+    r = c.post("/api/alerts/preview", json={"aoi": {"type": "bbox", "bbox": [0, -40, 60, 40]}})
+    assert r.status_code == 422 and r.json()["error"]["code"] == "too_large" and asked == ["2026-11"]
+
+
 def test_threshold(tmp_path):
     c = _client(tmp_path, date(2026, 11, 2), spike=12.5)  # a little above the Octobers' mean
     d = c.post("/api/alerts/preview", json={"aoi": BOX, "threshold": "unusual_high"}).json()

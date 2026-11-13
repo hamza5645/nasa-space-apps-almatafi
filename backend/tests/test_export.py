@@ -233,6 +233,18 @@ def test_hotspot_export_point_cap(client, monkeypatch):
     assert r.status_code == 422 and r.json()["error"]["details"]["limit_points"] == 10
 
 
+def test_kml_has_its_own_lower_point_cap(client, monkeypatch):
+    """KML takes ~4.7 KB of memory per point (940 MB at 200k, on an API capped at 1 GB)."""
+    import app.export as export
+    assert export.MAX_KML_POINTS <= 50_000
+    monkeypatch.setattr(export, "MAX_KML_POINTS", 10)
+    ask = dict(aoi=BOX, what="hotspots", start="2026-10-01", end="2026-10-31")
+    r = _export(client, format="kml", **ask)
+    assert r.status_code == 422 and r.json()["error"]["details"]["limit_points"] == 10
+    assert "KML exports are limited to 10" in r.json()["error"]["message"]
+    assert _export(client, format="csv", **ask).status_code == 200
+
+
 def test_geotiff_pixel_cap_keeps_memory_down(client):
     # ~720 × 1,020 cells of extent: 12 monthly bands ≈ 8.8M pixels fit, 14 ≈ 10.3M don't
     # (30M took ~640 MB, close to the API's 1 GB cap).

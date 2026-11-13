@@ -170,6 +170,15 @@
             ],
             "title": "Aoi"
           },
+          "clouds": {
+            "default": "off",
+            "enum": [
+              "off",
+              "correct"
+            ],
+            "title": "Clouds",
+            "type": "string"
+          },
           "end": {
             "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$",
             "title": "End",

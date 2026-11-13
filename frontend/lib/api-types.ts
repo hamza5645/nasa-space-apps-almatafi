@@ -255,6 +255,12 @@ export interface components {
             aggregate?: "sum" | "monthly";
             /** Aoi */
             aoi: components["schemas"]["PolygonAoi"] | components["schemas"]["BboxAoi"] | components["schemas"]["PointAoi"] | components["schemas"]["AdminAoi"] | components["schemas"]["RegionAoi"];
+            /**
+             * Clouds
+             * @default off
+             * @enum {string}
+             */
+            clouds?: "off" | "correct";
             /** End */
             end: string;
             /**

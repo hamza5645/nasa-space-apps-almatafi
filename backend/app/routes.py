@@ -94,7 +94,11 @@ def calendar(body: CalendarRequest, request: Request):
     return calendar_payload(request, body.aoi, body.start, body.end, body.view, body.metric, body.clouds)
 
 
-def cloud_fields(request: Request, cover: dict, clouds: str) -> dict:
+def unit_of(view: str, metric: str, clouds: str = "off") -> str:
+    return UNITS[(view, metric)] + (", corrected for cloud cover" if clouds == "correct" else "")
+
+
+def cloud_fields(request: Request, clouds: str) -> dict:
     """The response's cloud block, when the backend has a cloud product."""
     source = request.app.state.data.cloud_source()
     if source is None:
@@ -104,8 +108,9 @@ def cloud_fields(request: Request, cover: dict, clouds: str) -> dict:
 
 
 def calendar_payload(request: Request, aoi_body, start: str, end: str | None, view: str, metric: str,
-                     clouds: str = "off") -> dict:
-    """The /calendar response; /export reuses it for calendar files."""
+                     clouds: str = "off", with_cover: bool = True) -> dict:
+    """The /calendar response; /export reuses it for calendar files (its CSV has no cloud
+    column, so it skips the cloud-cover query with `with_cover=False`)."""
     today = _today(request)
     first = parse_ym(start)
     last = parse_ym(end) if end else (today.year, today.month)
@@ -113,7 +118,7 @@ def calendar_payload(request: Request, aoi_body, start: str, end: str | None, vi
     aoi = _resolve(request, aoi_body, LIMIT_GRID_KM2, "calendars and statistics")
     reader = Reader(request.app.state.data, aoi.cell_ids, today)
     series = reader.monthly(view, metric, first, last, cloud_correct=clouds == "correct")
-    cover = reader.cloud_cover(first, last)
+    cover = reader.cloud_cover(first, last) if with_cover else {}
 
     years = list(range(first[0], last[0] + 1))
     in_range = set(months(first, last))
@@ -139,9 +144,8 @@ def calendar_payload(request: Request, aoi_body, start: str, end: str | None, vi
     if last == (today.year, today.month):
         partial = {"month": f"{last[0]}-{last[1]:02d}", "days_observed": reader.days_observed(view, last)}
 
-    unit = UNITS[(view, metric)] + (", corrected for cloud cover" if clouds == "correct" else "")
     out = {
-        "view": view, "metric": metric, "unit": unit,
+        "view": view, "metric": metric, "unit": unit_of(view, metric, clouds),
         "years": years, "months": list(range(1, 13)), "matrix": matrix,
     }
     if view == "harmonized":
@@ -149,7 +153,7 @@ def calendar_payload(request: Request, aoi_body, start: str, end: str | None, vi
     if cover:
         out["cloud"] = [[None if (y, m) not in in_range or cover.get((y, m)) is None else round(cover[(y, m)], 2)
                          for m in range(1, 13)] for y in years]
-        out |= cloud_fields(request, cover, clouds)
+        out |= cloud_fields(request, clouds)
     out |= {"year_totals": year_totals, "month_medians": month_medians,
             "max": max(values) if values else None, "partial_month": partial,
             "meta": build_meta(request.app.state.data.data_version(), aoi)}
@@ -174,6 +178,9 @@ def stats(body: StatsRequest, request: Request):
     cover = reader.cloud_cover(target, target)
 
     value = series.values.get(target)
+    if value is None and body.clouds == "correct" and cover.get(target) is None:
+        raise ApiError(422, "out_of_range", f"No cloud cover data for {body.month} yet, so this month can't be "
+                       "corrected for cloud.", {"month": body.month, "dataset": "clouds"})
     if value is None:
         raise ApiError(422, "out_of_range", f"{body.month} was not observed in the {body.view} view.",
                        {"month": body.month, "view": body.view})
@@ -207,7 +214,7 @@ def stats(body: StatsRequest, request: Request):
         "partial": partial,
         "trend": analytics.trend(annual),
         **({"cloud_fraction": None if cover.get(target) is None else round(cover[target], 2)} if cover else {}),
-        **cloud_fields(request, cover, body.clouds),
+        **cloud_fields(request, body.clouds),
         "meta": build_meta(request.app.state.data.data_version(), aoi),
     }
 
