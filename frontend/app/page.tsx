@@ -55,6 +55,20 @@ export default function Home() {
 
         <section className="light after-film">
           <div className="wrap section first">
+            <div className="two-min" data-reveal>
+              <div className="two-min-head">
+                <div className="eyebrow">Try it in two minutes</div>
+                <h2 className="display h3">Three clicks show what Almatafi does.</h2>
+              </div>
+              <ol className="two-min-steps">
+                <li><WarpLink href="/explore?region=rio-negro&month=2026-07"><b>1</b><span>Open Río Negro, July 2026</span><small>Read the answer: is that month normal? Then click any other month.</small></WarpLink></li>
+                <li><WarpLink href="/explore?region=nile-delta&month=2026-10&view=modis"><b>2</b><span>Switch the Delta to MODIS only, then VIIRS only</span><small>Same fires, different counts. The slider under the map shows the fix.</small></WarpLink></li>
+                <li><WarpLink href="/play"><b>3</b><span>Play one chapter</span><small>Two minutes with our characters, on the same real data. Or download a GeoTIFF from the explorer.</small></WarpLink></li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="wrap section">
             <div className="sec-head" data-reveal>
               <div className="eyebrow">How it works</div>
               <h2 className="display h2">Three steps from map to <em>answer.</em></h2>
@@ -160,6 +174,31 @@ export default function Home() {
                   <p>{text}</p>
                 </article>
               ))}
+            </div>
+          </div>
+
+          <div className="wrap section" id="data">
+            <div className="sec-head" data-reveal>
+              <div className="eyebrow">Where the numbers come from</div>
+              <h2 className="display h2">NASA FIRMS, <em>three ways.</em></h2>
+              <p className="sec-lede">Every number on the site is one of these, cleaned the same way. The Method page says how, and the explorer&apos;s Data button repeats this next to the numbers.</p>
+            </div>
+            <div className="steps sources-grid" data-reveal="stagger">
+              <article className="card src-card archive">
+                <span className="src-tag">Archive · 2000 → last year</span>
+                <h3>Yearly country files</h3>
+                <p>FIRMS&apos;s science-quality archive: one CSV per sensor, country and year, with the fire type (vegetation, volcano, flare). The 25-year record is built from these.</p>
+              </article>
+              <article className="card src-card year">
+                <span className="src-tag">This year · the FIRMS API</span>
+                <h3>Standard, then near-real-time</h3>
+                <p>A free key fetches this year: standard processing where it has caught up, near-real-time for the newest weeks. The current month compares its days so far with the same days of past years.</p>
+              </article>
+              <article className="card src-card live">
+                <span className="src-tag">Last 7 days · public files</span>
+                <h3>24 h, 48 h and 7-day CSVs</h3>
+                <p>No key, refreshed hourly. The globe above shows one such week: {fmt(n.viirs)} VIIRS detections. Not used for the record: seven days is too short to judge a month.</p>
+              </article>
             </div>
           </div>
 

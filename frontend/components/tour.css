@@ -1,0 +1,34 @@
+/* X34: the explorer tour. The hole is a box whose huge shadow darkens everything else. */
+.tour { position: fixed; inset: 0; z-index: 200; }
+.tour-hole { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(6, 7, 11, .72), 0 0 0 3px var(--ember), 0 0 30px rgba(255, 198, 92, .5);
+  transition: top .35s var(--ease-out, ease-out), left .35s var(--ease-out, ease-out), width .35s, height .35s; pointer-events: auto; cursor: pointer; }
+.tour-card { position: fixed; width: min(360px, calc(100vw - 24px)); padding: 16px 18px 14px; border-radius: 16px; background: #FBF8F3; color: #1A1714;
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .9); display: flex; flex-direction: column; gap: 8px; transition: top .35s var(--ease-out, ease-out), left .35s var(--ease-out, ease-out); }
+.tour-head { display: flex; justify-content: space-between; align-items: center; }
+.tour-count { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #B4561C; }
+.tour-skip { border: 0; background: none; color: #6B5F52; font-size: 13px; cursor: pointer; padding: 4px 6px; }
+.tour-skip:hover { color: #1A1714; }
+.tour-card h2 { margin: 0; font-size: 19px; font-weight: 700; font-stretch: 112%; line-height: 1.2; }
+.tour-card p { margin: 0; font-size: 14.5px; line-height: 1.5; color: #4A443D; }
+.tour-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.tour-row .chip-btn { background: #fff; color: #1A1714; border-color: #D9D1C4; }
+.tour-row .btn { min-height: 36px; padding: 0 16px; }
+.tour-dots { margin-left: auto; display: flex; gap: 4px; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: #D9D1C4; }
+.tour-dots i.done { background: #E9A23B; }
+.tour-dots i.on { background: #B4561C; transform: scale(1.4); }
+/* The explorer's Tour and Data buttons */
+.tour-btn, .data-pop .pop-btn { min-height: 36px; }
+.tour-btn { gap: 6px; display: inline-flex; align-items: center; }
+.topbar-right { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+.topbar-right .exports { margin-left: 0; }
+.data-panel { width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 10px; }
+.data-tier { display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: start; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, .04); }
+.data-tier i { width: 12px; height: 12px; border-radius: 3px; margin-top: 4px; }
+.data-tier.archive i { background: #B9A58C; }
+.data-tier.year i { background: #F08A24; }
+.data-tier.live i { background: #6BD0E4; }
+.data-tier strong { display: block; font-size: 14px; }
+.data-tier span { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.data-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .tour-hole, .tour-card { transition: none; } }

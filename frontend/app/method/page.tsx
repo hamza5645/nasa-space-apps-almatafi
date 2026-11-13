@@ -181,8 +181,13 @@ export default function MethodPage() {
         <div className="wrap section last">
           <h2 className="display h3" data-reveal>Data sources</h2>
           <ul className="sources" data-reveal>
-            <li><a href="https://firms.modaps.eosdis.nasa.gov/">NASA FIRMS</a>: MODIS Collection 6.1 active fires (Terra, Aqua)</li>
-            <li><a href="https://firms.modaps.eosdis.nasa.gov/">NASA FIRMS</a>: VIIRS 375 m active fires (Suomi NPP, NOAA-20, NOAA-21)</li>
+            <li><a href="https://firms.modaps.eosdis.nasa.gov/">NASA FIRMS</a>: MODIS Collection 6.1 active fires (Terra, Aqua) and VIIRS 375 m active fires (Suomi NPP, NOAA-20, NOAA-21), reached three ways:
+              <ul>
+                <li><strong>Archive, 2000 to last year:</strong> the yearly country files (science-quality processing, with the fire type). The record is built from these.</li>
+                <li><strong>This year:</strong> the area API with a free key, standard processing where available and near-real-time for the newest weeks (no fire type; static sources masked from the archive).</li>
+                <li><strong>Last 7 days:</strong> the public 24 h / 48 h / 7-day CSV files (no key, hourly). The landing globe&apos;s week; too short for the record.</li>
+              </ul>
+            </li>
             <li><a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a>: Blue Marble Next Generation and VIIRS Black Marble imagery for the map and globe; the day&apos;s MODIS and VIIRS true-colour images and the OMPS/OMI aerosol index (smoke) on the explorer&apos;s map</li>
             <li>Cloud cover: MOD14CMH/MYD14CMH (MODIS climate modelling grid, monthly 0.5°) is the planned source; the app uses simulated cloud cover until it is loaded</li>
             <li><a href="https://github.com/nasa/NASA-3D-Resources">NASA 3D Resources</a>: the Aqua and Suomi NPP satellite models</li>

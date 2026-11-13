@@ -16,6 +16,8 @@ import { decode, encode } from "@/lib/share";
 import { cloudsApply, useCalendar, useHotspots, useRegions, useStats } from "@/lib/queries";
 import { DEFAULT, useSelection } from "@/lib/store";
 import AlertMenu from "./AlertMenu";
+import DataSources from "./DataSources";
+import Tour, { useFirstVisitTour } from "./Tour";
 import AreaPanel from "./AreaPanel";
 import Brand from "./Brand";
 import Calendar from "./Calendar";
@@ -135,6 +137,7 @@ export default function Explorer() {
   }, [regions.data, s.aoi]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const offline = [cal.data, stats.data, hotspots.data].some((d) => d && "offline" in d && d.offline);
+  const [tour, setTour] = useFirstVisitTour(Boolean(cal.data));
   const regionList = regions.data?.regions ?? FALLBACK_REGIONS;
   const activeRegion = s.aoi.type === "region" ? s.aoi.region_id : null;
 
@@ -158,7 +161,7 @@ export default function Explorer() {
           )}
         </Popover>
         <div className="choices">
-          <Popover className="area-pop" ariaLabel={`Area: ${s.aoiLabel}. Change the area`}
+          <Popover className="area-pop" tour="area" ariaLabel={`Area: ${s.aoiLabel}. Change the area`}
                    label={<><span className="pop-key">Area</span><span className="pop-val">{s.aoiLabel}</span></>}>
             {(close) => (
               <div className="area-menu">
@@ -178,7 +181,7 @@ export default function Explorer() {
               </div>
             )}
           </Popover>
-          <div className="years" role="group" aria-label="Years">
+          <div className="years" role="group" aria-label="Years" data-tour="years">
             <label><span className="sr-only">From</span>
               <select value={Math.max(2001, Number(s.start.slice(0, 4)))} onChange={(e) => s.setRange(`${e.target.value}-01`, s.end)}>
                 {YEARS.map((y) => <option key={y} value={y} disabled={s.end !== null && `${y}` > s.end.slice(0, 4)}>{y}</option>)}
@@ -194,11 +197,18 @@ export default function Explorer() {
               </select>
             </label>
           </div>
-          <Segmented label="Data" options={VIEWS} value={s.view} onChange={s.setView} />
-          <Segmented label="Count" options={METRICS} value={s.metric} onChange={s.setMetric} />
+          <Segmented label="Data" tour="view" options={VIEWS} value={s.view} onChange={s.setView} />
+          <Segmented label="Count" tour="metric" options={METRICS} value={s.metric} onChange={s.setMetric} />
         </div>
-        <AlertMenu />
-        <ExportMenu latest={observed.at(-1) ?? null} />
+        <div className="topbar-right">
+          <AlertMenu />
+          <div data-tour="downloads" className="exports-wrap"><ExportMenu latest={observed.at(-1) ?? null} /></div>
+          <div data-tour="data"><DataSources dataVersion={cal.data?.meta.data_version} /></div>
+          <button type="button" className="chip-btn tour-btn" onClick={() => setTour(true)} title="A short guide to this page" aria-label="Tour: a short guide to this page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01" /></svg>
+            Tour
+          </button>
+        </div>
       </header>
       {offline && (
         <p className="warn offline" role="status">
@@ -207,11 +217,11 @@ export default function Explorer() {
         </p>
       )}
 
-      <Verdict stats={stats.data} loading={stats.isFetching} error={stats.error as ApiError | null}
-               month={s.month} metric={s.metric} view={s.view} />
+      <div data-tour="verdict"><Verdict stats={stats.data} loading={stats.isFetching} error={stats.error as ApiError | null}
+               month={s.month} metric={s.metric} view={s.view} /></div>
 
       <div className="xp-grid">
-        <section className="cal" aria-label="Burning calendar">
+        <section className="cal" aria-label="Burning calendar" data-tour="calendar">
           <div className="calhead">
             <h2>Burning calendar</h2>
             <p className="muted">
@@ -248,7 +258,7 @@ export default function Explorer() {
           )}
         </section>
 
-        <section className="mapcol" aria-label="Map and hotspots">
+        <section className="mapcol" aria-label="Map and hotspots" data-tour="map">
           <MapView hotspots={shown} loading={hotspots.isFetching} />
           <HotspotPanel data={hotspots.data} shown={shown} loading={hotspots.isFetching} error={hotspots.error as ApiError | null}
                         selected={s.hotspot} onSelect={s.selectHotspot}
@@ -257,7 +267,7 @@ export default function Explorer() {
       </div>
 
       {harm.data && modis.data && viirs.data && (
-        <section className="xp-sensors xp-compare" aria-label="Raw join against the harmonized record">
+        <section className="xp-sensors xp-compare" aria-label="Raw join against the harmonized record" data-tour="compare">
           <div className="sensors-text">
             <h2>Slide from raw to harmonized</h2>
             <p>
@@ -284,14 +294,15 @@ export default function Explorer() {
         </div>
         <SensorChart harmonized={harm.data} modis={modis.data} viirs={viirs.data} />
       </section>
+      <Tour open={tour} onClose={() => setTour(false)} />
     </div>
   );
 }
 
-function Segmented<T extends string>({ label, options, value, onChange }:
-  { label: string; options: readonly (readonly [T, string])[]; value: T; onChange: (v: T) => void }) {
+function Segmented<T extends string>({ label, options, value, onChange, tour }:
+  { label: string; options: readonly (readonly [T, string])[]; value: T; onChange: (v: T) => void; tour?: string }) {
   return (
-    <div className="seg" role="group" aria-label={label}>
+    <div className="seg" role="group" aria-label={label} data-tour={tour}>
       {options.map(([v, text]) => (
         <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>{text}</button>
       ))}
