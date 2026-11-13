@@ -16,8 +16,10 @@ FETCH=${2:-}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DATA=${DATA_DIR:-$ROOT/data}          # DATA_DIR=… builds somewhere else (rehearsals)
 DIST=${DIST_DIR:-$ROOT/dist}
-# Country files (FIRMS spellings) cover past years; the API (ISO3 codes, same countries) covers
-# this year, all of NOAA-21 and the NRT tail.
+# Country files (FIRMS spellings) cover past years; the area API (ISO3 codes, same countries)
+# covers this year, all of NOAA-21 and the NRT tail. FIRMS's /api/country is "currently not
+# available" (Nov 13, 2026), so each country is fetched as its box and clipped to its outline
+# (geoBoundaries ADM0, downloaded first by the backend's admin tool).
 COUNTRIES=${COUNTRIES:-Egypt,Argentina,Chile}
 API_COUNTRIES=${API_COUNTRIES:-EGY,ARG,CHL}
 YEARS=${YEARS:-2000-$(( $(date -u +%Y) - 1 ))}
@@ -44,9 +46,14 @@ else
     step "FIRMS yearly country files ($COUNTRIES, $YEARS) → $RAW"
     py pipeline -m almatafi.fetch --out "$RAW" countries --countries "$COUNTRIES" --years "$YEARS"
     if [ -n "${FIRMS_MAP_KEY:-}" ]; then
+      ADM0=()
+      for c in ${API_COUNTRIES//,/ }; do ADM0+=("$c:0"); done
+      step "country outlines for clipping (geoBoundaries ADM0: ${API_COUNTRIES})"
+      ALMATAFI_DATA_DIR=$DATA py backend -m app.admin "${ADM0[@]}"
       for c in ${API_COUNTRIES//,/ }; do
-        step "FIRMS API for $c: this year, NOAA-21, NRT tail"
-        py pipeline -m almatafi.fetch --out "$RAW" api --country "$c" --name "$(echo "$c" | tr 'A-Z' 'a-z')"
+        step "FIRMS area API for $c (its box, clipped to its outline): this year, NOAA-21, NRT tail"
+        py pipeline -m almatafi.fetch --out "$RAW" api --country "$c" --name "$(echo "$c" | tr 'A-Z' 'a-z')" \
+          --admin-dir "$DATA/admin"
       done
     else
       echo "FIRMS_MAP_KEY not set: skipping this year, NOAA-21 and the NRT tail." >&2

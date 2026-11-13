@@ -6,8 +6,9 @@ from datetime import date
 import pytest
 
 from almatafi import fetch
-from almatafi.fetch import (FetchError, Manifest, Response, api_plan, area_url, check_firms_csv, country_api_url,
-                            country_jobs, country_url, fetch_api, fetch_countries, fetch_one, read_availability)
+from almatafi.fetch import (Boundary, FetchError, Manifest, Response, api_plan, area_url, check_firms_csv,
+                            country_jobs, country_url, fetch_api, fetch_countries, fetch_one, main,
+                            read_availability)
 from almatafi.ingest import ingest, read_clean
 
 KEY = "abcdef0123456789abcdef0123456789"
@@ -57,10 +58,8 @@ def test_urls_match_firms():
         area_url(KEY, "MODIS_NRT", None, 10)  # FIRMS allows 1–5 days
     # NOAA-20's country files are "viirs-jpss1" on FIRMS (viirs-noaa20 answers 404).
     assert country_url("viirs-noaa20", 2023, "Egypt").endswith("/viirs-jpss1/2023/viirs-jpss1_2023_Egypt.csv")
-    assert country_api_url(KEY, "VIIRS_SNPP_SP", "EGY", 5, date(2026, 1, 1)) == \
-        f"https://firms.modaps.eosdis.nasa.gov/api/country/csv/{KEY}/VIIRS_SNPP_SP/EGY/5/2026-01-01"
-    with pytest.raises(ValueError):
-        country_api_url(KEY, "MODIS_SP", "Egypt", 5)
+    # FIRMS's /api/country is "currently not available" (Nov 13, 2026): nothing may call it.
+    assert not hasattr(fetch, "country_api_url")
 
 
 def test_country_jobs_skip_this_year_and_noaa21():
@@ -172,14 +171,70 @@ def test_nrt_download_keeps_the_key_secret(tmp_path):
         fetch_api("", None, "world", tmp_path, firms)
 
 
-def test_api_by_country(tmp_path):
+# A square "country" from 30 to 32 E, 29 to 31 N, with a lake (hole) at 30.8–31.2 E, 29.8–30.2 N,
+# and an island at 33.0–33.2 E, 29.0–29.2 N.
+SQUARE = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": {
+    "type": "MultiPolygon", "coordinates": [
+        [[[30, 29], [32, 29], [32, 31], [30, 31], [30, 29]],
+         [[30.8, 29.8], [30.8, 30.2], [31.2, 30.2], [31.2, 29.8], [30.8, 29.8]]],
+        [[[33.0, 29.0], [33.2, 29.0], [33.2, 29.2], [33.0, 29.2], [33.0, 29.0]]]]}}]}
+MODIS_AREA = ("latitude,longitude,brightness,scan,track,acq_date,acq_time,satellite,instrument,"
+              "confidence,version,bright_t31,frp,daynight\n"
+              "30.5,30.5,311.6,1.0,1.0,2026-01-02,1035,T,MODIS,80,6.1,292.6,10.5,D\n"      # inside
+              "30.0,31.0,311.6,1.0,1.0,2026-01-02,1035,T,MODIS,80,6.1,292.6,10.5,D\n"      # in the lake
+              "29.1,33.1,311.6,1.0,1.0,2026-01-02,1035,T,MODIS,80,6.1,292.6,10.5,D\n"      # on the island
+              "30.5,32.005,311.6,1.0,1.0,2026-01-02,1035,T,MODIS,80,6.1,292.6,10.5,D\n"    # 0.5 km off the edge
+              "30.5,32.5,311.6,1.0,1.0,2026-01-02,1035,T,MODIS,80,6.1,292.6,10.5,D\n"      # the neighbour's fire
+              "bad,30.5,311.6,1.0,1.0,2026-01-02,1035,T,MODIS,80,6.1,292.6,10.5,D\n")      # left for ingest
+
+
+def test_boundary_point_in_polygon():
+    b = Boundary(SQUARE, "TST_ADM0")
+    assert b.bbox == (30.0, 29.0, 33.2, 31.0)
+    assert b.fetch_bbox() == (29.95, 28.95, 33.25, 31.05)
+    lon = [30.5, 31.0, 33.1, 32.005, 32.5, 31.99, 30.79, 29.0]
+    lat = [30.5, 30.0, 29.1, 30.5, 30.5, 30.99, 29.81, 30.0]
+    assert b.contains(lon, lat).tolist() == [True, False, True, True, False, True, True, False]
+    assert b.contains(lon, lat, slack=0).tolist() == [True, False, True, False, False, True, True, False]
+    with pytest.raises(FetchError, match="180"):
+        Boundary({"type": "Polygon", "coordinates": [[[-179, 0], [179, 0], [179, 1], [-179, 1], [-179, 0]]]}, "X")
+    with pytest.raises(FetchError, match="no polygon"):
+        Boundary({"type": "FeatureCollection", "features": []}, "X")
+
+
+def test_boundary_clip_csv():
+    body, kept, dropped = Boundary(SQUARE).clip_csv(MODIS_AREA.encode())
+    lines = body.decode().splitlines()
+    assert (kept, dropped) == (4, 2) and lines[0] == MODIS_AREA.splitlines()[0]
+    assert [ln.split(",")[:2] for ln in lines[1:]] == [["30.5", "30.5"], ["29.1", "33.1"], ["30.5", "32.005"],
+                                                        ["bad", "30.5"]]
+
+
+def test_api_by_country_clips_a_box(tmp_path):
+    """--country: the area API with the outline's box, then only the rows inside the outline."""
+    box = "29.95,28.95,33.25,31.05"
     firms = FakeFirms({fetch.availability_url(KEY): Response(200, AVAIL.encode()),
-                       country_api_url(KEY, "MODIS_SP", "EGY", 5, date(2026, 1, 1)): Response(200, MODIS_COUNTRY.encode())},
+                       f"{fetch.BASE}/api/area/csv/{KEY}/MODIS_SP/{box}/5/2026-01-01": Response(200, MODIS_AREA.encode())},
                       default=Response(200, b""))
-    counts = fetch_api(KEY, "EGY", "egypt", tmp_path, firms, products=["modis"], until=date(2026, 1, 10),
-                       sleep=no_sleep, log=lambda _: None)
-    assert counts["ok"] == 1 and (tmp_path / "modis" / "sp_egypt_2026-01-01_5d.csv").exists()
-    assert all("/api/country/csv/" in u for u in firms.calls[1:])
+    logs = []
+    counts = fetch_api(KEY, Boundary(SQUARE, "TST_ADM0"), "tst", tmp_path, firms, products=["modis"],
+                       until=date(2026, 1, 10), sleep=no_sleep, log=logs.append)
+    assert counts["ok"] == 1
+    assert all("/api/area/csv/" in u and "/api/country/" not in u for u in firms.calls[1:])
+    path = tmp_path / "modis" / "sp_tst_2026-01-01_5d.csv"
+    assert len(path.read_text().splitlines()) == 1 + 4
+    entry = json.loads((tmp_path / "manifest.json").read_text())["files"]["modis/sp_tst_2026-01-01_5d.csv"]
+    assert entry["rows"] == 4 and entry["fetched_rows"] == 6 and entry["rows_outside"] == 2
+    assert entry["clipped_to"] == "TST_ADM0" and entry["sha256"] != entry["fetched_sha256"]
+    assert any("2 outside TST_ADM0 dropped" in ln for ln in logs)
+
+
+def test_cli_country_needs_its_outline(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("FIRMS_MAP_KEY", KEY)
+    rc = main(["--out", str(tmp_path / "raw"), "api", "--country", "egy", "--name", "egypt",
+               "--admin-dir", str(tmp_path / "admin")])
+    err = capsys.readouterr().err
+    assert rc == 1 and "EGY_ADM0.geojson" in err and "app.admin EGY:0" in err and KEY not in err
 
 
 def test_bad_key_error_is_redacted(tmp_path):
