@@ -59,11 +59,12 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - X35 Wel3a, a small flame character on every page: written fun facts and highlights for what's on screen, and typed questions answered by Cloudflare Workers AI through a new `/api/wel3a` function in the site's Worker — Hamza (with Claude), Nov 13. `frontend/` and `frontend/wrangler.jsonc` only. (X34 is Khalid's explorer tour, on `khalid/x34-tour-sources`.)
 
 ### In review (PR open, merge in this order)
-- X38 the game's question card and after-answer message — Khalid (with Claude), Nov 13. `frontend/components/game/` only; Hamza to look
+- (nothing)
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
+- [x] X38 the game's stage: no flame on the card, a plain card, the explanation on the card, sprites drawn on a canvas, flames that flicker in place, a third question in chapter 1 — Khalid (with Claude) (PR #6, merged Nov 13 at Khalid's call, **not reviewed by Hamza**). Open: check the characters in Khalid's own browser, Safari and a phone
 - [x] X36 narration on the landing (Khalid's eight recorded lines, "Hear the story" button, captions) + the game's stage rebuilt after Khalid's mockup, drawn over a Higgsfield street plate once generated — Khalid (with Claude) (PR #4, merged Nov 13 at Khalid's call, **not reviewed by Hamza**). Open: `python gen.py game_street game_street_tall && ./process.sh` with the HF key ($0.02), then commit `frontend/public/media/game-street*.webp`
 - [x] X34 explorer tour + the three FIRMS sources told apart + "try it in two minutes" + the game's night-city theme with Khalid's fire and truck sheets + X28 real cloud product from GIBS — Khalid (with Claude) (PR #1 on the new repo, merged Nov 13 at Khalid's call, **not reviewed by Hamza**). Open: the 2000 → now cloud build is still running; the demo cache still carries simulated clouds until it lands
 - [x] X33 "Normal or not?" game (five chapters, Khalid's pixel-art characters, pixel theme) + the raw-vs-harmonized bar slider + phone overlap fixes + page connections — Khalid (with Claude) (PR #38, merged Nov 13 at Khalid's call, **not yet reviewed by Hamza**: Hamza, please look at `frontend/components/game/`, `CompareSlider.tsx` and the page links, and say whether the Oct 31 "no gamification" decision can change)
@@ -128,7 +129,8 @@ _Newest first. One entry per work session._
   - **Also:** the satellite in the chapter pictures drifted to the picture's corner and back (a CSS `transform` animation replaced its SVG transform; now `translate`/`scale`); the two-satellite cards and the 2012 pair are more compact; a wide chart could push the card off a narrow screen.
   - Checked in headless Chrome, all five chapters, at 1000×610, 1280×720, 1470×823, 1440×900 and 520×900: every sprite canvas has pixels on every question, no page scroll, the card cuts nothing but the explorer's feet (4 px, as before). 72 frontend tests, lint and typecheck pass.
 - Later, from Khalid: the flames in the chapter pictures travelled away and back as they flickered (their scale's origin was read against the flame's own box, not the picture); they now stretch from the middle of their own base and stay put. Chapter 1 has a third question ("ten hotspots in one field: ten fires?", `fact-count` in `lib/game.ts`), so the game has 14.
-- Next: Hamza looks at the PR. Khalid: say whether the plain card is what you wanted.
+- Merged at Khalid's call once the four checks passed; Hamza has not reviewed it.
+- Next: Hamza's look after the fact. Khalid: say whether the plain card is what you wanted.
 - Broken / blocked: the missing characters did not reproduce in headless Chrome before the change, so the cause above is the likely one, not a proven one; check it in the browser the screenshots came from. Not checked in Safari or on a real phone.
 
 ### Nov 13 — Hamza (with Claude)
