@@ -131,9 +131,10 @@ _Newest first. One entry per work session._
   - **Landing:** the hero caption moved clear of the flame (it was covered at 375 px and at 1280 to 1400 px wide).
   - **Tests and CI:** 7 tests for the Worker's request handling with stand-in bindings, 86 frontend tests in all; the `tests` workflow's frontend job now bundles the Worker (`wrangler deploy --dry-run`, no credentials needed). Khalid: that is one new step in `.github/workflows/tests.yml`.
   - Checked with `wrangler dev` against the real Workers AI (English and Arabic, a 7.6 KB Arabic chat, a note that tries to change the rules is ignored, no Origin gives 403), in the browser (explorer tips, the game's keys, Escape) and in iOS Safari in the simulator (the keyboard doesn't cover the chat box).
-- Next: Khalid looks at the PR. Decide on a daily cap for AI answers: the only limit is 50 questions a minute per visitor, so one visitor can use up the free day (about 800 answers) in about 16 minutes. A real cap needs a counter on the Cloudflare account (KV or a Durable Object).
+  - **Daily cap (later, at Hamza's call):** the whole site gives at most 800 AI answers in a UTC day (`DAILY_ANSWERS` in `lib/wel3a-chat.ts`), about what the free Workers AI allowance covers, so a Paid plan pays next to nothing. One Durable Object (`AnswerBudget` in `worker/index.ts`, SQLite-backed, on the Free plan too) keeps the day and the count; past the cap the chat says it is done for today and the tips keep working. Tried in `wrangler dev` with the cap set to 2 for a moment.
+- Next: Khalid looks at the PR. The cap bounds the spend, not who uses it: one visitor at 50 questions a minute can still use the whole day's 800 in about 16 minutes. A per-visitor daily limit would stop that, but the venue's Wi-Fi shares one address, so it would also stop the room.
 - Merged `main` (X38) into the branch; the only conflict was this Log, and both sides' entries are kept.
-- Broken / blocked: nothing known. Not changed: Cloudflare's request logs are on for the chat function. Still not checked on the deployed site or a real phone.
+- Broken / blocked: nothing known. Not tried: the first deploy with the Durable Object (its migration runs on deploy). Not changed: Cloudflare's request logs are on for the chat function. Still not checked on the deployed site or a real phone.
 
 ### Nov 13 — Hamza (with Claude) (3)
 - Did: X35, Wel3a (ولعة, "a little flame"), at Hamza's ask: a 2D character that shares fun facts and points out what matters. PR hamza5645/nasa-space-apps-almatafi#2.

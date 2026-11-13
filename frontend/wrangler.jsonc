@@ -18,6 +18,10 @@
   "ai": { "binding": "AI" },
   // Per visitor IP and Cloudflare location: 50 questions a minute.
   "ratelimits": [{ "name": "WEL3A_LIMIT", "namespace_id": "1001", "simple": { "limit": 50, "period": 60 } }],
+  // The whole site's answers for the day are counted in one Durable Object (AnswerBudget in
+  // worker/index.ts: 800 a day).
+  "durable_objects": { "bindings": [{ "name": "WEL3A_BUDGET", "class_name": "AnswerBudget" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AnswerBudget"] }],
   "observability": { "enabled": true, "traces": { "enabled": true } },
   "workers_dev": true,
   "routes": [{ "pattern": "almatafi.monitorthesituations.com", "custom_domain": true }]

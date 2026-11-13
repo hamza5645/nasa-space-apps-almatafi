@@ -9,6 +9,10 @@ export type Message = { role: "system" | "user" | "assistant"; content: string }
  *  limit at once, at 3 bytes a character (Arabic takes 2). */
 export const LIMITS = { question: 300, turn: 600, history: 6, context: 8, line: 240, body: 20_000 };
 
+/** Answers a day for the whole site (counted by AnswerBudget in worker/index.ts). Days are UTC,
+ *  like Workers AI's free allowance, which covers about this many. */
+export const DAILY_ANSWERS = 800;
+
 /** The end of a chat log, as much of it as parseChat keeps. The browser sends only this, so a
  *  long chat never outgrows LIMITS.body. */
 export function recentTurns(log: Turn[]): Turn[] {

@@ -104,7 +104,7 @@ NEXT_PUBLIC_API_URL=https://almatafi-api.monitorthesituations.com npm run build
 npx wrangler@4.156.2 deploy
 ```
 
-The Worker has an `ai` binding and a rate limit binding (`frontend/wrangler.jsonc`). Workers AI is billed to the Cloudflare account: about 12 neurons per answer, 10,000 free a day; past that, a Free plan refuses (the chat says it can't answer) and a Paid plan charges $0.011 per 1,000 neurons. To try the function locally: `npm run build && npx wrangler@4.156.2 dev` (it calls the real Workers AI, so wrangler must be logged in).
+The Worker has an `ai` binding, a rate limit binding (50 questions a minute per visitor) and a Durable Object that counts the whole site's answers for the day (`frontend/wrangler.jsonc`). After 800 answers in a UTC day the chat says it is done for today (`DAILY_ANSWERS` in `frontend/lib/wel3a-chat.ts`); the first deploy creates the object (migration `v1`). Workers AI is billed to the Cloudflare account: about 12 neurons per answer, 10,000 free a day; past that, a Free plan refuses (the chat says it can't answer) and a Paid plan charges $0.011 per 1,000 neurons. To try the function locally: `npm run build && npx wrangler@4.156.2 dev` (it calls the real Workers AI, so wrangler must be logged in).
 
 `output: "export"` means `npm start` no longer works; use `npm run dev` locally, or serve `out/`.
 
