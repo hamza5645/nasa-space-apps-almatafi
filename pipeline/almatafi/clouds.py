@@ -8,11 +8,18 @@ by the clear share of the observations, which the backend does at query time:
 
     corrected = Σ over cells  value / max(1 − cloud_fraction, CLEAR_MIN)
 
-**The product here is simulated** (`source = "mock"`): a latitude × season pattern with dry
-deserts and year-to-year noise, seeded, so the whole path (pipeline → API → calendar) can be
-built and tested before the real files are read. It is not observed cloud cover and it is
-not the cloud that hid the mock's fires (the mock sensors aren't thinned by cloud), so it
-can't be validated on the mock. `real` is not built yet: it needs the HDF4 files and a reader.
+Two builders:
+- `mock`: a simulated product (`source = "mock"`): a latitude × season pattern with dry
+  deserts and year-to-year noise, seeded, so the whole path can be built and tested without
+  the network. It is not observed cloud and can't be validated on the mock.
+- `real`: NASA's daily MODIS cloud fraction (MOD06/MYD06, Terra and Aqua) as served by GIBS,
+  read for the cells our grid covers. GIBS gives each day as a colour-mapped image; a WMS
+  request at one pixel per 0.5° cell returns a small PNG per region and day, the colours are
+  decoded with GIBS's published colour map (value 0–100 %, a transparent "no data" where
+  the satellite didn't see the cell), and the month's cloud fraction per cell is the mean of
+  its daily values. No login, no key. The MOD14CMH/MYD14CMH fire products carry the same
+  kind of cloud fraction, but need UMD's sftp and an HDF4 reader; GIBS's layers come from the
+  same MODIS cloud mask. Images are cached under --cache so reruns only fetch new days.
 
 Output: `clouds/cloud_monthly.parquet` with
     cmg_id (int32), year (int16), month (int8), platform (Terra|Aqua), cloud_fraction (float32)
@@ -22,14 +29,22 @@ The 0.5° cells nest the 0.1° grid exactly (5 × 5), so a grid cell's CMG cell 
     cmg_id = (cell_id // 3600 // 5) * 720 + (cell_id % 3600) // 5
 
     python -m almatafi.clouds mock --grid data/grid --out data/clouds
+    python -m almatafi.clouds real --grid data/grid --out data/clouds --cache data/raw/gibs-clouds
 """
 
 from __future__ import annotations
 
 import argparse
+import io
+import re
 import sys
-from datetime import datetime, timezone
+import time
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from typing import Callable
 
 import duckdb
 import numpy as np
@@ -38,6 +53,7 @@ import pyarrow.parquet as pq
 
 from almatafi.platforms import PLATFORMS
 
+REPO = Path(__file__).resolve().parents[2]
 CMG_COLS = 720  # 0.5° cells per row
 CLEAR_MIN = 0.2  # the correction never scales a cell by more than 1 / 0.2 = 5×
 FIRST_YEAR = 2000
@@ -129,6 +145,199 @@ def grid_cmg_ids(grid: Path) -> tuple[np.ndarray, tuple[int, int]]:
     return np.unique(cmg_of_cell(cells)), (int(y), int(m))
 
 
+# ---- Real cloud fraction from GIBS ------------------------------------------------------------
+
+GIBS_WMS = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
+GIBS_COLORMAP = "https://gibs.earthdata.nasa.gov/colormaps/v1.3/MODIS_Cloud_Fraction.xml"
+GIBS_LAYERS = {"Terra": "MODIS_Terra_Cloud_Fraction_Day", "Aqua": "MODIS_Aqua_Cloud_Fraction_Day"}
+GIBS_FIRST = {"Terra": date(2000, 2, 24), "Aqua": date(2002, 7, 4)}  # the layers' first days
+USER_AGENT = "almatafi/0.1 (NASA Space Apps Cairo 2026; cloud fraction for a fire record)"
+MAX_BOX_DEG = 60.0       # one request covers at most 60° × 60° (120 × 120 px)
+Fetcher = Callable[[str], bytes]
+
+
+def parse_colormap(xml: str) -> dict[tuple[int, int, int], float]:
+    """GIBS colour map → {rgb: cloud fraction 0–1}; the no-data colour is left out."""
+    out = {}
+    for tag in re.findall(r"<ColorMapEntry\b[^>]*/?>", xml):
+        if 'nodata="true"' in tag:
+            continue
+        rgb = re.search(r'rgb="(\d+),(\d+),(\d+)"', tag)
+        value = re.search(r'\bvalue="([^"]+)"', tag)
+        if rgb and value:
+            out[tuple(int(v) for v in rgb.groups())] = float(value.group(1)) / 100.0  # type: ignore[index]
+    if len(out) < 50:
+        raise ValueError("colour map has too few entries; GIBS changed its format")
+    return out
+
+
+def boxes_for(cmg_ids: np.ndarray) -> list[tuple[float, float, float, float]]:
+    """Group the 0.5° cells into request boxes (west, south, east, north): connected groups
+    of occupied 10° tiles, each box at most MAX_BOX_DEG wide and tall."""
+    ids = np.unique(np.asarray(cmg_ids, dtype=np.int64))
+    if ids.size == 0:
+        return []
+    lat, lon = cmg_centre(ids)
+    tiles = {(int(np.floor(a / 10)), int(np.floor(o / 10))) for a, o in zip(lat, lon)}
+    seen, groups = set(), []
+    for t in sorted(tiles):
+        if t in seen:
+            continue
+        group, stack = [], [t]
+        while stack:
+            u = stack.pop()
+            if u in seen or u not in tiles:
+                continue
+            seen.add(u); group.append(u)
+            stack += [(u[0] + dy, u[1] + dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1)]
+        groups.append(group)
+    boxes = []
+    for g in groups:
+        inside = np.array([(int(np.floor(a / 10)), int(np.floor(o / 10))) in set(g) for a, o in zip(lat, lon)])
+        w, e = np.floor(lon[inside].min() * 2) / 2, np.ceil(lon[inside].max() * 2) / 2
+        s, n = np.floor(lat[inside].min() * 2) / 2, np.ceil(lat[inside].max() * 2) / 2
+        for x0 in np.arange(w, e, MAX_BOX_DEG):
+            for y0 in np.arange(s, n, MAX_BOX_DEG):
+                boxes.append((float(x0), float(y0), float(min(e, x0 + MAX_BOX_DEG)), float(min(n, y0 + MAX_BOX_DEG))))
+    return boxes
+
+
+def wms_url(layer: str, box: tuple[float, float, float, float], day: date) -> str:
+    w, s, e, n = box
+    width, height = int(round((e - w) * 2)), int(round((n - s) * 2))
+    # WMS 1.3.0 with EPSG:4326 orders the box south, west, north, east.
+    return (f"{GIBS_WMS}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS={layer}&CRS=EPSG:4326"
+            f"&BBOX={s:g},{w:g},{n:g},{e:g}&WIDTH={width}&HEIGHT={height}&FORMAT=image/png&TRANSPARENT=TRUE&TIME={day.isoformat()}")
+
+
+def decode(png: bytes, box: tuple[float, float, float, float], cmap: dict[tuple[int, int, int], float]) -> dict[int, float]:
+    """One day's image → {cmg_id: cloud fraction} for the cells the satellite saw."""
+    from PIL import Image
+    im = Image.open(io.BytesIO(png)).convert("RGBA")
+    w, s, e, n = box
+    width, height = int(round((e - w) * 2)), int(round((n - s) * 2))
+    if im.size != (width, height):
+        raise ValueError(f"image is {im.size}, expected {(width, height)}")
+    px = np.asarray(im)
+    out = {}
+    for r in range(height):
+        lat = n - (r + 0.5) * 0.5
+        for c in range(width):
+            R, G, B, A = (int(v) for v in px[r, c])
+            if A == 0:
+                continue
+            v = cmap.get((R, G, B))
+            if v is None:
+                continue
+            lon = w + (c + 0.5) * 0.5
+            out[int(np.floor((lat + 90) * 2)) * CMG_COLS + int(np.floor((lon + 180) * 2))] = v
+    return out
+
+
+def _ssl_context():
+    """A python.org Python on macOS has no root certificates until "Install Certificates" is
+    run; certifi's bundle (installed with the pipeline's dependencies) covers that case."""
+    import ssl
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
+
+
+_SSL = None
+
+
+def _get(url: str, retries: int = 4) -> bytes:
+    global _SSL
+    if _SSL is None:
+        _SSL = _ssl_context()
+    for attempt in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(req, timeout=60, context=_SSL) as r:  # noqa: S310 (fixed https host)
+                return r.read()
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            if attempt == retries:
+                raise
+            time.sleep(1.5 * 2 ** attempt)
+    raise RuntimeError("unreachable")
+
+
+def build_gibs(cmg_ids: np.ndarray, first: tuple[int, int], last: tuple[int, int], cache: Path,
+               fetch: Fetcher = _get, workers: int = 6, log=print, colormap_xml: str | None = None,
+               only: set[int] | None = None) -> tuple[pa.Table, dict]:
+    """Monthly mean cloud fraction per 0.5° cell from GIBS's daily MODIS cloud fraction,
+    Terra and Aqua, for the months first..last. PNGs are cached in `cache/<platform>/<box>/`."""
+    cmap = parse_colormap(colormap_xml if colormap_xml is not None else fetch(GIBS_COLORMAP).decode())
+    want = set(int(i) for i in np.unique(np.asarray(cmg_ids, dtype=np.int64)))
+    if only is not None:
+        want &= only
+    boxes = boxes_for(np.array(sorted(want)))
+    end = date(last[0], last[1], 1) + timedelta(days=32)
+    end = min(date(end.year, end.month, 1) - timedelta(days=1), date.today())
+    jobs = []
+    for platform, layer in GIBS_LAYERS.items():
+        day = max(GIBS_FIRST[platform], date(first[0], first[1], 1))
+        while day <= end:
+            for k, box in enumerate(boxes):
+                jobs.append((platform, layer, k, box, day))
+            day += timedelta(days=1)
+    log(f"{len(boxes)} box(es), {len(jobs):,} day-images to read ({len(want)} cells)")
+
+    sums: dict[tuple[str, int, int, int], float] = {}
+    counts: dict[tuple[str, int, int, int], int] = {}
+    stats = {"fetched": 0, "cached": 0, "failed": 0, "empty": 0}
+
+    def one(job):
+        platform, layer, k, box, day = job
+        path = cache / platform / str(k) / f"{day.isoformat()}.png"
+        if path.exists():
+            data, stats_key = path.read_bytes(), "cached"
+        else:
+            try:
+                data = fetch(wms_url(layer, box, day))
+            except Exception as e:  # one bad day doesn't stop the month
+                return platform, day, None, f"failed: {type(e).__name__}"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+            stats_key = "fetched"
+        try:
+            vals = decode(data, box, cmap)
+        except Exception as e:
+            return platform, day, None, f"failed: {type(e).__name__}"
+        return platform, day, vals, stats_key
+
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for platform, day, vals, note in pool.map(one, jobs):
+            done += 1
+            if vals is None:
+                stats["failed"] += 1
+            else:
+                stats[note] += 1
+                if not vals:
+                    stats["empty"] += 1
+                for cid, v in vals.items():
+                    if cid not in want:
+                        continue
+                    key = (platform, day.year, day.month, cid)
+                    sums[key] = sums.get(key, 0.0) + v
+                    counts[key] = counts.get(key, 0) + 1
+            if done % 2000 == 0:
+                log(f"  {done:,}/{len(jobs):,} days read ({stats['fetched']:,} fetched, {stats['cached']:,} cached, {stats['failed']} failed)")
+
+    keys = sorted(sums)
+    table = pa.table({
+        "cmg_id": pa.array([k[3] for k in keys], pa.int32()),
+        "year": pa.array([k[1] for k in keys], pa.int16()),
+        "month": pa.array([k[2] for k in keys], pa.int8()),
+        "platform": pa.array([k[0] for k in keys], pa.string()),
+        "cloud_fraction": pa.array([round(sums[k] / counts[k], 3) for k in keys], pa.float32()),
+    }, schema=SCHEMA)
+    return table, stats | {"days_per_cell_month": (sum(counts.values()) / max(1, len(counts)))}
+
+
 def write(table: pa.Table, out: Path, source: str) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     path = out / "cloud_monthly.parquet"
@@ -149,17 +358,40 @@ def main(argv=None) -> int:
     m.add_argument("--grid", type=Path, required=True)
     m.add_argument("--out", type=Path, required=True)
     m.add_argument("--seed", type=int, default=20261113)
-    sub.add_parser("real", help="MOD14CMH/MYD14CMH (not built yet)")
+    r = sub.add_parser("real", help="NASA GIBS daily MODIS cloud fraction (Terra, Aqua), monthly mean per cell")
+    r.add_argument("--grid", type=Path, required=True)
+    r.add_argument("--out", type=Path, required=True)
+    r.add_argument("--cache", type=Path, default=REPO / "data" / "raw" / "gibs-clouds", help="where the day images are kept")
+    r.add_argument("--since", default=None, help="first month, YYYY-MM (default: the grid's first month)")
+    r.add_argument("--bbox", action="append", default=None, help="west,south,east,north: only cells inside (repeatable; default: every grid cell)")
+    r.add_argument("--workers", type=int, default=6)
     args = ap.parse_args(argv)
-    if args.cmd == "real":
-        print("not built yet: needs MOD14CMH/MYD14CMH (HDF4, UMD sftp fuoco.geog.umd.edu) and a reader; "
-              "see docs/method.md §6. Use `mock` meanwhile.", file=sys.stderr)
-        return 2
     ids, last = grid_cmg_ids(args.grid)
-    table = build_mock(ids, last, args.seed)
-    path = write(table, args.out, "mock")
-    print(f"{table.num_rows:,} rows, {ids.size:,} cells × months to {last[0]}-{last[1]:02d} (mock) → {path}")
-    return 0
+    if args.cmd == "mock":
+        table = build_mock(ids, last, args.seed)
+        path = write(table, args.out, "mock")
+        print(f"{table.num_rows:,} rows, {ids.size:,} cells × months to {last[0]}-{last[1]:02d} (mock) → {path}")
+        return 0
+    first = tuple(int(x) for x in args.since.split("-")) if args.since else grid_first_month(args.grid)
+    only = None
+    if args.bbox:
+        lat, lon = cmg_centre(ids)
+        keep = np.zeros(ids.size, dtype=bool)
+        for b in args.bbox:
+            w, s_, e, n = (float(v) for v in b.split(","))
+            keep |= (lon >= w) & (lon <= e) & (lat >= s_) & (lat <= n)
+        only = set(int(i) for i in ids[keep])
+    table, stats = build_gibs(ids, first, last, args.cache, workers=args.workers, only=only)  # type: ignore[arg-type]
+    path = write(table, args.out, "GIBS MODIS cloud fraction, day (MOD06/MYD06 Terra and Aqua), monthly mean per 0.5° cell")
+    print(f"{table.num_rows:,} rows → {path}; {stats['fetched']:,} fetched, {stats['cached']:,} cached, "
+          f"{stats['failed']} failed, {stats['days_per_cell_month']:.1f} days per cell-month")
+    return 1 if table.num_rows == 0 else 0
+
+
+def grid_first_month(grid: Path) -> tuple[int, int]:
+    path = (grid / "grid_monthly.parquet").as_posix()
+    y, m = duckdb.connect().execute(f"SELECT year, month FROM read_parquet('{path}') ORDER BY year, month LIMIT 1").fetchone()
+    return int(y), int(m)
 
 
 if __name__ == "__main__":

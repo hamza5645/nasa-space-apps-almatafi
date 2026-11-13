@@ -54,6 +54,68 @@ def test_build_mock_and_write(tmp_path):
     assert pq.read_table(path).num_rows == table.num_rows
 
 
-def test_real_is_not_built(capsys):
-    assert clouds.main(["real"]) == 2
-    assert "MOD14CMH" in capsys.readouterr().err
+# ---- The real builder, against a fake GIBS -------------------------------------------------
+
+import io
+from datetime import date
+
+from PIL import Image
+
+COLORMAP = '<ColorMaps><ColorMap title="No Data"><Entries><ColorMapEntry rgb="192,192,192" transparent="true" sourceValue="127" value="127" nodata="true" ref="0"/></Entries></ColorMap><ColorMap title="Cloud Fraction" units="%"><Entries>' + \
+    "".join(f'<ColorMapEntry rgb="{v},{(v * 7) % 256},{(v * 13) % 256}" transparent="false" sourceValue="{v}" value="{v}" ref="1"/>' for v in range(101)) + \
+    "</Entries></ColorMap></ColorMaps>"
+
+
+def _png(width, height, fill):
+    im = Image.new("RGBA", (width, height), fill)
+    buf = io.BytesIO(); im.save(buf, "PNG"); return buf.getvalue()
+
+
+def test_colormap_and_boxes():
+    cmap = clouds.parse_colormap(COLORMAP)
+    assert cmap[(40, 280 % 256, 520 % 256)] == 0.4 and (192, 192, 192) not in cmap
+    ids = clouds.cmg_of_cell([cell_id(30.95, 31.05), cell_id(26.1, 33.4), cell_id(-40.2, -67.3), cell_id(-33.5, -70.6)])
+    boxes = clouds.boxes_for(ids)
+    assert len(boxes) == 2  # Egypt, and the two southern cells together
+    egypt = next(b for b in boxes if b[0] > 0)
+    assert egypt == (31.0, 26.0, 34.0, 31.5) or (egypt[0] <= 31.0 and egypt[2] >= 33.5)
+    url = clouds.wms_url("MODIS_Aqua_Cloud_Fraction_Day", (31.0, 26.0, 34.0, 31.5), date(2025, 10, 15))
+    assert "BBOX=26,31,31.5,34&WIDTH=6&HEIGHT=11" in url and "TIME=2025-10-15" in url
+
+
+def test_decode_maps_pixels_to_cells():
+    cmap = clouds.parse_colormap(COLORMAP)
+    box = (31.0, 26.0, 34.0, 31.5)   # 6 × 11 px
+    im = Image.new("RGBA", (6, 11), (0, 0, 0, 0))
+    im.putpixel((0, 0), (40, 280 % 256, 520 % 256, 255))   # north-west pixel: lat 31.25, lon 31.25 → 40 %
+    buf = io.BytesIO(); im.save(buf, "PNG")
+    vals = clouds.decode(buf.getvalue(), box, cmap)
+    cid = int(np.floor((31.25 + 90) * 2)) * 720 + int(np.floor((31.25 + 180) * 2))
+    assert vals == {cid: 0.4}
+    assert cid == int(clouds.cmg_of_cell(cell_id(31.25, 31.25)))
+
+
+def test_build_gibs_averages_the_days(tmp_path):
+    cmap_px = (40, 280 % 256, 520 % 256, 255)      # 40 %
+    cmap_px2 = (80, (80 * 7) % 256, (80 * 13) % 256, 255)  # 80 %
+    calls = []
+
+    def fetch(url):
+        calls.append(url)
+        if url == clouds.GIBS_COLORMAP:
+            return COLORMAP.encode()
+        day = url.split("TIME=")[1]
+        if day.endswith("-03"):
+            return _png(2, 2, (0, 0, 0, 0))            # a cloud-mask gap: no data that day
+        return _png(2, 2, cmap_px if day.endswith("-01") else cmap_px2)
+
+    ids = clouds.cmg_of_cell([cell_id(30.25, 31.25), cell_id(30.75, 31.75)])
+    table, stats = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None)
+    df = table.to_pandas()
+    assert set(df["platform"]) == {"Terra", "Aqua"} and set(df["cmg_id"]) == set(int(i) for i in ids)
+    # 31 days: one at 40 %, one empty, 29 at 80 % → mean 0.786
+    assert all(abs(v - (0.4 + 29 * 0.8) / 30) < 1e-3 for v in df["cloud_fraction"])
+    assert stats["fetched"] == 62 and stats["empty"] == 2
+    # Reruns read the cache.
+    table2, stats2 = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None)
+    assert stats2["cached"] == 62 and table2.equals(table)
