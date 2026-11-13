@@ -58,7 +58,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - (nothing)
 
 ### In review (PR open, merge in this order)
-- X33 "Normal or not?" game + raw-vs-harmonized slider + phone overlap fixes — Khalid (with Claude), branch `khalid/x33-game-slider`, stacked on PR #37 (merge #37 first). Touches `frontend/` (Hamza's area) at Khalid's request. The game goes against the Oct 31 "no gamification" decision: Khalid's call; Decisions unchanged until Hamza agrees (suggested wording: an educational quiz on our real data is fine; no badges or leaderboards)
+- X33 "Normal or not?" game + raw-vs-harmonized slider + phone overlap fixes — Khalid (with Claude), PR #38 (`khalid/x33-game-slider`), stacked on PR #37 (merge #37 first). Touches `frontend/` (Hamza's area) at Khalid's request. The game goes against the Oct 31 "no gamification" decision: Khalid's call; Decisions unchanged until Hamza agrees (suggested wording: an educational quiz on our real data is fine; no badges or leaderboards)
 - X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
@@ -124,7 +124,7 @@ _Newest first. One entry per work session._
   - **Khalid's asks:** the "Generated" tags are gone (they also caused the phone overlaps over headings and the nav); the disclosure stays in the FAQ, the Method sources and `submission.md`'s AI-use section. Phone hero: the caption ran into the chips on 375×667 and 360×640 and the scroll cue sat on it at every phone size; the caption now follows the chips and the cue is gone on phones.
   - Links: "Play" in the nav (hidden under 560 px, where it would wrap the nav), a band on the landing, a link in the explorer's slider section.
   - Checked: dev and the static build at 1440 px and 390 px, a full playthrough (right, wrong, out of embers), keyboard and sound toggle. 63 frontend tests, lint, typecheck and build pass.
-- Next: Hamza reviews PR #37, then this PR. Khalid: sprite sheets for the host; recordings for `docs/narration.md`; `python gen.py clouds_fire game_win game_lose && ./process.sh` with the HF key ($0.03; ledger would be $3.24 of $5).
+- Next: Hamza reviews PR #37, then PR #38. Khalid: sprite sheets for the host; recordings for `docs/narration.md`; `python gen.py clouds_fire game_win game_lose && ./process.sh` with the HF key ($0.03; ledger would be $3.24 of $5).
 - Broken / blocked: Higgsfield needs the HF key, so nothing new was generated (spend still $3.21). The "no gamification" decision needs Hamza.
 
 ### Nov 13 — Khalid (with Claude) (34)
