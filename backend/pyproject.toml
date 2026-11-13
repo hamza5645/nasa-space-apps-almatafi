@@ -1,0 +1,29 @@
+[project]
+name = "almatafi-backend"
+version = "0.1.0"
+description = "FastAPI backend: calendar, stats, hotspots and exports over the harmonized fire grid"
+requires-python = ">=3.12"
+dependencies = [
+    "almatafi-pipeline",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "shapely>=2.0",
+    "pyproj>=3.6",
+    "rasterio>=1.4",
+    "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.uv.sources]
+almatafi-pipeline = { path = "../pipeline", editable = true }
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "../pipeline"]
