@@ -1,0 +1,961 @@
+{
+  "components": {
+    "schemas": {
+      "AdminAoi": {
+        "properties": {
+          "admin_id": {
+            "title": "Admin Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "admin",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "admin_id"
+        ],
+        "title": "AdminAoi",
+        "type": "object"
+      },
+      "BboxAoi": {
+        "properties": {
+          "bbox": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Bbox",
+            "type": "array"
+          },
+          "type": {
+            "const": "bbox",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "bbox"
+        ],
+        "title": "BboxAoi",
+        "type": "object"
+      },
+      "CalendarRequest": {
+        "properties": {
+          "aoi": {
+            "discriminator": {
+              "mapping": {
+                "admin": "#/components/schemas/AdminAoi",
+                "bbox": "#/components/schemas/BboxAoi",
+                "point": "#/components/schemas/PointAoi",
+                "polygon": "#/components/schemas/PolygonAoi",
+                "region": "#/components/schemas/RegionAoi"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonAoi"
+              },
+              {
+                "$ref": "#/components/schemas/BboxAoi"
+              },
+              {
+                "$ref": "#/components/schemas/PointAoi"
+              },
+              {
+                "$ref": "#/components/schemas/AdminAoi"
+              },
+              {
+                "$ref": "#/components/schemas/RegionAoi"
+              }
+            ],
+            "title": "Aoi"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "metric": {
+            "default": "detections",
+            "enum": [
+              "detections",
+              "fire_days"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "start": {
+            "default": "2001-01",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "Start",
+            "type": "string"
+          },
+          "view": {
+            "default": "harmonized",
+            "enum": [
+              "harmonized",
+              "modis",
+              "viirs"
+            ],
+            "title": "View",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aoi"
+        ],
+        "title": "CalendarRequest",
+        "type": "object"
+      },
+      "ExportRequest": {
+        "properties": {
+          "aggregate": {
+            "default": "sum",
+            "enum": [
+              "sum",
+              "monthly"
+            ],
+            "title": "Aggregate",
+            "type": "string"
+          },
+          "aoi": {
+            "discriminator": {
+              "mapping": {
+                "admin": "#/components/schemas/AdminAoi",
+                "bbox": "#/components/schemas/BboxAoi",
+                "point": "#/components/schemas/PointAoi",
+                "polygon": "#/components/schemas/PolygonAoi",
+                "region": "#/components/schemas/RegionAoi"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonAoi"
+              },
+              {
+                "$ref": "#/components/schemas/BboxAoi"
+              },
+              {
+                "$ref": "#/components/schemas/PointAoi"
+              },
+              {
+                "$ref": "#/components/schemas/AdminAoi"
+              },
+              {
+                "$ref": "#/components/schemas/RegionAoi"
+              }
+            ],
+            "title": "Aoi"
+          },
+          "end": {
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$",
+            "title": "End",
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "geojson",
+              "json",
+              "geotiff"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
+          "include_filtered": {
+            "default": false,
+            "title": "Include Filtered",
+            "type": "boolean"
+          },
+          "metric": {
+            "default": "detections",
+            "enum": [
+              "detections",
+              "fire_days"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "sensors": {
+            "default": [
+              "MODIS",
+              "VIIRS"
+            ],
+            "items": {
+              "enum": [
+                "MODIS",
+                "VIIRS"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Sensors",
+            "type": "array"
+          },
+          "start": {
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$",
+            "title": "Start",
+            "type": "string"
+          },
+          "view": {
+            "default": "harmonized",
+            "enum": [
+              "harmonized",
+              "modis",
+              "viirs"
+            ],
+            "title": "View",
+            "type": "string"
+          },
+          "what": {
+            "enum": [
+              "hotspots",
+              "calendar",
+              "grid"
+            ],
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aoi",
+          "what",
+          "format",
+          "start",
+          "end"
+        ],
+        "title": "ExportRequest",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HotspotsRequest": {
+        "properties": {
+          "aoi": {
+            "discriminator": {
+              "mapping": {
+                "admin": "#/components/schemas/AdminAoi",
+                "bbox": "#/components/schemas/BboxAoi",
+                "point": "#/components/schemas/PointAoi",
+                "polygon": "#/components/schemas/PolygonAoi",
+                "region": "#/components/schemas/RegionAoi"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonAoi"
+              },
+              {
+                "$ref": "#/components/schemas/BboxAoi"
+              },
+              {
+                "$ref": "#/components/schemas/PointAoi"
+              },
+              {
+                "$ref": "#/components/schemas/AdminAoi"
+              },
+              {
+                "$ref": "#/components/schemas/RegionAoi"
+              }
+            ],
+            "title": "Aoi"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "include_filtered": {
+            "default": false,
+            "title": "Include Filtered",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 5000,
+            "maximum": 50000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "platforms": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "Terra",
+                    "Aqua",
+                    "SNPP",
+                    "NOAA20",
+                    "NOAA21"
+                  ],
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platforms"
+          },
+          "sensors": {
+            "default": [
+              "MODIS",
+              "VIIRS"
+            ],
+            "items": {
+              "enum": [
+                "MODIS",
+                "VIIRS"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Sensors",
+            "type": "array"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aoi",
+          "start",
+          "end"
+        ],
+        "title": "HotspotsRequest",
+        "type": "object"
+      },
+      "NrtRequest": {
+        "properties": {
+          "aoi": {
+            "discriminator": {
+              "mapping": {
+                "admin": "#/components/schemas/AdminAoi",
+                "bbox": "#/components/schemas/BboxAoi",
+                "point": "#/components/schemas/PointAoi",
+                "polygon": "#/components/schemas/PolygonAoi",
+                "region": "#/components/schemas/RegionAoi"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonAoi"
+              },
+              {
+                "$ref": "#/components/schemas/BboxAoi"
+              },
+              {
+                "$ref": "#/components/schemas/PointAoi"
+              },
+              {
+                "$ref": "#/components/schemas/AdminAoi"
+              },
+              {
+                "$ref": "#/components/schemas/RegionAoi"
+              }
+            ],
+            "title": "Aoi"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "include_filtered": {
+            "default": false,
+            "title": "Include Filtered",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 5000,
+            "maximum": 50000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "sensors": {
+            "default": [
+              "MODIS",
+              "VIIRS"
+            ],
+            "items": {
+              "enum": [
+                "MODIS",
+                "VIIRS"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Sensors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "aoi"
+        ],
+        "title": "NrtRequest",
+        "type": "object"
+      },
+      "PointAoi": {
+        "properties": {
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "radius_km": {
+            "title": "Radius Km",
+            "type": "number"
+          },
+          "type": {
+            "const": "point",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "lat",
+          "lon",
+          "radius_km"
+        ],
+        "title": "PointAoi",
+        "type": "object"
+      },
+      "PolygonAoi": {
+        "properties": {
+          "geometry": {
+            "additionalProperties": true,
+            "title": "Geometry",
+            "type": "object"
+          },
+          "type": {
+            "const": "polygon",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "geometry"
+        ],
+        "title": "PolygonAoi",
+        "type": "object"
+      },
+      "RegionAoi": {
+        "properties": {
+          "region_id": {
+            "title": "Region Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "region",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "region_id"
+        ],
+        "title": "RegionAoi",
+        "type": "object"
+      },
+      "StatsRequest": {
+        "properties": {
+          "aoi": {
+            "discriminator": {
+              "mapping": {
+                "admin": "#/components/schemas/AdminAoi",
+                "bbox": "#/components/schemas/BboxAoi",
+                "point": "#/components/schemas/PointAoi",
+                "polygon": "#/components/schemas/PolygonAoi",
+                "region": "#/components/schemas/RegionAoi"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PolygonAoi"
+              },
+              {
+                "$ref": "#/components/schemas/BboxAoi"
+              },
+              {
+                "$ref": "#/components/schemas/PointAoi"
+              },
+              {
+                "$ref": "#/components/schemas/AdminAoi"
+              },
+              {
+                "$ref": "#/components/schemas/RegionAoi"
+              }
+            ],
+            "title": "Aoi"
+          },
+          "baseline": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "metric": {
+            "default": "detections",
+            "enum": [
+              "detections",
+              "fire_days"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "month": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "Month",
+            "type": "string"
+          },
+          "view": {
+            "default": "harmonized",
+            "enum": [
+              "harmonized",
+              "modis",
+              "viirs"
+            ],
+            "title": "View",
+            "type": "string"
+          }
+        },
+        "required": [
+          "aoi",
+          "month"
+        ],
+        "title": "StatsRequest",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Almatafi API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/admin": {
+      "get": {
+        "operationId": "admin_api_admin_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z]{3}$",
+              "title": "Country",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "title": "Level",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin"
+      }
+    },
+    "/api/calendar": {
+      "post": {
+        "operationId": "calendar_api_calendar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Calendar"
+      }
+    },
+    "/api/export": {
+      "post": {
+        "operationId": "export_api_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export"
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/hotspots": {
+      "post": {
+        "operationId": "hotspots_api_hotspots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HotspotsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Hotspots"
+      }
+    },
+    "/api/nrt": {
+      "post": {
+        "operationId": "nrt_api_nrt_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NrtRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Nrt"
+      }
+    },
+    "/api/regions": {
+      "get": {
+        "operationId": "regions_api_regions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Regions"
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "search_api_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search"
+      }
+    },
+    "/api/stats": {
+      "post": {
+        "operationId": "stats_api_stats_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stats"
+      }
+    },
+    "/api/validation": {
+      "get": {
+        "operationId": "validation_api_validation_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Validation"
+      }
+    }
+  }
+}
