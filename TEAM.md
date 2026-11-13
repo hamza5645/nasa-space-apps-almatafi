@@ -116,6 +116,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 
 _Newest first. One entry per work session._
 
+### Nov 13 — Hamza (with Claude)
+- Did: moved the auto-deploy to this repo (hamza5645/nasa-space-apps-almatafi). The API image is now `ghcr.io/hamza5645/almatafi-api` (`deploy.yml`, the VPS unit, `deploy/README.md`); the VPS runs it, healthy, and podman auto-update watches it. khalidstark/nasa-space-apps-modis's `deploy` workflow is disabled (its `tests` still run). The old unit is backed up on the VPS at `~almatafi/almatafi-api.container.bak-khalidstark`.
+- Next: add the `CLOUDFLARE_API_TOKEN` secret to this repo, then rerun `deploy` so the frontend deploys from here too.
+- Broken / blocked: until that secret is set, the frontend job fails here and the live frontend stays on the last deploy from the old repo. Merges to the old repo no longer deploy anywhere.
+
 ### Nov 13 — Khalid (with Claude) (37)
 - Did: merged PR #38 (388f10e) at Khalid's call, after merging `main` (PR #37 and its review fixes) into the branch and resolving TEAM.md; all four checks passed on the merge. Hamza has not reviewed it; the Board says so. The deploy runs on this merge.
 - Next: Hamza's review of the game and the slider after the fact; the "no gamification" decision; after the real-data build, rerun `design/game/capture-maps.mjs` and the cache so the game's numbers are real.
