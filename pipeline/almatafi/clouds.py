@@ -13,13 +13,17 @@ Two builders:
   deserts and year-to-year noise, seeded, so the whole path can be built and tested without
   the network. It is not observed cloud and can't be validated on the mock.
 - `real`: NASA's daily MODIS cloud fraction (MOD06/MYD06, Terra and Aqua) as served by GIBS,
-  read for the cells our grid covers. GIBS gives each day as a colour-mapped image; a WMS
-  request at one pixel per 0.5° cell returns a small PNG per region and day, the colours are
-  decoded with GIBS's published colour map (value 0–100 %, a transparent "no data" where
-  the satellite didn't see the cell), and the month's cloud fraction per cell is the mean of
-  its daily values. No login, no key. The MOD14CMH/MYD14CMH fire products carry the same
-  kind of cloud fraction, but need UMD's sftp and an HDF4 reader; GIBS's layers come from the
-  same MODIS cloud mask. Images are cached under --cache so reruns only fetch new days.
+  read for the cells our grid covers. GIBS gives each day as a colour-mapped image; one WMS
+  request per day and platform returns the whole world at one pixel per 0.5° cell (720 × 360),
+  the colours are decoded with GIBS's published colour map (value 0–100 %, a transparent "no
+  data" where the satellite didn't see the cell), and the month's cloud fraction per cell is
+  the mean of its sampled days. GIBS allows about 1.5 requests a second from one address, so
+  the request count is what matters, not the image size: a world image costs the same as a
+  small one and serves every region, and every second day (--every 2, the default) is enough
+  for a monthly mean (daily cloud is autocorrelated). No login, no key. The MOD14CMH/MYD14CMH
+  fire products carry the same kind of cloud fraction, but need UMD's sftp and an HDF4 reader;
+  GIBS's layers come from the same MODIS cloud mask. Images are cached under --cache (about
+  20 KB each) so reruns only fetch new days.
 
 Output: `clouds/cloud_monthly.parquet` with
     cmg_id (int32), year (int16), month (int8), platform (Terra|Aqua), cloud_fraction (float32)
@@ -152,7 +156,8 @@ GIBS_COLORMAP = "https://gibs.earthdata.nasa.gov/colormaps/v1.3/MODIS_Cloud_Frac
 GIBS_LAYERS = {"Terra": "MODIS_Terra_Cloud_Fraction_Day", "Aqua": "MODIS_Aqua_Cloud_Fraction_Day"}
 GIBS_FIRST = {"Terra": date(2000, 2, 24), "Aqua": date(2002, 7, 4)}  # the layers' first days
 USER_AGENT = "almatafi/0.1 (NASA Space Apps Cairo 2026; cloud fraction for a fire record)"
-MAX_BOX_DEG = 60.0       # one request covers at most 60° × 60° (120 × 120 px)
+WORLD = (-180.0, -90.0, 180.0, 90.0)   # one image per day: 720 × 360 px at 0.5°
+MAX_BOX_DEG = 60.0                       # boxes_for: regional boxes, kept for callers that want them
 Fetcher = Callable[[str], bytes]
 
 
@@ -218,20 +223,18 @@ def decode(png: bytes, box: tuple[float, float, float, float], cmap: dict[tuple[
     width, height = int(round((e - w) * 2)), int(round((n - s) * 2))
     if im.size != (width, height):
         raise ValueError(f"image is {im.size}, expected {(width, height)}")
-    px = np.asarray(im)
-    out = {}
-    for r in range(height):
-        lat = n - (r + 0.5) * 0.5
-        for c in range(width):
-            R, G, B, A = (int(v) for v in px[r, c])
-            if A == 0:
-                continue
-            v = cmap.get((R, G, B))
-            if v is None:
-                continue
-            lon = w + (c + 0.5) * 0.5
-            out[int(np.floor((lat + 90) * 2)) * CMG_COLS + int(np.floor((lon + 180) * 2))] = v
-    return out
+    px = np.asarray(im, dtype=np.int64)
+    keys = np.array(sorted((r << 16) | (g << 8) | b for r, g, b in cmap), dtype=np.int64)
+    vals = np.array([cmap[((k >> 16) & 255, (k >> 8) & 255, k & 255)] for k in keys], dtype=np.float64)
+    code = (px[:, :, 0] << 16) | (px[:, :, 1] << 8) | px[:, :, 2]
+    pos = np.searchsorted(keys, code)
+    pos[pos >= keys.size] = 0
+    ok = (px[:, :, 3] > 0) & (keys[pos] == code)
+    rows, cols = np.nonzero(ok)
+    lat = n - (rows + 0.5) * 0.5
+    lon = w + (cols + 0.5) * 0.5
+    ids = (np.floor((lat + 90) * 2).astype(np.int64) * CMG_COLS + np.floor((lon + 180) * 2).astype(np.int64))
+    return dict(zip(ids.tolist(), vals[pos[ok]].tolist()))
 
 
 def _ssl_context():
@@ -266,24 +269,24 @@ def _get(url: str, retries: int = 4) -> bytes:
 
 def build_gibs(cmg_ids: np.ndarray, first: tuple[int, int], last: tuple[int, int], cache: Path,
                fetch: Fetcher = _get, workers: int = 6, log=print, colormap_xml: str | None = None,
-               only: set[int] | None = None) -> tuple[pa.Table, dict]:
+               only: set[int] | None = None, every: int = 2) -> tuple[pa.Table, dict]:
     """Monthly mean cloud fraction per 0.5° cell from GIBS's daily MODIS cloud fraction,
-    Terra and Aqua, for the months first..last. PNGs are cached in `cache/<platform>/<box>/`."""
+    Terra and Aqua, for the months first..last, sampling every `every`-th day. One world image
+    per day and platform, cached in `cache/<platform>/world/`."""
     cmap = parse_colormap(colormap_xml if colormap_xml is not None else fetch(GIBS_COLORMAP).decode())
     want = set(int(i) for i in np.unique(np.asarray(cmg_ids, dtype=np.int64)))
     if only is not None:
         want &= only
-    boxes = boxes_for(np.array(sorted(want)))
+    boxes = [WORLD]
     end = date(last[0], last[1], 1) + timedelta(days=32)
     end = min(date(end.year, end.month, 1) - timedelta(days=1), date.today())
     jobs = []
     for platform, layer in GIBS_LAYERS.items():
         day = max(GIBS_FIRST[platform], date(first[0], first[1], 1))
         while day <= end:
-            for k, box in enumerate(boxes):
-                jobs.append((platform, layer, k, box, day))
-            day += timedelta(days=1)
-    log(f"{len(boxes)} box(es), {len(jobs):,} day-images to read ({len(want)} cells)")
+            jobs.append((platform, layer, "world", WORLD, day))
+            day += timedelta(days=max(1, every))
+    log(f"{len(jobs):,} world images to read, every {every} day(s), for {len(want)} cells")
 
     sums: dict[tuple[str, int, int, int], float] = {}
     counts: dict[tuple[str, int, int, int], int] = {}
@@ -291,7 +294,7 @@ def build_gibs(cmg_ids: np.ndarray, first: tuple[int, int], last: tuple[int, int
 
     def one(job):
         platform, layer, k, box, day = job
-        path = cache / platform / str(k) / f"{day.isoformat()}.png"
+        path = cache / platform / str(k) / f"{day.isoformat()}.png"  # k is "world"
         if path.exists():
             data, stats_key = path.read_bytes(), "cached"
         else:
@@ -365,6 +368,7 @@ def main(argv=None) -> int:
     r.add_argument("--since", default=None, help="first month, YYYY-MM (default: the grid's first month)")
     r.add_argument("--bbox", action="append", default=None, help="west,south,east,north: only cells inside (repeatable; default: every grid cell)")
     r.add_argument("--workers", type=int, default=6)
+    r.add_argument("--every", type=int, default=2, help="sample every N-th day (2: about 15 days a month)")
     args = ap.parse_args(argv)
     ids, last = grid_cmg_ids(args.grid)
     if args.cmd == "mock":
@@ -381,8 +385,8 @@ def main(argv=None) -> int:
             w, s_, e, n = (float(v) for v in b.split(","))
             keep |= (lon >= w) & (lon <= e) & (lat >= s_) & (lat <= n)
         only = set(int(i) for i in ids[keep])
-    table, stats = build_gibs(ids, first, last, args.cache, workers=args.workers, only=only)  # type: ignore[arg-type]
-    path = write(table, args.out, "GIBS MODIS cloud fraction, day (MOD06/MYD06 Terra and Aqua), monthly mean per 0.5° cell")
+    table, stats = build_gibs(ids, first, last, args.cache, workers=args.workers, only=only, every=args.every)  # type: ignore[arg-type]
+    path = write(table, args.out, f"GIBS MODIS cloud fraction, day (MOD06/MYD06 Terra and Aqua), monthly mean per 0.5° cell of every {args.every}. day")
     print(f"{table.num_rows:,} rows → {path}; {stats['fetched']:,} fetched, {stats['cached']:,} cached, "
           f"{stats['failed']} failed, {stats['days_per_cell_month']:.1f} days per cell-month")
     return 1 if table.num_rows == 0 else 0

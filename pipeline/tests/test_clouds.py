@@ -104,18 +104,19 @@ def test_build_gibs_averages_the_days(tmp_path):
         calls.append(url)
         if url == clouds.GIBS_COLORMAP:
             return COLORMAP.encode()
+        assert "BBOX=-90,-180,90,180&WIDTH=720&HEIGHT=360" in url  # one world image per day
         day = url.split("TIME=")[1]
         if day.endswith("-03"):
-            return _png(2, 2, (0, 0, 0, 0))            # a cloud-mask gap: no data that day
-        return _png(2, 2, cmap_px if day.endswith("-01") else cmap_px2)
+            return _png(720, 360, (0, 0, 0, 0))            # a cloud-mask gap: no data that day
+        return _png(720, 360, cmap_px if day.endswith("-01") else cmap_px2)
 
     ids = clouds.cmg_of_cell([cell_id(30.25, 31.25), cell_id(30.75, 31.75)])
-    table, stats = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None)
+    table, stats = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None, every=1)
     df = table.to_pandas()
     assert set(df["platform"]) == {"Terra", "Aqua"} and set(df["cmg_id"]) == set(int(i) for i in ids)
-    # 31 days: one at 40 %, one empty, 29 at 80 % → mean 0.786
-    assert all(abs(v - (0.4 + 29 * 0.8) / 30) < 1e-3 for v in df["cloud_fraction"])
+    # 31 days: one at 40 %, one empty, 29 at 80 % → mean 0.786; only the wanted cells are kept
+    assert all(abs(v - (0.4 + 29 * 0.8) / 30) < 1e-3 for v in df["cloud_fraction"]) and len(df) == 4
     assert stats["fetched"] == 62 and stats["empty"] == 2
-    # Reruns read the cache.
-    table2, stats2 = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None)
-    assert stats2["cached"] == 62 and table2.equals(table)
+    # Every second day: half the images; reruns read the cache.
+    table2, stats2 = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None, every=2)
+    assert stats2["cached"] == 32 and stats2["fetched"] == 0 and len(table2) == 4
