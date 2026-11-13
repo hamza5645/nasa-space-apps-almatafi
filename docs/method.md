@@ -102,7 +102,7 @@ M0 to M2 can only put the small fires where MODIS happened to see something, so 
 The build writes `validation.json` (served at `/api/validation`), 4 charts and `validation.md`. It also writes a season check: the share of each calendar month in the year, MODIS era against VIIRS era (mock: correlation 0.994, same peak month).
 
 **Considered, not done yet:**
-- Cloud correction from real data (Giglio 2006): FIRMS files carry no cloud information. The correction is built (§6) on a simulated cloud product; reading MOD14CMH/MYD14CMH (monthly 0.5° CMG, HDF4, UMD sftp) is not.
+- Cloud correction (Giglio 2006): built (§6) on GIBS's daily MODIS cloud fraction, monthly means; MOD14CMH/MYD14CMH themselves (UMD sftp, HDF4) are not read. The factor is capped at 5× and assumes fires under cloud burn like those in the clear.
 - Land cover strata (GFED5): this needs MCD12Q1.
 - Duplicate removal across overlapping swaths (Li 2018): FIRMS times are to the minute, so it can't be done exactly. Fire days are not affected.
 
@@ -129,7 +129,7 @@ For an area and a month, the count is the sum of harmonized values over the cell
 
 The cloud fraction is the monthly mean of the 0.5° cell holding the 0.1° cell (the 0.5° grid nests the 0.1° one), from Aqua's 13:30 pass, VIIRS's overpass time, and Terra's 10:30 pass before July 2002. The 0.2 floor caps the factor at 5. It assumes fires under cloud burn at the same rate as in clear parts of the cell (Giglio et al. 2006); where cloud and fire seasons are tied (monsoon burning), that over- or under-corrects. It applies to harmonized hotspots only (fire days can't exceed the days of a month), and the baseline is corrected the same way, so z and percentile compare like with like. A month the cloud product doesn't cover yet has no corrected value: it shows as not observed and stays out of baselines, so a corrected month is never compared with an uncorrected one. Every calendar also reports the area's mean cloud fraction per month and marks months above 50%.
 
-**The cloud product is simulated for now** (`source: mock`, shown in the app): a latitude and season pattern with dry deserts and year-to-year noise. The real input is MOD14CMH/MYD14CMH (monthly, 0.5°), the products FIRMS's FAQ points to for cloud-aware analysis. The mock sensors aren't thinned by cloud, so the correction can't be validated on the mock.
+**The cloud product (real builds):** NASA's daily MODIS cloud fraction (MOD06/MYD06, Terra and Aqua) as served by GIBS (`MODIS_Terra_Cloud_Fraction_Day`, `MODIS_Aqua_Cloud_Fraction_Day`), read at one pixel per 0.5° cell for each day and region through GIBS's WMS, decoded with GIBS's published colour map (0–100 %, transparent where the satellite didn't see the cell), and averaged per cell and month (`python -m almatafi.clouds real`). It is the same MODIS cloud mask that MOD14CMH/MYD14CMH (the products FIRMS's FAQ points to) carry, without UMD's sftp or an HDF4 reader. First check on the Nile Delta, October 2026: 30 days per cell, Aqua 0.54, Terra 0.46. **Mock builds** use a simulated product (`source: mock`, shown in the app) so the path can be tested offline; the mock sensors aren't thinned by cloud, so the correction can't be validated on the mock.
 
 ## 7. Limits
 
@@ -141,7 +141,7 @@ The cloud fraction is the monthly mean of the 0.5° cell holding the 0.1° cell 
 - The record sits on a 0.1° grid (about 10 km), so small areas are coarse.
 - **Day and night are defined differently by FIRMS's products.** Standard files call a pixel night when the solar zenith angle is above 85°; NRT files use the orbit (ascending day, descending night). The day and night floors (§4.4) take the field as given, so standard months and NRT months split slightly differently near the terminator and at high latitudes. Monthly totals add both passes, so the effect there is small.
 - **South Atlantic Anomaly.** FIRMS removes low-confidence night pixels over 11°E–110°W, 7°N–55°S from NRT data (we drop low confidence everywhere, so standard and NRT agree), but a few spurious nominal pixels still come through, about 2–3 a night across the whole region. Río Negro is inside it; a night-heavy spike there deserves a look at the day/night split.
-- **Cloud cover is simulated** until MOD14CMH/MYD14CMH are read (§6). The cloud marks and the corrected view show how the correction works, not real cloud.
+- **Cloud cover** comes from the daytime MODIS cloud fraction, which counts thin cloud and haze as cloud; the correction treats every cloudy pixel as blind, so it leans high. Mock builds simulate it (§6), and the app says so.
 - The conversion is learned from the overlap years, so it assumes the relation between the sensors in a region and season was the same before 2012.
 
 ## 8. Sources for the method

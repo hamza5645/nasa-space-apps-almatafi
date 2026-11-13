@@ -320,3 +320,86 @@
 .explain-link { font-family: var(--px); font-size: 16px; }
 .end-stars { font-size: 48px; }
 .end-note { font-family: var(--px); }
+
+/* ---- Night city (X34): the scene behind the game, the notepad card, the riveted blocks. ---- */
+.game-sky { display: none; }
+.scene-sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+.sc-twinkle { animation: sc-twinkle 2.4s ease-in-out infinite alternate; }
+@keyframes sc-twinkle { from { opacity: .25; } to { opacity: 1; } }
+.game-top { background: rgba(10, 12, 32, .82); border-bottom-color: #2E3268; }
+.hud-score::before { content: "★ "; color: #FFC65C; }
+
+/* The street fills the lane's width and stands behind the characters; its pavement is the ground. */
+.lane { overflow: visible; }
+.street-wrap { position: absolute; left: 50%; transform: translateX(-50%); width: 100vw; bottom: 0; height: calc(var(--lift) + 64px * var(--unit, 1) + 90px); z-index: 0; pointer-events: none; }
+.scene-street { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; }
+.sc-lamp-glow { animation: sc-lamp 3s ease-in-out infinite alternate; }
+@keyframes sc-lamp { from { opacity: .7; } to { opacity: 1; } }
+.ground { background: none; border-top: 0; box-shadow: none; background-image: none; }
+.ground-hint { top: -24px; color: #FFF3C4; text-shadow: 0 2px 0 #2A1404, 0 0 10px rgba(0, 0, 0, .8); }
+.block, .khalid, .firefighter, .truck { z-index: 3; }
+.truck { left: calc(-30px * var(--unit, 1)); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45)); }
+.firefighter { right: calc(-20px * var(--unit, 1)); }
+@media (max-width: 1240px) { .truck { left: 0; transform: scale(.7); } .firefighter { right: 0; transform: scale(.8); } }
+
+/* The question card as a spiral notepad */
+.q-card { background: #F8EFDD; border: 3px solid #3A2A1E; border-radius: 12px; box-shadow: 0 0 0 3px #E8D6B4, 0 10px 0 3px #3A2A1E, 0 30px 60px -20px rgba(0, 0, 0, .9);
+  padding-top: 20px; background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(58, 42, 30, .06) 27px 28px); }
+.q-card::before { content: ""; position: absolute; left: 28px; right: 28px; top: -16px; height: 30px; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 5px, #4A4A62 5.5px 9.5px, transparent 10px) 0 0 / 64px 30px repeat-x; }
+.q-meta { font-family: var(--px); font-size: 13px; letter-spacing: 0; text-transform: none; }
+.q-place { padding: 2px 10px; border-radius: 6px; background: #F7C948; color: #3A2A1E; }
+.q-place::before { content: "📍 "; }
+.q-count { padding: 2px 10px; border-radius: 6px; background: #E8D6B4; color: #3A2A1E; }
+.q-text { font-family: var(--px); font-weight: 700; color: #1E1410; }
+.q-ctx { color: #4A3A2E; }
+.q-visual > figure, .q-visual > .vis-illus, .q-visual > .vis-versus, .q-visual > .vis-trap, .q-visual > .vis-maps { position: relative; }
+.vis-years figcaption, .vis-months figcaption { text-align: center; color: #4A3A2E; }
+
+/* The flame charts */
+.fl-chart { position: relative; border-radius: 8px; border: 3px solid #1A1A3A; background: #141A3C; padding: 14px 10px 6px; overflow: hidden; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.fl-chart::before, .fl-chart::after { content: ""; position: absolute; width: 46px; height: 14px; background: rgba(232, 214, 180, .85); transform: rotate(-35deg); top: 6px; left: -10px; z-index: 2; }
+.fl-chart::after { left: auto; right: -10px; top: auto; bottom: 6px; transform: rotate(-35deg); }
+.fl-typical { position: absolute; left: 10px; right: 10px; border-top: 2px dashed #6BD0E4; pointer-events: none; }
+.fl-typical span { position: absolute; right: 0; top: -26px; padding: 3px 8px; border-radius: 6px; border: 1.5px solid #6BD0E4; background: rgba(10, 13, 22, .85); color: #6BD0E4; font: 600 11px var(--body); white-space: nowrap; }
+.fl-row { display: flex; align-items: flex-end; gap: 2px; }
+.fl-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
+.flame-sprite { display: flex; justify-content: center; align-items: flex-end; width: 100%; overflow: visible; }
+.flame-sprite .sprite { max-width: none; }
+.flame-sprite.dim { opacity: .45; filter: saturate(.6); }
+.flame-fallback { display: block; width: 60%; border-radius: 50% 50% 30% 30%; background: linear-gradient(180deg, #FFC14A, #E14E22); }
+.fl-year { position: absolute; bottom: -22px; font: 500 10.5px var(--body); color: rgba(255, 255, 255, .6); white-space: nowrap; }
+.fl-year.now { color: #FFC65C; font-weight: 700; font-size: 12px; }
+.fl-row { margin-bottom: 24px; }
+.fl-now { flex: 1.3 1 0; }
+.fl-now-glow { position: absolute; bottom: 0; width: 70%; height: 60%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 170, 60, .45), transparent 70%); }
+.fl-now-label { position: absolute; top: -4px; font: 700 15px var(--px); color: #FFE39A; text-shadow: 0 2px 0 #2A1404; }
+.fl-ask { width: 60%; border: 2px dashed #FFC65C; border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%; display: grid; place-items: center; color: #FFC65C; font: 700 28px var(--px); animation: il-pulse 1.4s ease-in-out infinite; }
+.fl-peak .flame-sprite { filter: drop-shadow(0 0 10px rgba(255, 170, 60, .8)); }
+
+/* The blocks: riveted plates with a hazard stripe */
+.block { border-radius: 8px; border: 3px solid #2A1404; padding-bottom: 14px; }
+.block-0 { background: linear-gradient(180deg, #FFD95E, #E9A923); box-shadow: 0 6px 0 #8A5A12, inset 0 3px 0 rgba(255, 255, 255, .45); }
+.block-1 { background: linear-gradient(180deg, #FF6A5A, #D13A2C); box-shadow: 0 6px 0 #7E1D16, inset 0 3px 0 rgba(255, 255, 255, .3); color: #FFF3E8; }
+.block::before { content: ""; position: absolute; left: 6px; right: 6px; bottom: 3px; height: 6px; border-radius: 3px; background: repeating-linear-gradient(135deg, #2A1404 0 8px, #F7C948 8px 16px); opacity: .9; }
+.block-1::before { background: repeating-linear-gradient(135deg, #2A1404 0 8px, #FF9A8A 8px 16px); }
+.block::after { content: ""; position: absolute; inset: 5px; pointer-events: none; border-radius: 4px;
+  background: radial-gradient(circle at 4px 4px, #6E4A1C 2.5px, transparent 3px), radial-gradient(circle at calc(100% - 4px) 4px, #6E4A1C 2.5px, transparent 3px); }
+.block-key { background: rgba(42, 20, 4, .22); }
+.block-1 .block-key { color: #FFF3E8; }
+.block-ico { flex: none; display: inline-flex; }
+.block.right { background: linear-gradient(180deg, #8BE3A6, #3FAE65); color: #0E2A17; box-shadow: 0 6px 0 #1C5A33, 0 0 28px rgba(92, 203, 126, .55), inset 0 3px 0 rgba(255, 255, 255, .4); }
+.block.wrong { background: linear-gradient(180deg, #FF9A8A, #E0473A); color: #2A0905; box-shadow: 0 6px 0 #6E1410, 0 0 28px rgba(240, 106, 90, .55), inset 0 3px 0 rgba(255, 255, 255, .35); }
+.block.dim { opacity: .55; }
+.block.right::before { background: repeating-linear-gradient(135deg, #0E2A17 0 8px, #8BE3A6 8px 16px); }
+.block.wrong::before { background: repeating-linear-gradient(135deg, #2A0905 0 8px, #FF9A8A 8px 16px); }
+
+/* Panels on the other screens */
+.level button, .explain, .game .btn-glass, .game .chip-btn, .game-sound { background: rgba(14, 16, 44, .9); border-color: #3A3E78; }
+.game .btn-fire { background: linear-gradient(180deg, #FFD95E, #E9A923); color: #2A1404; border-color: #2A1404; box-shadow: 0 4px 0 #8A5A12, inset 0 3px 0 rgba(255, 255, 255, .45); }
+.explain { background: #F8EFDD; color: #1E1410; border: 3px solid #3A2A1E; }
+.explain-text { color: #4A3A2E; }
+.explain.ok .explain-flag { color: #1C7A3E; }
+.explain.no .explain-flag { color: #B8291C; }
+.explain-link { color: #B4561C; }
+.intro-art .illus { border-color: #3A3E78; }

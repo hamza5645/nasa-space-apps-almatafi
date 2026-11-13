@@ -74,5 +74,32 @@
     "facing": "front",
     "rise": 151,
     "peak": 4
+  },
+  "fire-loop": {
+    "src": "/game/sprites/fire-loop.webp",
+    "frameW": 216,
+    "frameH": 301,
+    "frames": 16,
+    "fps": 10,
+    "baseline": 297,
+    "facing": "front"
+  },
+  "fire-chart": {
+    "src": "/game/sprites/fire-chart.webp",
+    "frameW": 216,
+    "frameH": 301,
+    "frames": 8,
+    "fps": 9,
+    "baseline": 297,
+    "facing": "front"
+  },
+  "truck-idle": {
+    "src": "/game/sprites/truck-idle.webp",
+    "frameW": 504,
+    "frameH": 338,
+    "frames": 8,
+    "fps": 6,
+    "baseline": 332,
+    "facing": "right"
   }
 }

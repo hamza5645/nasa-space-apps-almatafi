@@ -125,7 +125,7 @@ export default function OrbitStory({ n }: { n: StoryNumbers }) {
               <span className="chip-blue">One harmonized record</span>
             </div>
           </div>
-          <p className="hero-cap">Every glow is a real detection: NASA FIRMS, {n.week[0]} to {n.week[1]}. Drag the globe.</p>
+          <p className="hero-cap">Every glow is a real detection from NASA FIRMS&apos;s public 7-day files, {n.week[0]} to {n.week[1]}. Drag the globe.</p>
           <div className="scroll-cue" aria-hidden="true"><span />Scroll</div>
         </article>
 

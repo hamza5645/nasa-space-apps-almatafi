@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Round } from "@/lib/game";
 import { play, say } from "@/lib/sound";
-import { FireTruck } from "./Illus";
+import { Street } from "./Scene";
 import Sprite, { Periodic, type Sheets } from "./Sprite";
 import Visual from "./Visual";
 
@@ -31,8 +31,8 @@ type Props = {
 const KHALID_H = 210;       // display height of Khalid's jump frames; his run frames use the same scale
 const HOST_IDLE_H = 120;    // the host's idle frames; his other sheets use the same scale
 const FIREFIGHTER_H = 150;
+const TRUCK_H = 128;
 const RUN_SPEED = 620;      // px per second across the lane
-const GROUND = 16;          // px of ground under the characters' feet
 
 const subscribeResize = (cb: () => void) => { window.addEventListener("resize", cb); return () => window.removeEventListener("resize", cb); };
 const unitNow = () => Math.min(1, Math.max(0.58, (window.innerHeight - 60) / 840));
@@ -48,6 +48,7 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
   const blocks = [useRef<HTMLButtonElement>(null), useRef<HTMLButtonElement>(null)];
   const settled = useRef(false);
   const unit = useSyncExternalStore(subscribeResize, unitNow, () => 1);
+  const GROUND = Math.round(16 * unit);  // the pavement's top edge, under the characters' feet
 
   const jump = sheets["khalid-jump"], run = sheets["khalid-run"];
   const s = (KHALID_H * unit) / jump.frameH;
@@ -152,6 +153,11 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
                     disabled={phase !== "ask"} onClick={() => pick(t as 0 | 1)}
                     aria-label={`${t === 0 ? "Left" : "Right"} answer: ${c.label}`}>
               <span className="block-key" aria-hidden="true">{t === 0 ? "←" : "→"}</span>
+              <span className="block-ico" aria-hidden="true">{t === 0 ? (
+                <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 15a9 9 0 0 1 18 0v2H3v-2Z" fill="#E0473A" /><rect x="2" y="16" width="20" height="4" rx="1.5" fill="#FFD27A" /><rect x="10" y="4" width="4" height="7" rx="1" fill="#FFF3C4" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2c2 5 7 7 7 13a7 7 0 0 1-14 0c0-3 2-5 3-7 1 2 2 3 3 3 0-3 0-6 1-9Z" fill="#FFC14A" /><path d="M12 13c1 2 3 3 3 5a3 3 0 0 1-6 0c0-2 2-3 3-5Z" fill="#FFF4C4" /></svg>
+              )}</span>
               <span className="block-label">{c.label}</span>
               {hit && t === target && <span className="block-mark" aria-hidden="true">{right ? "✓" : "✗"}</span>}
               {hit && t === target && <span className={`block-burst ${right ? "ok" : "no"}`} aria-hidden="true">{Array.from({ length: 10 }, (_, k) => <i key={k} style={{ ["--a" as string]: `${k * 36}deg` }} />)}</span>}
@@ -169,10 +175,15 @@ export default function Stage({ round, sheets, index, total, onResult, onSettled
           </div>
         </div>
 
+        <div className="street-wrap" aria-hidden="true"><Street /></div>
         <div className="ground" aria-hidden="true">
           <span className="ground-hint">{phase === "ask" ? "Pick a block: click it, or press ← or →" : ""}</span>
         </div>
-        <div className="truck"><FireTruck width={Math.round(200 * unit)} /></div>
+        {sheets["truck-idle"] && (
+          <div className="truck" style={{ bottom: GROUND - (sheets["truck-idle"].frameH - sheets["truck-idle"].baseline) * (TRUCK_H * unit / sheets["truck-idle"].frameH) }}>
+            <Sprite sheet={sheets["truck-idle"]} height={TRUCK_H * unit} run="idle" loop label="The ALMATAFI fire truck" />
+          </div>
+        )}
         {ff && (
           <div className="firefighter" style={{ bottom: GROUND - (ff.frameH - ff.baseline) * (ffH / ff.frameH) }}>
             <Periodic sheet={ff} height={ffH} rest={3000} poke={spray} label="A firefighter spraying water" />

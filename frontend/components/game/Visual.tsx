@@ -8,73 +8,63 @@
 import { useEffect, useRef, useState } from "react";
 import type { Visual as V } from "@/lib/game";
 import { MONTHS, fmt } from "@/lib/format";
-import Illus, { Flame, flameWidth } from "./Illus";
+import Illus from "./Illus";
 import Sprite, { type Sheets } from "./Sprite";
 
 export default function Visual({ v, answered, sheets }: { v: V; answered: boolean; sheets: Sheets | null }) {
-  if (v.type === "years") return <Years v={v} answered={answered} />;
+  if (v.type === "years") return <Years v={v} answered={answered} sheets={sheets} />;
   if (v.type === "versus") return <Versus v={v} answered={answered} />;
-  if (v.type === "months") return <Months v={v} answered={answered} />;
+  if (v.type === "months") return <Months v={v} answered={answered} sheets={sheets} />;
   if (v.type === "trap") return <Trap v={v} />;
   if (v.type === "map") return <MapShot src={v.src} label={v.label} dots={answered ? v.dots : null} sheets={sheets} />;
   if (v.type === "maps") return <TwoMaps v={v} answered={answered} sheets={sheets} />;
   return <div className="vis-illus"><Illus name={v.name} /></div>;
 }
 
-const FIRE_DEFS = (
-  <defs>
-    <linearGradient id="il-fire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#D6391A" /><stop offset=".5" stopColor="#F27A2A" /><stop offset="1" stopColor="#FFC14A" /></linearGradient>
-    <linearGradient id="il-tongue" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#FFD873" /><stop offset="1" stopColor="#FFF4C4" /></linearGradient>
-  </defs>
-);
+/** A flame of the fire sheet, `h` px tall at its tallest frame, flickering; `delay` offsets
+ *  the loop so a row of flames doesn't move in step. */
+function FlameSprite({ sheets, h, delay = 0, dim = false }: { sheets: Sheets | null; h: number; delay?: number; dim?: boolean }) {
+  const fire = sheets?.["fire-chart"];
+  if (!fire) return <i className="flame-fallback" style={{ height: h }} />;
+  return (
+    <div className={`flame-sprite${dim ? " dim" : ""}`} style={{ height: h, animationDelay: `${delay}ms` }}>
+      <Sprite sheet={fire} height={h} run="loop" loop fps={fire.fps + (delay % 3)} />
+    </div>
+  );
+}
 
-/** Flame height for a value: eased, so a big year isn't a needle and a small one isn't a dot. */
-const eased = (v: number, max: number, H: number) => Math.max(8, Math.sqrt(Math.max(0, v) / max) * H);
+const eased = (v: number, max: number, H: number) => Math.max(10, Math.pow(Math.max(0, v) / max, 0.75) * H);
+/** The tallest flame a chart of n columns can hold without its flames crowding into a wall:
+ *  the sheet's frame is 0.72 wide for 1 tall, and a flame may overlap its neighbours by half. */
+const chartHeight = (n: number, max = 130) => Math.round(Math.min(max, Math.max(56, (820 / (n + 1.3)) * 2.0)));
 
-function Years({ v, answered }: { v: Extract<V, { type: "years" }>; answered: boolean }) {
+function Years({ v, answered, sheets }: { v: Extract<V, { type: "years" }>; answered: boolean; sheets: Sheets | null }) {
   const past = [...v.past].sort((a, b) => a.year - b.year);
   const max = Math.max(1, v.value, ...past.map((p) => p.value));
-  const n = past.length;
-  const slot = Math.max(18, Math.min(34, 680 / (n + 1.6)));
-  const W = Math.round(slot * (n + 1.6) + 36), H = 132, base = 164;
-  const h = (x: number) => eased(x, max, H);
-  const cx = (i: number) => 18 + i * slot + slot / 2;
-  const tx = 18 + n * slot + slot * 0.6 + slot / 2;
-  const ty = base - h(v.typical);
-  const label = `typical ${v.monthName}: ${fmt(v.typical)}`;
-  const lw = label.length * 6.6 + 14;
+  const H = chartHeight(past.length);
+  const typicalTop = H - eased(v.typical, max, H);
   return (
     <figure className="vis-years">
-      <svg viewBox={`0 0 ${W} 190`} preserveAspectRatio="xMidYMid meet" role="img"
-           aria-label={`${v.monthName} in ${n} other years as flames; a typical one has ${fmt(v.typical)}${answered ? `; ${v.year} has ${fmt(v.value)}` : ""}.`}>
-        {FIRE_DEFS}
-        <line x1="10" x2={W - 10} y1={ty} y2={ty} className="vy-typical" />
-        <g className="vy-typical-pill">
-          <rect x={W - 10 - lw} y={ty - 22} width={lw} height="18" rx="6" />
-          <text x={W - 10 - lw / 2} y={ty - 9}>{label}</text>
-        </g>
-        {past.map((p, i) => (
-          <g key={p.year}>
-            <Flame x={cx(i)} y={base} h={h(p.value)} w={flameWidth(h(p.value), slot * 0.86)} />
-            <title>{`${v.monthName} ${p.year}: ${fmt(p.value)}`}</title>
-            {(i % 2 === n % 2 || n < 14) && <text x={cx(i)} y={base + 15} className="vy-year">{`'${String(p.year % 100).padStart(2, "0")}`}</text>}
-          </g>
-        ))}
-        <line x1={tx - slot * 0.8} x2={tx - slot * 0.8} y1={base - H - 6} y2={base + 2} className="vy-divider" />
-        {answered ? (
-          <g className="vy-now">
-            <circle cx={tx} cy={base - Math.min(h(v.value), 50) / 2} r={Math.min(26, Math.max(14, h(v.value) / 3))} className="vy-glow" />
-            <Flame x={tx} y={base} h={h(v.value)} w={flameWidth(h(v.value), slot * 1.05)} />
-            <text x={tx} y={Math.max(13, base - h(v.value) - 7)} className="vy-now-label">{fmt(v.value)}</text>
-          </g>
-        ) : (
-          <g className="vy-ask">
-            <Flame x={tx} y={base} h={h(v.typical)} w={flameWidth(h(v.typical), slot * 1.05)} outline />
-            <text x={tx} y={base - Math.max(18, h(v.typical) / 2 - 10)} className="vy-q">?</text>
-          </g>
-        )}
-        <text x={tx} y={base + 15} className="vy-year now">{v.year}</text>
-      </svg>
+      <div className="fl-chart" role="img"
+           aria-label={`${v.monthName} in ${past.length} other years as flames; a typical one has ${fmt(v.typical)}${answered ? `; ${v.year} has ${fmt(v.value)}` : ""}.`}>
+        <div className="fl-typical" style={{ top: typicalTop }}><span>Typical {v.monthName}: {fmt(v.typical)}</span></div>
+        <div className="fl-row" style={{ height: H }}>
+          {past.map((p, i) => (
+            <div key={p.year} className="fl-col" title={`${v.monthName} ${p.year}: ${fmt(p.value)}`}>
+              <FlameSprite sheets={sheets} h={eased(p.value, max, H)} delay={i * 137} />
+              <span className="fl-year">{(i % 2 === past.length % 2 || past.length < 14) ? `'${String(p.year % 100).padStart(2, "0")}` : ""}</span>
+            </div>
+          ))}
+          <div className="fl-col fl-now">
+            {answered ? (
+              <><div className="fl-now-glow" /><FlameSprite sheets={sheets} h={eased(v.value, max, H)} /><b className="fl-now-label">{fmt(v.value)}</b></>
+            ) : (
+              <div className="fl-ask" style={{ height: eased(v.typical, max, H) }}><span>?</span></div>
+            )}
+            <span className="fl-year now">{v.year}</span>
+          </div>
+        </div>
+      </div>
       <figcaption>Each flame is {v.monthName} in another year: the taller, the more hotspots.</figcaption>
     </figure>
   );
@@ -112,22 +102,21 @@ function Versus({ v, answered }: { v: Extract<V, { type: "versus" }>; answered: 
   );
 }
 
-function Months({ v, answered }: { v: Extract<V, { type: "months" }>; answered: boolean }) {
+function Months({ v, answered, sheets }: { v: Extract<V, { type: "months" }>; answered: boolean; sheets: Sheets | null }) {
   const max = Math.max(1, ...v.values.map((x) => x ?? 0));
+  const H = chartHeight(12, 120);
   return (
     <figure className="vis-months">
-      <svg viewBox="0 0 480 172" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`A typical year, month by month${answered ? `: highest in ${MONTHS[v.peak]}` : ""}.`}>
-        {FIRE_DEFS}
-        {v.values.map((x, j) => {
-          const h = eased(x ?? 0, max, 118);
-          return (
-            <g key={j} opacity={answered && j !== v.peak ? 0.55 : 1}>
-              <Flame x={22 + j * 39.5} y={142} h={h} w={flameWidth(h, 32)} />
-              <text x={22 + j * 39.5} y={162} className={`vy-year${answered && j === v.peak ? " now" : ""}`}>{MONTHS[j]}</text>
-            </g>
-          );
-        })}
-      </svg>
+      <div className="fl-chart" role="img" aria-label={`A typical year, month by month${answered ? `: highest in ${MONTHS[v.peak]}` : ""}.`}>
+        <div className="fl-row" style={{ height: H }}>
+          {v.values.map((x, j) => (
+            <div key={j} className={`fl-col${answered && j === v.peak ? " fl-peak" : ""}`}>
+              <FlameSprite sheets={sheets} h={eased(x ?? 0, max, H)} delay={j * 151} dim={answered && j !== v.peak} />
+              <span className={`fl-year${answered && j === v.peak ? " now" : ""}`}>{MONTHS[j]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       <figcaption>A typical year here, month by month.</figcaption>
     </figure>
   );

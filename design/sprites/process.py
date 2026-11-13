@@ -78,6 +78,9 @@ SHEETS = {
     ),
     "runner": dict(file="khalid-run.png", rows=[8]),
     "jumper": dict(file="khalid-jump.png", rows=[8], effects=("shadow",)),
+    # X34: a campfire-style flame (the charts' flames) and the ALMATAFI truck (decor).
+    "fire": dict(file="fire.png", rows=[8, 8]),
+    "truck": dict(file="truck.png", rows=[4, 4]),
 }
 
 # Frames are (row, index) in the sheet, 0-based.
@@ -148,6 +151,21 @@ ANIMS = {
     "khalid-jump": dict(
         sheet="jumper", frames=[(0, i) for i in range(8)], fps=14,
         facing="front", air=True, jump=True,
+    ),
+    # The flame is all "effect" colours, so every frame anchors on its visible content.
+    "fire-loop": dict(
+        sheet="fire", frames=[(r, i) for r in range(2) for i in range(8)], fps=10,
+        facing="front", modes={(r, i): ("legs", "content") for r in range(2) for i in range(8)},
+    ),
+    # The chart's flame: only the tall frames, so a flame's height can stand for a number
+    # and the loop is a flicker, not a swell.
+    "fire-chart": dict(
+        sheet="fire", frames=[(0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (1, 7), (1, 6), (1, 5)], fps=9,
+        facing="front", modes={(r, i): ("legs", "content") for r in range(2) for i in range(8)},
+    ),
+    "truck-idle": dict(
+        sheet="truck", frames=[(r, i) for r in range(2) for i in range(4)], fps=6,
+        facing="right", refine=True, band=0.5,
     ),
 }
 AIR_TOL = 10

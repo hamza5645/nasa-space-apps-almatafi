@@ -10,6 +10,7 @@ import Brand from "@/components/Brand";
 import { points, stars, type Chapter } from "@/lib/game";
 import { play, say, setSoundOn, soundOn, subscribeSound } from "@/lib/sound";
 import Illus from "./Illus";
+import { Sky } from "./Scene";
 import Sprite, { type Sheets } from "./Sprite";
 import Stage from "./Stage";
 import "./game.css";
@@ -75,7 +76,7 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
 
   return (
     <div className="game" data-screen={screen}>
-      <div className="game-sky" aria-hidden="true" />
+      <Sky />
       <header className="game-top">
         <Brand size={22} />
         <nav className="game-links" aria-label="Site">
