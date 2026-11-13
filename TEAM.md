@@ -58,7 +58,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - (nothing)
 
 ### In review (PR open, merge in this order)
-- X27 FIRMS gaps — Khalid (with Claude), branch `khalid/x27-firms-gaps`. Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
+- X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
@@ -125,7 +125,7 @@ _Newest first. One entry per work session._
   - **Khalid's question "why no videos on the host":** every media file is served by the live site (the case films, both 61-frame films, the globe maps and the satellite models all answer 200). The empty black stage in his screenshots is the globe never reporting ready: the stage showed neither the globe nor its still. On a slow connection the still now shows after 6 s (also when the scene's code fails to load), and a globe that arrives later takes over. Checked headless with the day map blocked (still at 6.2 s) and normally (globe live).
   - Checked live on localhost (backend on the rebuilt mock, frontend dev) at 1440 px and 390 px. 225 pipeline, 223 backend, 53 frontend tests; lint, typecheck and build pass. OpenAPI and API types regenerated; contract proposals in `contracts/CHANGES-1.1.md`. `public/cache/` rebuilt (mock-20261113); validation numbers unchanged.
   - Also committed Khalid's Nov 6 log entry and its 4 Higgsfield shots, which were uncommitted in his checkout (a copy is in `git stash`).
-- Next: review and merge PR (Hamza for `frontend/`). Today with the real key: the three checks on the Board, then `FIRMS_MAP_KEY=… scripts/build-data.sh real --fetch`. Generate `clouds_fire` (needs the HF key). X28–X32 on the Board.
+- Next: review and merge PR #37 (Hamza for `frontend/`). Today with the real key: the three checks on the Board, then `FIRMS_MAP_KEY=… scripts/build-data.sh real --fetch`. Generate `clouds_fire` (needs the HF key). X28–X32 on the Board.
 - Broken / blocked: Higgsfield needs the HF key, which I couldn't use here, so `clouds_fire` is defined but not generated (spend still $3.21 of $5). The Chrome extension wasn't connected, so the live-site check was headless; the cloud correction can't be validated until real cloud data is read.
 
 ### Nov 6 — Khalid (33)
