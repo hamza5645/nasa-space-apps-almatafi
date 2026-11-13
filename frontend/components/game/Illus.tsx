@@ -34,7 +34,7 @@ export function Flame({ x, y, h, w, dim = false, outline = false }:
   const t = `translate(${x - ww / 2} ${y - h}) scale(${ww / 60} ${h / 100})`;
   if (outline) return <path d={FLAME_OUT} transform={t} fill="rgba(255, 198, 92, .08)" stroke="#FFC65C" strokeWidth={2.5 * 60 / Math.max(ww, 1)} strokeDasharray="7 5" vectorEffect="non-scaling-stroke" />;
   return (
-    <g className={dim ? undefined : "il-flicker"} style={{ transformOrigin: `${x}px ${y}px` }}>
+    <g className={dim ? undefined : "il-flicker"}>
       {!dim && <ellipse cx={x} cy={y - h * 0.08} rx={ww * 0.6} ry={h * 0.12} fill="#FF9A3C" opacity=".28" />}
       <path d={FLAME_OUT} transform={t} fill={dim ? "#5A5048" : FIRE} />
       {!dim && <path d={FLAME_IN} transform={t} fill="url(#il-tongue)" />}

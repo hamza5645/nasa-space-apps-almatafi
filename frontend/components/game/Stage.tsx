@@ -1,13 +1,14 @@
 "use client";
 
-// X33: one question on the stage. The host stands on the question card, next to a flame burning
-// on its top edge; two answer blocks hang over the pavement with Khalid between them. Pick a
+// X33: one question on the stage. The host stands on the question card; two answer blocks hang
+// over the pavement with Khalid between them. Pick a
 // block (click, ←/→, 1/2): Khalid runs under it (the runner sheet, mirrored to run left), jumps,
 // and on the jump's peak frame his head hits the block: it bumps and turns right or wrong. Then
 // the host celebrates or catches fire and runs, and on a wrong answer the firefighter sprays at
 // once. The truck glows on the left. Everything is sized from the viewport height (`unit`), so a
-// question fits the screen with no page scroll; the explanation comes in over the pavement,
-// under the card, so the revealed chart stays in view.
+// question fits the screen with no page scroll. X38: the explanation is written on the card, in
+// place of the question's context line, so it covers nothing: the chart, the blocks and every
+// character stay in view.
 // X36: the scene behind it all is a Higgsfield street plate when one exists (`plate`), else the
 // SVG street; the characters stand on the plate's sidewalk, the bottom PLATE_GROUND of the frame.
 
@@ -29,7 +30,7 @@ type Props = {
   plate?: boolean;          // a generated street plate is behind the stage (no SVG street)
   onResult: (choice: string, right: boolean) => void;   // at the block hit
   onSettled: () => void;                                // the reaction has played
-  explain?: ReactNode;                                  // shown over the pavement once settled
+  explain?: ReactNode;                                  // written on the card once settled
 };
 
 // Base sizes at unit 1 (a 900 px tall viewport); everything scales down to unit 0.58.
@@ -37,7 +38,6 @@ const KHALID_H = 210;       // display height of Khalid's jump frames; his run f
 const HOST_IDLE_H = 120;    // the host's idle frames; his other sheets use the same scale
 const FIREFIGHTER_H = 170;
 const TRUCK_H = 178;
-const FLAME_H = 96;         // the flame on the card's top edge
 const RUN_SPEED = 620;      // px per second across the lane
 const PLATE_GROUND = 0.075; // the sidewalk's share of the plate's height (from the bottom)
 
@@ -134,8 +134,6 @@ export default function Stage({ round, sheets, index, total, plate = false, onRe
   const hs = (HOST_IDLE_H * unit) / idle.frameH;
   const host = hostRun?.kind === "right" ? sheets["host-right"] : hostRun?.kind === "wrong" ? sheets["host-wrong"] : idle;
   const band = Math.round(idle.baseline * hs) + 6;
-  const flame = sheets["fire-loop"];
-  const flameH = FLAME_H * unit;
   const khalidSheet = phase === "run" ? run : jump;
   // The block's underside sits where Khalid's head is at the top of his jump, less a little, so it's a hit.
   const blockLift = Math.round((jump.baseline + (jump.rise ?? jump.frameH * 0.28)) * s * 0.95);
@@ -157,18 +155,13 @@ export default function Stage({ round, sheets, index, total, plate = false, onRe
             <Sprite sheet={idle} height={idle.frameH * hs} run="idle" loop />
           )}
         </div>
-        {flame && (
-          <div className="card-flame" aria-hidden="true" style={{ top: band - 4 - flame.baseline * (flameH / flame.frameH) }}>
-            <Sprite sheet={flame} height={flameH} run="loop" loop />
-          </div>
-        )}
-        <div className="q-card">
+        <div className={`q-card${explain ? " answered" : ""}`}>
           <div className="q-meta">
             <span className="q-place">{round.place}</span>
             <span className="q-count">Question {index} of {total}</span>
           </div>
           <h1 id="q" className="q-text">{round.prompt}</h1>
-          {round.context && <p className="q-ctx">{round.context}</p>}
+          {explain || (round.context && <p className="q-ctx">{round.context}</p>)}
           <div className="q-visual"><Visual v={round.visual} answered={hit} sheets={sheets} unit={unit} /></div>
         </div>
       </div>
@@ -217,7 +210,6 @@ export default function Stage({ round, sheets, index, total, plate = false, onRe
           </div>
         )}
       </div>
-      {explain}
     </section>
   );
 }

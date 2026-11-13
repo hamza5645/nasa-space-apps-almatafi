@@ -3,6 +3,9 @@
 // A sprite strip (public/game/sprites/, one row of equal frames) played frame by frame from
 // JavaScript, so the game can act on an exact frame: the block bumps on the jump's peak frame,
 // the firefighter sprays when the fire appears. `run` is a token: change it to restart.
+// X38: frames are drawn on a canvas from one Image per sheet, kept for the page's life. As CSS
+// backgrounds, every new question made new elements whose strips the browser fetched (or
+// revalidated) and decoded again, and until that finished the character wasn't there.
 
 import { useEffect, useRef, useState } from "react";
 import { reducedMotion } from "@/lib/motion";
@@ -12,6 +15,15 @@ export type SheetMeta = {
   facing?: string; rise?: number; peak?: number;
 };
 export type Sheets = Record<string, SheetMeta>;
+
+const images = new Map<string, HTMLImageElement>();
+function image(src: string) {
+  let img = images.get(src);
+  if (!img) { img = new Image(); img.decoding = "async"; img.src = src; images.set(src, img); }
+  return img;
+}
+/** Fetch every sheet now, so no character waits for its strip later. */
+export function preload(sheets: Sheets) { for (const s of Object.values(sheets)) image(s.src); }
 
 type Props = {
   sheet: SheetMeta;
@@ -68,13 +80,29 @@ export default function Sprite({ sheet, height, run = null, loop = false, fps, f
 
   const shown = run === null || run === undefined ? still : frame;
   const s = height / sheet.frameH, w = Math.round(sheet.frameW * s);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const img = image(sheet.src);
+    const draw = () => {
+      const c = canvas.current;
+      if (!c || !img.naturalWidth) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const cw = Math.max(1, Math.round(w * dpr)), ch = Math.max(1, Math.round(height * dpr));
+      if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
+      const ctx = c.getContext("2d");
+      if (!ctx) return;
+      const fw = img.naturalWidth / sheet.frames;
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, Math.min(shown, sheet.frames - 1) * fw, 0, fw, img.naturalHeight, 0, 0, cw, ch);
+    };
+    if (img.complete) { draw(); return; }
+    img.addEventListener("load", draw);
+    return () => img.removeEventListener("load", draw);
+  }, [sheet, shown, w, height]);
   return (
-    <div className={`sprite ${className}`} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}
-         style={{
-           width: w, height, backgroundImage: `url(${sheet.src})`,
-           backgroundSize: `${sheet.frames * w}px ${height}px`, backgroundPosition: `${-shown * w}px 0`,
-           transform: flip ? "scaleX(-1)" : undefined,
-         }} />
+    <canvas ref={canvas} className={`sprite ${className}`} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}
+            style={{ display: "block", width: w, height, transform: flip ? "scaleX(-1)" : undefined }} />
   );
 }
 
