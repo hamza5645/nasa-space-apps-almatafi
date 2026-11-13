@@ -55,9 +55,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X33 "Normal or not?" game + raw-vs-harmonized slider + phone overlap fixes — Khalid (with Claude), branch `khalid/x33-game-slider` (stacked on PR #37), started Nov 13. A quiz at `/play` built on our own data (the demo regions' months, the 2012 trap, FIRMS facts), lives as embers, a mascot slot for Khalid's sprite sheets; a drag slider that shows the raw join and the harmonized record on the same calendar (explorer and landing); the "Generated" tags removed (Khalid's call; the FAQ and submission keep the disclosure), which also fixes the overlaps on phones. The game goes against the Oct 31 "no gamification" decision: Khalid's call, noted here and in the Log; Decisions unchanged until Hamza agrees.
+- (nothing)
 
 ### In review (PR open, merge in this order)
+- X33 "Normal or not?" game + raw-vs-harmonized slider + phone overlap fixes — Khalid (with Claude), branch `khalid/x33-game-slider`, stacked on PR #37 (merge #37 first). Touches `frontend/` (Hamza's area) at Khalid's request. The game goes against the Oct 31 "no gamification" decision: Khalid's call; Decisions unchanged until Hamza agrees (suggested wording: an educational quiz on our real data is fine; no badges or leaderboards)
 - X27 FIRMS gaps — Khalid (with Claude), PR #37 (`khalid/x27-firms-gaps`). Fetch through the area API clipped to each country, cloud correction on a mock cloud product, alert previews (no email), the day's image, smoke and pixel footprints on the map, KML export, FIRMS credits, the landing's still-image fallback. Touches `frontend/` (Hamza's area) at Khalid's request: Hamza, please review those parts
 
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
@@ -113,6 +114,18 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 13 — Khalid (with Claude) (35)
+- Did: X33, after looking at Connected Earth (the museum project with the game that Khalid pointed to): borrow the playful parts, built on our own data.
+  - **"Normal or not?" (`/play`):** 7 rounds built at build time from the demo regions' offline copy and the globe's real FIRMS week, so it ships with its numbers and works offline. Round kinds: is this month normal (past years as dots, the month hidden until you answer), which year really burned more (a real case where raw MODIS vs raw VIIRS points the wrong way), the season's peak month, the 2012 trap (raw join vs ours), and FIRMS facts (a hotspot isn't always a fire, clouds hide fires, Terra vs Aqua overpass, MODIS vs VIIRS in the same week). 3 embers, points with a streak bonus, a drawn ember host whose mood follows the game, sparks and drifting embers, synthesized sound off by default, keys 1–4 and Enter, reduced motion respected. `lib/game.ts` is pure and tested on the committed cache (7 tests).
+  - **Sprite sheets:** `lib/mascot.ts` takes a sheet (one row per mood: idle, happy, sad, win, out); set `MASCOT` and the drawn ember steps aside. Nothing else changes.
+  - **Raw-vs-harmonized slider:** the same calendar twice on one colour scale, raw join left of a draggable line, ours right, with each side's jump at 2012 (Nile Delta mock: raw 12.4×, ours 0.85×). In the explorer for the selected area and on the landing's proof section. No Higgsfield assets needed.
+  - **Narration:** `docs/narration.md` has the 8 landing lines (they double as the 30 s video voice-over) and 8 game reactions, with file names. The game already plays them once recorded (list the ids in `lib/sound.ts`); landing captions and voice get wired when the recordings arrive.
+  - **Khalid's asks:** the "Generated" tags are gone (they also caused the phone overlaps over headings and the nav); the disclosure stays in the FAQ, the Method sources and `submission.md`'s AI-use section. Phone hero: the caption ran into the chips on 375×667 and 360×640 and the scroll cue sat on it at every phone size; the caption now follows the chips and the cue is gone on phones.
+  - Links: "Play" in the nav (hidden under 560 px, where it would wrap the nav), a band on the landing, a link in the explorer's slider section.
+  - Checked: dev and the static build at 1440 px and 390 px, a full playthrough (right, wrong, out of embers), keyboard and sound toggle. 63 frontend tests, lint, typecheck and build pass.
+- Next: Hamza reviews PR #37, then this PR. Khalid: sprite sheets for the host; recordings for `docs/narration.md`; `python gen.py clouds_fire game_win game_lose && ./process.sh` with the HF key ($0.03; ledger would be $3.24 of $5).
+- Broken / blocked: Higgsfield needs the HF key, so nothing new was generated (spend still $3.21). The "no gamification" decision needs Hamza.
 
 ### Nov 13 — Khalid (with Claude) (34)
 - Did: X27, after comparing the project with NASA FIRMS's own pages (Earthdata FIRMS page and FAQ, API index, download and alerts pages; notes in `docs/firms-research.md`).
