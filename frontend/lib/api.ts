@@ -12,6 +12,7 @@ export type StatsRequest = Schemas["StatsRequest"];
 export type HotspotsRequest = Schemas["HotspotsRequest"];
 export type NrtRequest = Schemas["NrtRequest"];
 export type ExportRequest = Schemas["ExportRequest"];
+export type AlertPreviewRequest = Schemas["PreviewRequest"];
 
 export type View = "harmonized" | "modis" | "viirs";
 export type Metric = "detections" | "fire_days";
@@ -28,6 +29,9 @@ export type Region = {
   default_month: string; story: string;
 };
 
+/** X27: which cloud cover the backend has, and whether counts were corrected for it. */
+export type CloudInfo = { mode: "off" | "correct"; source: string; cloudy_from: number; note: string | null };
+
 export type Calendar = {
   view: View; metric: Metric; unit: string;
   years: number[]; months: number[];
@@ -37,6 +41,9 @@ export type Calendar = {
   year_totals: (number | null)[]; month_medians: (number | null)[];
   max: number | null;
   partial_month: { month: string; days_observed: number } | null;
+  /** X27: the area's mean cloud fraction per month (0–1), when the backend has cloud data. */
+  cloud?: (number | null)[][];
+  clouds?: CloudInfo;
   meta: Meta;
 };
 
@@ -51,7 +58,18 @@ export type Stats = {
   status: Status | null;
   partial: { days_observed: number; comparison: string } | null;
   trend: { sen_slope_per_year: number | null; p_value: number | null; series: string } | null;
+  cloud_fraction?: number | null;
+  clouds?: CloudInfo;
   meta: Meta;
+};
+
+/** X27: the "unusual month" email an area would get. Nothing is sent or stored. */
+export type AlertPreview = {
+  month: string; triggered: boolean; threshold: "above_normal" | "unusual_high";
+  status: Status | null; value: number | null; z: number | null;
+  partial: { days_observed: number; comparison: string } | null;
+  email: { subject: string; text: string; html: string };
+  sent: false; note: string; meta: Meta;
 };
 
 export type HotspotProps = {
@@ -146,6 +164,7 @@ export const api = {
   search: (q: string, signal?: AbortSignal) =>
     call<{ results: Place[]; meta: Meta }>(`/api/search?q=${encodeURIComponent(q)}&limit=5`, { signal }),
   validation: (signal?: AbortSignal) => call<Validation>("/api/validation", { signal }),
+  alertPreview: (body: AlertPreviewRequest, signal?: AbortSignal) => post<AlertPreview>("/api/alerts/preview", body, signal),
   admin: (country: string, level: number, signal?: AbortSignal) =>
     call<AdminAreas>(`/api/admin?country=${encodeURIComponent(country)}&level=${level}`, { signal }),
   /** Full URL for a file download; the browser posts the form itself (see lib/download.ts). */

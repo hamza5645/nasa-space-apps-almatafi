@@ -2,7 +2,8 @@
 
 // The explorer map (U2): a labelled dark basemap, NASA GIBS imagery one click away (no key
 // needed), the area of interest, the selected month's hotspots (click one for details), and
-// drawing a polygon or box with Terra Draw.
+// drawing a polygon or box with Terra Draw. X27 adds what FIRMS's own map shows: each
+// detection's pixel footprint when zoomed in, the day's satellite image and its smoke.
 
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, MapLayerMouseEvent } from "maplibre-gl";
@@ -11,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { TerraDraw, TerraDrawPolygonMode, TerraDrawRectangleMode, TerraDrawRenderMode } from "terra-draw";
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter";
 import type { Hotspots } from "@/lib/api";
+import { busiestDay, footprints, gibsTiles, smokeLayer, trueColorLayer } from "@/lib/firms";
 import { monthLabel } from "@/lib/format";
 import { densify, shapeBounds, type Shape } from "@/lib/geo";
 import { useSelection } from "@/lib/store";
@@ -68,7 +70,10 @@ const SOURCES: maplibregl.StyleSpecification["sources"] = {
   },
   aoi: { type: "geojson", data: EMPTY },
   hotspots: { type: "geojson", data: EMPTY },
+  footprints: { type: "geojson", data: EMPTY },
 };
+
+const FRP_COLOR: maplibregl.ExpressionSpecification = ["interpolate", ["linear"], ["get", "frp"], 0, "#C9472E", 10, "#F08A24", 50, "#FFE08A"];
 
 // Under the base map's labels, so place names stay readable on the imagery.
 const IMAGERY: maplibregl.LayerSpecification = {
@@ -79,14 +84,19 @@ const IMAGERY: maplibregl.LayerSpecification = {
 const OVERLAYS: maplibregl.LayerSpecification[] = [
   { id: "aoi-fill", type: "fill", source: "aoi", paint: { "fill-color": "#6BD0E4", "fill-opacity": 0.06 } },
   { id: "aoi-line", type: "line", source: "aoi", paint: { "line-color": "#6BD0E4", "line-width": 2, "line-dasharray": [3, 2.5] } },
+  // Each detection's pixel on the ground (scan × track): a MODIS pixel is ~1 km, VIIRS ~375 m.
+  { id: "footprints-fill", type: "fill", source: "footprints", minzoom: 8, paint: { "fill-color": FRP_COLOR, "fill-opacity": 0.28 } },
+  { id: "footprints-line", type: "line", source: "footprints", minzoom: 8,
+    paint: { "line-color": FRP_COLOR, "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 12, 1.5] } },
   {
     id: "hotspots", type: "circle", source: "hotspots",
     paint: {
       // Bigger and brighter with fire radiative power.
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 4, ["interpolate", ["linear"], ["get", "frp"], 0, 1.5, 50, 3.5],
                         10, ["interpolate", ["linear"], ["get", "frp"], 0, 4, 50, 9]],
-      "circle-color": ["interpolate", ["linear"], ["get", "frp"], 0, "#C9472E", 10, "#F08A24", 50, "#FFE08A"],
-      "circle-opacity": 0.9,
+      "circle-color": FRP_COLOR,
+      // Fainter once the footprints show, so the pixels read.
+      "circle-opacity": ["interpolate", ["linear"], ["zoom"], 8, 0.9, 10, 0.55],
       "circle-stroke-color": "#1C0F04", "circle-stroke-width": 0.6,
     },
   },
@@ -110,6 +120,7 @@ async function loadStyle(): Promise<maplibregl.StyleSpecification> {
 
 type Props = { hotspots?: Hotspots; loading: boolean };
 type Tool = "none" | "polygon" | "rectangle";
+type Base = "map" | "relief" | "day";
 
 export default function MapView({ hotspots, loading }: Props) {
   const el = useRef<HTMLDivElement>(null);
@@ -119,8 +130,13 @@ export default function MapView({ hotspots, loading }: Props) {
   // The shape the map opened on; a different one (a shared link restored a moment later) still gets fitted.
   const opened = useRef<Shape | null | undefined>(undefined);
   const [tool, setTool] = useState<Tool>("none");
-  const [imagery, setImagery] = useState(false);
+  const [base, setBase] = useState<Base>("map");
+  const [smoke, setSmoke] = useState(false);
   const { shape, aoiLabel, month, hotspot, setAoi, selectHotspot } = useSelection();
+  // The day the satellite image and smoke show: the picked hotspot's, else the month's busiest.
+  const day = hotspot?.acq_datetime_utc.slice(0, 10) ?? busiestDay(hotspots);
+  const dayLayer = day ? trueColorLayer(day) : null;
+  const smokeOf = day ? smokeLayer(day) : null;
 
   // Create the map once, when its style has arrived and the page has settled.
   useEffect(() => {
@@ -209,11 +225,12 @@ export default function MapView({ hotspots, loading }: Props) {
     opened.current = undefined;
   }, [ready, shape]);
 
-  // Hotspots of the selected month.
+  // Hotspots of the selected month, and their pixel footprints.
   useEffect(() => {
     const m = map.current;
     if (!ready || !m) return;
     (m.getSource("hotspots") as GeoJSONSource).setData(hotspots ?? EMPTY);
+    (m.getSource("footprints") as GeoJSONSource).setData(footprints(hotspots));
   }, [ready, hotspots]);
 
   // NASA imagery on or off (hidden layers fetch no tiles). The basemap stays underneath, so a
@@ -221,8 +238,18 @@ export default function MapView({ hotspots, loading }: Props) {
   useEffect(() => {
     const m = map.current;
     if (!ready || !m) return;
-    m.setLayoutProperty("relief", "visibility", imagery ? "visible" : "none");
-  }, [ready, imagery]);
+    m.setLayoutProperty("relief", "visibility", base === "relief" ? "visible" : "none");
+  }, [ready, base]);
+
+  // The day's true-colour image (under the labels, like the Blue Marble) and the smoke over it.
+  // Each is one daily GIBS layer, swapped when the day changes.
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    const labels = m.getStyle().layers.find((l) => l.type === "symbol")?.id;
+    swapRaster(m, "day", base === "day" && dayLayer && day ? gibsTiles(dayLayer, day) : null, labels, 9, {});
+    swapRaster(m, "smoke", smoke && smokeOf && day ? gibsTiles(smokeOf, day) : null, "aoi-fill", 6, { "raster-opacity": 0.7 });
+  }, [ready, base, smoke, day, dayLayer, smokeOf]);
 
   useEffect(() => {
     const m = map.current;
@@ -267,14 +294,28 @@ export default function MapView({ hotspots, loading }: Props) {
           {" "}<button type="button" className="linkish" onClick={() => pick(tool)}>Cancel</button>
         </div>
       )}
-      <div className="maplayers" role="group" aria-label="Base map">
-        <button type="button" aria-pressed={!imagery} onClick={() => setImagery(false)}>Map</button>
-        <button type="button" aria-pressed={imagery} onClick={() => setImagery(true)}>NASA imagery</button>
+      <div className="maplayers" role="group" aria-label="Map layers">
+        <button type="button" aria-pressed={base === "map"} onClick={() => setBase("map")}>Map</button>
+        <button type="button" aria-pressed={base === "relief"} onClick={() => setBase("relief")}>NASA imagery</button>
+        <button type="button" aria-pressed={base === "day"} disabled={!dayLayer}
+                title={dayLayer ? `The satellite image of ${day} (${dayLayer.label})` : "Pick a month with hotspots"}
+                onClick={() => setBase("day")}>Day image</button>
+        <button type="button" aria-pressed={smoke} disabled={!smokeOf}
+                title={smokeOf ? `Smoke and dust on ${day}: ${smokeOf.label}` : "No smoke layer for this day"}
+                onClick={() => setSmoke((v) => !v)}>Smoke</button>
       </div>
     </div>
     <figcaption className="maplegend">
-      <span><i className="dot" />One detection from the satellite picked under the map; bigger means more fire power.</span>
+      <span><i className="dot" />One detection from the satellite picked under the map; bigger means more fire power.
+        Zoom in to see each detection&apos;s pixel on the ground.</span>
       <span><i className="dash" />Your area.</span>
+      {(base === "day" || smoke) && day && (
+        <span className="maplegend-day">
+          {base === "day" && dayLayer && <>Image: {day}, {dayLayer.label}{hotspot ? " (the picked hotspot's day)" : " (the month's busiest day)"}. </>}
+          {smoke && smokeOf && <>Smoke: {smokeOf.label}; yellow to red is more smoke or dust. </>}
+          From NASA GIBS.
+        </span>
+      )}
     </figcaption>
     </figure>
   );
@@ -297,6 +338,19 @@ async function settled(node: Element | null) {
     if ("requestIdleCallback" in window) requestIdleCallback(() => done(), { timeout: 500 });
     else setTimeout(done, 50); // Safari
   });
+}
+
+/** Replace raster layer `id` with one showing `tiles` (null removes it). */
+function swapRaster(m: maplibregl.Map, id: string, tiles: string | null, before: string | undefined, maxzoom: number,
+                    paint: maplibregl.RasterLayerSpecification["paint"]) {
+  const src = m.getSource(id) as maplibregl.RasterTileSource | undefined;
+  if (src && tiles && src.tiles?.[0] === tiles) return;
+  if (m.getLayer(id)) m.removeLayer(id);
+  if (src) m.removeSource(id);
+  if (!tiles) return;
+  m.addSource(id, { type: "raster", tiles: [tiles], tileSize: 256, maxzoom,
+                    attribution: '<a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a>' });
+  m.addLayer({ id, type: "raster", source: id, paint }, before && m.getLayer(before) ? before : undefined);
 }
 
 function fit(m: maplibregl.Map, shape: Shape) {

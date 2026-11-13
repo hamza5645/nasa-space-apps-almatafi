@@ -5,6 +5,7 @@
 
 import { useMemo, useRef } from "react";
 import type { Calendar as CalendarData } from "@/lib/api";
+import { cloudText } from "@/lib/firms";
 import { MONTHS, MONTHS_LONG, ORIGIN, RAMP, ZERO, cellColor, fmt, inkOn, short, ym } from "@/lib/format";
 
 type Props = {
@@ -18,6 +19,7 @@ export default function Calendar({ data, selected, onSelect }: Props) {
   const max = data.max ?? 0;
   const maxTotal = useMemo(() => Math.max(0, ...data.year_totals.map((t) => t ?? 0)), [data.year_totals]);
   const partial = data.partial_month?.month;
+  const cloudyFrom = data.clouds?.cloudy_from ?? 0.5;
   // Newest year on top: that's where people look first.
   const rows = data.years.map((y, i) => ({ year: y, i })).reverse();
 
@@ -52,14 +54,16 @@ export default function Calendar({ data, selected, onSelect }: Props) {
               }
               const origin = data.origin?.[i]?.[c];
               const isPartial = month === partial;
+              const cloud = data.cloud?.[i]?.[c] ?? null;
+              const cloudy = cloud !== null && cloud >= cloudyFrom;
               const label = `${MONTHS_LONG[c]} ${year}: ${fmt(v)}${isPartial ? " so far" : ""}` +
-                (origin ? `, ${ORIGIN[origin] ?? origin}` : "");
+                (origin ? `, ${ORIGIN[origin] ?? origin}` : "") + (cloud !== null ? `, ${cloudText(cloud)}` : "");
               return (
                 <button
                   key={c}
                   role="gridcell"
                   type="button"
-                  className={`cal-cell${month === selected ? " sel" : ""}${isPartial ? " partial" : ""}${max && v >= max * 0.6 ? " hot" : ""}`}
+                  className={`cal-cell${month === selected ? " sel" : ""}${isPartial ? " partial" : ""}${max && v >= max * 0.6 ? " hot" : ""}${cloudy ? " cloudy" : ""}`}
                   style={{ background: cellColor(v, max) ?? undefined, color: inkOn(v, max) }}
                   aria-label={label}
                   aria-selected={month === selected}
@@ -97,6 +101,7 @@ export default function Calendar({ data, selected, onSelect }: Props) {
         <span>More</span>
         <span className="cal-none-key">– not observed</span>
         {partial && <span>* month in progress</span>}
+        {data.cloud && <span className="cal-cloud-key">corner mark: over {Math.round(cloudyFrom * 100)}% cloud</span>}
       </div>
     </div>
   );

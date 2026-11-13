@@ -26,7 +26,8 @@ function unb64url(s: string): string {
 }
 
 /** Short, readable params for the common cases; base64 JSON only for drawn polygons. */
-export function encode(s: Pick<Selection, "aoi" | "aoiLabel" | "start" | "end" | "view" | "metric" | "month" | "adminRef">): string {
+export function encode(s: Pick<Selection, "aoi" | "aoiLabel" | "start" | "end" | "view" | "metric" | "month" | "adminRef">
+                       & { clouds?: boolean }): string {
   const p = new URLSearchParams();
   const a = s.aoi;
   if (a.type === "region") p.set("region", a.region_id);
@@ -42,6 +43,7 @@ export function encode(s: Pick<Selection, "aoi" | "aoiLabel" | "start" | "end" |
   if (s.month) p.set("month", s.month);
   if (s.view !== "harmonized") p.set("view", s.view);
   if (s.metric !== "detections") p.set("metric", s.metric);
+  if (s.clouds) p.set("clouds", "1");
   if (s.start !== "2001-01") p.set("from", s.start);
   if (s.end) p.set("to", s.end);
   return p.toString();
@@ -81,6 +83,7 @@ export function decode(query: string, now = new Date()): Partial<Selection> {
   if (VIEWS.includes(view)) out.view = view;
   const metric = p.get("metric") as Metric;
   if (METRICS.includes(metric)) out.metric = metric;
+  if (p.get("clouds") === "1") out.clouds = true;
   if (inRange(p.get("from"), now)) out.start = p.get("from")!;
   if (inRange(p.get("to"), now) && p.get("to")! >= (out.start ?? "2001-01")) out.end = p.get("to")!;
   return out;

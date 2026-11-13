@@ -24,6 +24,8 @@ export default function ExportMenu({ latest }: { latest: string | null }) {
       body: () => monthRange && { aoi: s.aoi, what: "hotspots", format: "csv", start: monthRange[0], end: monthRange[1], sensors: sensorsFor(s.view) } },
     { id: "geojson", label: "Hotspots, GeoJSON", title: "The same points, for QGIS or any web map",
       body: () => monthRange && { aoi: s.aoi, what: "hotspots", format: "geojson", start: monthRange[0], end: monthRange[1], sensors: sensorsFor(s.view) } },
+    { id: "kml", label: "Hotspots, KML", title: "For Google Earth: each hotspot with its pixel footprint, coloured by fire power",
+      body: () => monthRange && { aoi: s.aoi, what: "hotspots", format: "kml", start: monthRange[0], end: monthRange[1], sensors: sensorsFor(s.view) } },
     { id: "geotiff", label: "Grid, GeoTIFF", title: "The selected month on the 0.1° grid (Cloud-Optimized GeoTIFF)",
       body: () => s.month === null ? null : { aoi: s.aoi, what: "grid", format: "geotiff", start: s.month, end: s.month, view: s.view, metric: s.metric } },
     { id: "calendar", label: "Calendar, CSV", title: "Every month in the calendar, one row each",

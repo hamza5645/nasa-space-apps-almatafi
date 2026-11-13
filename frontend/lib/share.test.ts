@@ -45,3 +45,10 @@ test("admin links carry the country and level", () => {
   assert.deepEqual(decode(q, NOW).adminRef, { country: "ARG", level: 1 });
   assert.equal(decode("admin=X&ac=evil&al=7", NOW).adminRef, undefined);
 });
+
+test("the cloud correction is in the link only when on (X27)", () => {
+  const aoi = { type: "region", region_id: "nile-delta" } as const;
+  assert.equal(encode({ ...base, aoi, clouds: true }), "region=nile-delta&month=2026-10&clouds=1");
+  assert.equal(decode("region=nile-delta&clouds=1", NOW).clouds, true);
+  assert.equal(decode("region=nile-delta&clouds=yes", NOW).clouds, undefined);
+});

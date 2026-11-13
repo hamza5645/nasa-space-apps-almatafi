@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/alerts/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview */
+        post: operations["preview_api_alerts_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calendar": {
         parameters: {
             query?: never;
@@ -202,6 +219,12 @@ export interface components {
         CalendarRequest: {
             /** Aoi */
             aoi: components["schemas"]["PolygonAoi"] | components["schemas"]["BboxAoi"] | components["schemas"]["PointAoi"] | components["schemas"]["AdminAoi"] | components["schemas"]["RegionAoi"];
+            /**
+             * Clouds
+             * @default off
+             * @enum {string}
+             */
+            clouds?: "off" | "correct";
             /** End */
             end?: string | null;
             /**
@@ -238,7 +261,7 @@ export interface components {
              * Format
              * @enum {string}
              */
-            format: "csv" | "geojson" | "json" | "geotiff";
+            format: "csv" | "geojson" | "json" | "geotiff" | "kml";
             /**
              * Include Filtered
              * @default false
@@ -366,6 +389,25 @@ export interface components {
              */
             type: "polygon";
         };
+        /** PreviewRequest */
+        PreviewRequest: {
+            /** Aoi */
+            aoi: components["schemas"]["PolygonAoi"] | components["schemas"]["BboxAoi"] | components["schemas"]["PointAoi"] | components["schemas"]["AdminAoi"] | components["schemas"]["RegionAoi"];
+            /**
+             * Clouds
+             * @default off
+             * @enum {string}
+             */
+            clouds?: "off" | "correct";
+            /** Name */
+            name?: string | null;
+            /**
+             * Threshold
+             * @default above_normal
+             * @enum {string}
+             */
+            threshold?: "above_normal" | "unusual_high";
+        };
         /** RegionAoi */
         RegionAoi: {
             /** Region Id */
@@ -385,6 +427,12 @@ export interface components {
                 number,
                 number
             ] | null;
+            /**
+             * Clouds
+             * @default off
+             * @enum {string}
+             */
+            clouds?: "off" | "correct";
             /**
              * Metric
              * @default detections
@@ -433,6 +481,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_alerts_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

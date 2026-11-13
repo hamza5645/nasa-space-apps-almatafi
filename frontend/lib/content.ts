@@ -2,7 +2,7 @@
 // pages ship their numbers in the HTML (PLAN.md §14.2: no counters that start at 0).
 // Server-only: uses the file system.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Validation } from "./api.ts";
 
@@ -51,4 +51,9 @@ export function demoCalendar(id = "nile-delta"): MiniCalendar | null {
   if (!cal) return null;
   const max = Math.max(...cal.matrix.flat().map((v) => v ?? 0));
   return { years: cal.years, matrix: cal.matrix, max };
+}
+
+/** Whether a file is in public/media/ (generated media that may not be made yet, X27). */
+export function hasMedia(name: string): boolean {
+  return /^[\w.-]+$/.test(name) && existsSync(join(process.cwd(), "public", "media", name));
 }

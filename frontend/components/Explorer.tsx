@@ -13,8 +13,9 @@ import { monthLabel } from "@/lib/format";
 import { bboxShape, circleShape, type Shape } from "@/lib/geo";
 import { referencePlatform } from "@/lib/platforms";
 import { decode, encode } from "@/lib/share";
-import { useCalendar, useHotspots, useRegions, useStats } from "@/lib/queries";
+import { cloudsApply, useCalendar, useHotspots, useRegions, useStats } from "@/lib/queries";
 import { DEFAULT, useSelection } from "@/lib/store";
+import AlertMenu from "./AlertMenu";
 import AreaPanel from "./AreaPanel";
 import Brand from "./Brand";
 import Calendar from "./Calendar";
@@ -25,6 +26,7 @@ import SensorChart from "./SensorChart";
 import Verdict from "./Verdict";
 import "./explorer.css";
 import "./explorer-x15.css";
+import "./explorer-x27.css";
 
 // MapLibre needs the browser, so the map is only rendered on the client.
 const MapView = dynamic(() => import("./MapView"), {
@@ -54,12 +56,18 @@ const UNIT_NOTE = {
 
 const VIEWS = [["harmonized", "Harmonized"], ["modis", "MODIS only"], ["viirs", "VIIRS only"]] as const;
 const METRICS = [["detections", "Hotspots"], ["fire_days", "Fire days"]] as const;
+const CLOUDS = [["seen", "As seen"], ["fixed", "Cloud-corrected"]] as const;
 
 export default function Explorer() {
   const s = useSelection();
   const regions = useRegions();
-  const cal = useCalendar(s.aoi, s.start, s.end, s.view, s.metric);
-  const stats = useStats(s.aoi, s.month, s.view, s.metric);
+  const cal = useCalendar(s.aoi, s.start, s.end, s.view, s.metric, s.clouds);
+  const stats = useStats(s.aoi, s.month, s.view, s.metric, s.clouds);
+  // X27: cloud cover comes with every calendar when the backend has it; the correction only
+  // applies to harmonized hotspots.
+  const cloudInfo = cal.data?.clouds;
+  const canFix = Boolean(cloudInfo) && cloudsApply(s.view, s.metric, true);
+  const fixed = canFix && s.clouds;
   // The yearly-totals chart compares all three views; the selected one is already cached.
   const harm = useCalendar(s.aoi, s.start, s.end, "harmonized", s.metric);
   const modis = useCalendar(s.aoi, s.start, s.end, "modis", s.metric);
@@ -115,7 +123,7 @@ export default function Explorer() {
     if (!restored.current) return;
     const q = encode(s);
     if (`?${q}` !== window.location.search) window.history.replaceState(null, "", `?${q}`);
-  }, [s.aoi, s.aoiLabel, s.start, s.end, s.view, s.metric, s.month]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.aoi, s.aoiLabel, s.start, s.end, s.view, s.metric, s.month, s.clouds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Region outlines arrive with /api/regions; fill in the shape if the page started without one.
   useEffect(() => {
@@ -176,6 +184,7 @@ export default function Explorer() {
           <Segmented label="Data" options={VIEWS} value={s.view} onChange={s.setView} />
           <Segmented label="Count" options={METRICS} value={s.metric} onChange={s.setMetric} />
         </div>
+        <AlertMenu />
         <ExportMenu latest={observed.at(-1) ?? null} />
       </header>
       {offline && (
@@ -202,6 +211,20 @@ export default function Explorer() {
               Raw counts can&apos;t be compared across 2012: VIIRS sees 3 to 5 times more hotspots than MODIS for
               the same fires. Switch to Harmonized to compare years.
             </p>
+          )}
+          {cloudInfo && (
+            <div className="cloud-row">
+            {canFix && (
+              <Segmented label="Clouds" options={CLOUDS} value={s.clouds ? "fixed" : "seen"} onChange={(v) => s.setClouds(v === "fixed")} />
+            )}
+            <p className="cloud-note" role="note">
+              <CloudIcon /> marks months when more than half of the area was under cloud at the satellite&apos;s pass,
+              so fires there could be hidden.{" "}
+              {fixed ? "Counts are corrected for it: each cell's count divided by its clear-sky share, at most 5 times. "
+                     : canFix ? "Cloud-corrected makes up for them. " : ""}
+              {cloudInfo.source === "mock" && <strong>Cloud cover is simulated for now: NASA&apos;s MODIS cloud product (MOD14CMH) isn&apos;t loaded yet.</strong>}
+            </p>
+            </div>
           )}
           {cal.error && <p className="error" role="alert">{(cal.error as ApiError).message}</p>}
           {!cal.data && !cal.error && <div className="cal-skeleton" aria-busy="true">Loading the calendar…</div>}
@@ -244,6 +267,14 @@ function Segmented<T extends string>({ label, options, value, onChange }:
         <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)}>{text}</button>
       ))}
     </div>
+  );
+}
+
+export function CloudIcon() {
+  return (
+    <svg className="cloud-ico" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-label="cloud" role="img">
+      <path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9H7Z" />
+    </svg>
   );
 }
 

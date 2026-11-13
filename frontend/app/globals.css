@@ -82,6 +82,7 @@ h1, h2, h3 { margin: 0; }
 .card { background: #FFFFFF; border: 1px solid var(--card-line); border-radius: 16px; padding: 28px; }
 
 footer.site { border-top: 1px solid var(--line); padding-top: 28px; padding-bottom: 40px; color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 12px 32px; }
+footer.site .ack { flex-basis: 100%; max-width: 92ch; font-size: 12.5px; line-height: 1.5; }
 
 /* X15: editorial italic for the key word of a headline */
 .display em { font-family: var(--serif); font-style: italic; font-weight: 400; font-stretch: 100%; letter-spacing: -0.01em; }

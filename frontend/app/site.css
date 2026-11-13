@@ -118,3 +118,8 @@
 .method-h1 { font-size: clamp(44px, 6.2vw, 88px); }
 .method-story .ch-hero .warn { max-width: 540px; }
 .method-story .chapters .ch:last-child { min-height: 130vh; }
+
+/* X27: a generated figure above the limits (shown once the still exists). */
+.gen-figure { margin: 0 0 22px; position: relative; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .08); }
+.gen-figure img { display: block; width: 100%; height: clamp(200px, 32vw, 380px); object-fit: cover; }
+.gen-figure figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px 14px; font-size: 14px; color: #F2EBE1; background: linear-gradient(180deg, rgba(5, 7, 11, 0), rgba(5, 7, 11, .82)); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }

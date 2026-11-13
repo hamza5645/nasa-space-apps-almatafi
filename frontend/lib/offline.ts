@@ -8,6 +8,9 @@ type RegionCache = {
   calendar: Record<string, Record<string, Calendar>>;
   stats: Record<string, Stats>;
   hotspots: Record<string, Hotspots | null>;
+  /** X27: the cloud-corrected harmonized calendar and stats, when the backend had cloud data. */
+  calendar_clouds?: Calendar;
+  stats_clouds?: Record<string, Stats>;
 };
 
 const loaded = new Map<string, Promise<RegionCache | null>>();
@@ -45,9 +48,9 @@ export async function withFallback<T extends { meta: object }>(
   }
 }
 
-export const pickCalendar = (view: View, metric: Metric, start: string, end: string | null) => (c: RegionCache) =>
-  start === "2001-01" && end === null ? c.calendar[view]?.[metric] : null;
-export const pickStats = (month: string, view: View, metric: Metric) => (c: RegionCache) =>
-  view === "harmonized" && metric === "detections" ? c.stats[month] : null;
+export const pickCalendar = (view: View, metric: Metric, start: string, end: string | null, clouds = false) => (c: RegionCache) =>
+  start !== "2001-01" || end !== null ? null : clouds ? c.calendar_clouds : c.calendar[view]?.[metric];
+export const pickStats = (month: string, view: View, metric: Metric, clouds = false) => (c: RegionCache) =>
+  view !== "harmonized" || metric !== "detections" ? null : clouds ? c.stats_clouds?.[month] : c.stats[month];
 export const pickHotspots = (month: string, sensors: string[]) => (c: RegionCache) =>
   sensors.length === 2 ? c.hotspots[month] : null;

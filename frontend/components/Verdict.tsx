@@ -33,6 +33,12 @@ export default function Verdict({ stats, loading, error, month, metric, view }: 
         <div><dt>Usual range</dt><dd>{range ? `${fmt(range[0])} to ${fmt(range[1])}` : "–"}</dd></div>
         <div><dt>Rank</dt><dd>{stats.rank === null ? "–" : `${stats.rank} of ${b.n_years + 1}`}</dd></div>
         <div><dt>Percentile</dt><dd>{stats.percentile === null ? "–" : fmt(stats.percentile)}</dd></div>
+        {stats.cloud_fraction != null && (
+          <div>
+            <dt>Cloud cover{stats.clouds?.source === "mock" ? " (simulated)" : ""}</dt>
+            <dd>{Math.round(stats.cloud_fraction * 100)}%{stats.clouds?.mode === "correct" && <span className="muted"> · corrected</span>}</dd>
+          </div>
+        )}
         <div><dt>z score</dt><dd>{stats.z === null ? "–" : `${stats.z > 0 ? "+" : ""}${fmt(stats.z, 1)}`}</dd></div>
         <div>
           <dt>Trend in yearly totals</dt>

@@ -6,7 +6,7 @@ import MethodHero from "@/components/MethodHero";
 import Nav from "@/components/Nav";
 import SmoothScroll from "@/components/SmoothScroll";
 import WarpLink from "@/components/WarpLink";
-import { isMock, validation } from "@/lib/content";
+import { hasMedia, isMock, validation } from "@/lib/content";
 import { fmt } from "@/lib/format";
 import "../site.css";
 import "../story.css";
@@ -146,6 +146,7 @@ export default function MethodPage() {
             <div className="card"><span className="mono num">Conversion</span><p>VIIRS-equivalent = k × MODIS + small × r. k = Σ VIIRS above the floor ÷ Σ MODIS, per tile, month and pass. small is the cell&apos;s mean VIIRS count below the floor for that month in the overlap years; r = (tile&apos;s MODIS count + 5) ÷ (its usual count + 5). The floor is 4.44 × A + 0.52 MW by day and 4.43 × A + 1.01 MW by night, A the MODIS pixel area (Sofiev and Kouznetsov 2026). Ratio, log-linear and quantile-mapping models are scored the same way.</p></div>
             <div className="card"><span className="mono num">Percentile rank</span><p>The share of baseline years with a lower count for the same month. The baseline is 2001 to last year, without the year being judged.</p></div>
             <div className="card"><span className="mono num">z-score</span><p>(count − mean) ÷ standard deviation of the baseline. z ≥ 2 is &quot;unusual&quot;, 1 to 2 &quot;above normal&quot;, ≤ −1 &quot;below normal&quot;. The trend is Sen&apos;s slope with a Mann-Kendall test.</p></div>
+            <div className="card"><span className="mono num">Cloud correction</span><p>Optional: each cell&apos;s count ÷ max(1 − cloud fraction, 0.2), so at most 5×, with the monthly cloud of the 0.5° cell around it at Aqua&apos;s 13:30 pass (Terra&apos;s before July 2002). It assumes fires under cloud burn like those in the clear (Giglio et al. 2006). The baseline is corrected the same way. Until NASA&apos;s MOD14CMH cloud product is loaded, the cloud cover is simulated.</p></div>
           </div>
         </div>
 
@@ -154,12 +155,25 @@ export default function MethodPage() {
             <div className="eyebrow">Limits</div>
             <h2 className="display h2">What the data can and <em>can&apos;t</em> tell you.</h2>
           </div>
+          {hasMedia("clouds-fire.webp") && (
+            <figure className="gen-figure" data-reveal>
+              <img src="/media/clouds-fire.webp" alt="" loading="lazy" decoding="async" />
+              <figcaption>
+                <span className="tag gen">Generated scene · Higgsfield</span>
+                From orbit, cloud hides part of a burning delta: fires under it make no hotspots. The calendar marks
+                months that were mostly cloud, and can correct for them.
+              </figcaption>
+            </figure>
+          )}
           <div className="steps" data-reveal="stagger">
             <div className="card"><h3>A hotspot is not a fire</h3><p>It is a pixel that looked hot from orbit. One fire can make many hotspots; a gas flare can make one too.</p></div>
             <div className="card"><h3>No hotspot ≠ no fire</h3><p>Clouds, thick smoke, small fires, or burning between satellite passes can all hide a fire.</p></div>
             <div className="card"><h3>Counts, not area burned</h3><p>The calendar shows how often an area was detected burning, not how many hectares burned.</p></div>
             <div className="card"><h3>Small areas are coarse</h3><p>The record lives on a 0.1° grid (about 10 km). Areas under four cells get a warning and the raw points.</p></div>
             <div className="card"><h3>Static sources stay out</h3><p>A cell flagged again and again as a gas flare, industry or a volcano is left out in every month since 2001, so a real fire in that cell isn&apos;t counted either.</p></div>
+            <div className="card"><h3>Cloud cover is simulated, for now</h3><p>Cloudy months are marked and can be corrected, but the cloud numbers are a stand-in until NASA&apos;s MODIS cloud product (MOD14CMH) is loaded. Read the corrected view as a demonstration.</p></div>
+            <div className="card"><h3>Day and night differ by product</h3><p>FIRMS&apos;s archive calls a pixel night by the sun&apos;s angle, its near real-time files by the orbit&apos;s direction, so day and night split slightly differently in the newest months. Monthly totals add both.</p></div>
+            <div className="card"><h3>A few false alarms at night over South America</h3><p>In the South Atlantic Anomaly, FIRMS notes 2 to 3 spurious night detections across the region each night. Río Negro is inside it, so its night counts deserve a second look.</p></div>
             <div className="card"><h3>2001 to mid-2002 is Terra only</h3><p>Aqua started in July 2002. Where Terra, passing at 10:30, sees few of the afternoon fires (the Nile Delta), single months before then are rough even when the total is right.</p></div>
           </div>
         </div>
@@ -169,13 +183,16 @@ export default function MethodPage() {
           <ul className="sources" data-reveal>
             <li><a href="https://firms.modaps.eosdis.nasa.gov/">NASA FIRMS</a>: MODIS Collection 6.1 active fires (Terra, Aqua)</li>
             <li><a href="https://firms.modaps.eosdis.nasa.gov/">NASA FIRMS</a>: VIIRS 375 m active fires (Suomi NPP, NOAA-20, NOAA-21)</li>
-            <li><a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a>: Blue Marble Next Generation and VIIRS Black Marble imagery for the map and globe</li>
+            <li><a href="https://earthdata.nasa.gov/gibs">NASA GIBS</a>: Blue Marble Next Generation and VIIRS Black Marble imagery for the map and globe; the day&apos;s MODIS and VIIRS true-colour images and the OMPS/OMI aerosol index (smoke) on the explorer&apos;s map</li>
+            <li>Cloud cover: MOD14CMH/MYD14CMH (MODIS climate modelling grid, monthly 0.5°) is the planned source; the app uses simulated cloud cover until it is loaded</li>
             <li><a href="https://github.com/nasa/NASA-3D-Resources">NASA 3D Resources</a>: the Aqua and Suomi NPP satellite models</li>
             <li><a href="https://higgsfield.ai/">Higgsfield</a>: the generated films and portraits on the landing page (marked as generated)</li>
             <li><a href="https://www.geoboundaries.org/">geoBoundaries</a>: administrative boundaries · <a href="https://nominatim.org/">Nominatim / OpenStreetMap</a>: place search</li>
           </ul>
           <h2 className="display h3" data-reveal>What the method builds on</h2>
           <ul className="sources" data-reveal>
+            <li>Giglio, Schroeder and Justice 2016, <em>Remote Sensing of Environment</em> 178: the MODIS Collection 6 active fire algorithm behind FIRMS&apos;s MODIS data. <a href="https://doi.org/10.1016/j.rse.2016.02.054">doi</a></li>
+            <li>Davies et al. 2009, <em>IEEE Transactions on Geoscience and Remote Sensing</em> 47: FIRMS, archiving and distributing the fire data. <a href="https://doi.org/10.1109/TGRS.2008.2002076">doi</a></li>
             <li>Schroeder et al. 2014, <em>Remote Sensing of Environment</em> 143: the VIIRS 375 m product and how it compares with MODIS. <a href="https://doi.org/10.1016/j.rse.2013.12.008">doi</a></li>
             <li>Li et al. 2018, <em>JGR Atmospheres</em> 123: MODIS and VIIRS fire counts and FRP across the swath, and matching near-simultaneous passes. <a href="https://doi.org/10.1029/2017JD027823">doi</a></li>
             <li>Giglio et al. 2006, <em>JGR Biogeosciences</em> 111: MODIS fire counts corrected for overpasses, and Terra vs Aqua. <a href="https://doi.org/10.1029/2005JG000142">doi</a></li>
@@ -183,6 +200,11 @@ export default function MethodPage() {
             <li>Sofiev and Kouznetsov 2026, EGUsphere preprint: MODIS and VIIRS FRP detection limits as a function of pixel area. <a href="https://doi.org/10.5194/egusphere-2026-89">doi</a></li>
             <li>Giglio, May 2025, LANCE user group: Terra and Aqua orbit drift and fire products. <a href="https://landweb.modaps.eosdis.nasa.gov/data/filePost/LANCE_UWG_Orbit_Drift_Giglio_202505.pdf">slides</a></li>
           </ul>
+          <p className="small" data-reveal>
+            We acknowledge the use of data and imagery from NASA&apos;s Fire Information for Resource Management System
+            (FIRMS), part of NASA&apos;s Earth Science Data and Information System (ESDIS), with near real-time data from
+            LANCE and imagery from GIBS.
+          </p>
           <p><WarpLink className="btn btn-fire big-btn" href="/explore">Open the calendar →</WarpLink></p>
         </div>
       </section>

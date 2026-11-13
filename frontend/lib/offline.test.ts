@@ -39,3 +39,12 @@ test("live answers pass straight through", async () => {
   const r = await withFallback(async () => ({ meta: { live: 1 } }), region, () => null);
   assert.deepEqual(r, { meta: { live: 1 } });
 });
+
+test("the cloud-corrected copy answers cloud-corrected requests (X27)", () => {
+  const c = { ...cache, calendar_clouds: { meta: {}, max: 700 }, stats_clouds: { "2026-10": { meta: {}, value: 650 } } } as never;
+  assert.deepEqual(pickCalendar("harmonized", "detections", "2001-01", null, true)(c), { meta: {}, max: 700 });
+  assert.deepEqual(pickStats("2026-10", "harmonized", "detections", true)(c), { meta: {}, value: 650 });
+  assert.deepEqual(pickStats("2026-10", "harmonized", "detections")(c), { meta: {}, value: 589 });
+  // An older copy without them can't answer, so the error stands.
+  assert.equal(pickStats("2026-10", "harmonized", "detections", true)(cache as never), undefined);
+});

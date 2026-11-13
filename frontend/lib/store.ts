@@ -16,6 +16,7 @@ export type Selection = {
   end: string | null;          // null = up to the newest month
   view: View;
   metric: Metric;
+  clouds: boolean;             // X27: harmonized hotspots corrected for cloud cover
   month: string | null;        // selected calendar month, YYYY-MM
   hotspot: SelectedHotspot | null;
 };
@@ -26,6 +27,7 @@ type Actions = {
   setRange: (start: string, end: string | null) => void;
   setView: (view: View) => void;
   setMetric: (metric: Metric) => void;
+  setClouds: (clouds: boolean) => void;
   selectMonth: (month: string | null) => void;
   selectHotspot: (h: SelectedHotspot | null) => void;
   replace: (s: Partial<Selection>) => void;
@@ -40,6 +42,7 @@ export const DEFAULT: Selection = {
   end: null,
   view: "harmonized",
   metric: "detections",
+  clouds: false,
   month: "2026-10",
   hotspot: null,
 };
@@ -53,6 +56,7 @@ export const useSelection = create<Selection & Actions>()((set) => ({
   setRange: (start, end) => set({ start, end }),
   setView: (view) => set({ view, hotspot: null }),
   setMetric: (metric) => set({ metric }),
+  setClouds: (clouds) => set({ clouds }),
   selectMonth: (month) => set({ month, hotspot: null }),
   selectHotspot: (hotspot) => set({ hotspot }),
   replace: (s) => set(s),

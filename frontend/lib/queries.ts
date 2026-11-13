@@ -10,20 +10,25 @@ export function useRegions() {
   return useQuery({ queryKey: ["regions"], queryFn: ({ signal }) => api.regions(signal), staleTime: Infinity });
 }
 
-export function useCalendar(aoi: Aoi, start: string, end: string | null, view: View, metric: Metric) {
-  const body = { aoi, start, end, view, metric };
+/** The cloud correction applies to harmonized hotspots only (backend X27). */
+export const cloudsApply = (view: View, metric: Metric, clouds: boolean) => clouds && view === "harmonized" && metric === "detections";
+
+export function useCalendar(aoi: Aoi, start: string, end: string | null, view: View, metric: Metric, clouds = false) {
+  const fix = cloudsApply(view, metric, clouds);
+  const body = { aoi, start, end, view, metric, ...(fix ? { clouds: "correct" as const } : {}) };
   return useQuery({
     queryKey: ["calendar", body],
-    queryFn: ({ signal }) => withFallback(() => api.calendar(body, signal), aoi, pickCalendar(view, metric, start, end)),
+    queryFn: ({ signal }) => withFallback(() => api.calendar(body, signal), aoi, pickCalendar(view, metric, start, end, fix)),
     placeholderData: keepPreviousData,
   });
 }
 
-export function useStats(aoi: Aoi, month: string | null, view: View, metric: Metric) {
-  const body = { aoi, month: month ?? "", view, metric };
+export function useStats(aoi: Aoi, month: string | null, view: View, metric: Metric, clouds = false) {
+  const fix = cloudsApply(view, metric, clouds);
+  const body = { aoi, month: month ?? "", view, metric, ...(fix ? { clouds: "correct" as const } : {}) };
   return useQuery({
     queryKey: ["stats", body],
-    queryFn: ({ signal }) => withFallback(() => api.stats(body, signal), aoi, pickStats(body.month, view, metric)),
+    queryFn: ({ signal }) => withFallback(() => api.stats(body, signal), aoi, pickStats(body.month, view, metric, fix)),
     enabled: month !== null,
   });
 }

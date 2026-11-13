@@ -4,7 +4,9 @@
 // Method header): creates the WebGL scene, reads the story position from the chapters, fades
 // the chapter text around the middle of the screen, and pauses the scene off screen.
 // The section's data-mode becomes "live" once the globe drew, or "static" without WebGL or
-// with reduced motion (the CSS then shows a still image).
+// with reduced motion (the CSS then shows a still image). The still also shows while a slow
+// connection is still bringing the globe's maps (X27: the live site showed an empty black
+// stage there), and stays if the globe never comes; a globe that arrives later takes over.
 
 import { useEffect, type RefObject } from "react";
 import type { OrbitScene, Preset } from "@/lib/orbit/scene";
@@ -12,6 +14,8 @@ import type { OrbitScene, Preset } from "@/lib/orbit/scene";
 export type StageTick = (p: number, onStage: boolean) => { pause?: boolean } | void;
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
+// How long the stage may stay empty before the still image fills in for the globe.
+const STILL_AFTER_MS = 6000;
 
 export function useOrbitStage(root: RefObject<HTMLElement | null>, canvas: RefObject<HTMLCanvasElement | null>,
   preset: Preset, maxP: number, onTick?: StageTick) {
@@ -25,16 +29,18 @@ export function useOrbitStage(root: RefObject<HTMLElement | null>, canvas: RefOb
     let key = "", pStr = "", off: boolean | null = null;
     const looks = chapters.map(() => "");
 
+    let slow = 0;
     if (still || !webglOk()) setMode("static");
     else {
+      slow = window.setTimeout(() => { if (!gone && section.getAttribute("data-mode") !== "live") setMode("static"); }, STILL_AFTER_MS);
       import("@/lib/orbit/scene").then(({ createOrbitScene }) => {
         if (gone) return;
         try {
           scene = createOrbitScene(gl, preset);
           key = ""; // the new scene needs its progress and active state on the next frame
-          scene.ready.then(() => { if (!gone) setMode("live"); });
+          scene.ready.then(() => { if (!gone) { clearTimeout(slow); setMode("live"); } });
         } catch { setMode("static"); }
-      });
+      }).catch(() => { if (!gone) setMode("static"); }); // the scene's code didn't load
     }
 
     const tick = () => {
@@ -72,7 +78,7 @@ export function useOrbitStage(root: RefObject<HTMLElement | null>, canvas: RefOb
       if (off !== !onStage) { off = !onStage; section.toggleAttribute("data-offstage", off); }
     };
     raf = requestAnimationFrame(tick);
-    return () => { gone = true; cancelAnimationFrame(raf); scene?.dispose(); };
+    return () => { gone = true; clearTimeout(slow); cancelAnimationFrame(raf); scene?.dispose(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
