@@ -10,6 +10,7 @@
 
 import { useEffect, type RefObject } from "react";
 import type { OrbitScene, Preset } from "@/lib/orbit/scene";
+import { reducedMotion } from "@/lib/motion";
 
 export type StageTick = (p: number, onStage: boolean) => { pause?: boolean } | void;
 
@@ -22,7 +23,7 @@ export function useOrbitStage(root: RefObject<HTMLElement | null>, canvas: RefOb
   useEffect(() => {
     const section = root.current!, gl = canvas.current!;
     const setMode = (m: "live" | "static") => section.setAttribute("data-mode", m);
-    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = reducedMotion();
     const chapters = Array.from(section.querySelectorAll<HTMLElement>("[data-ch]"));
     let scene: OrbitScene | null = null, gone = false, raf = 0;
     // Last frame's inputs and outputs: a frame where nothing moved does no work, and only changed styles are written.

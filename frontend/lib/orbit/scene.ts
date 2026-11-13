@@ -14,6 +14,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { loadFires } from "./fires";
 import { lerp, llToVec, smooth, sunVec } from "./geo3";
 import * as S from "./shaders";
+import { reducedMotion } from "../motion.ts";
 
 export type Preset = "landing" | "method";
 
@@ -406,7 +407,7 @@ export function createOrbitScene(canvas: HTMLCanvasElement, preset: Preset): Orb
   let intro = 0, firstDrawn = false, slowFrames = 0;
   const cam: Cam = { pos: new THREE.Vector3(0, 0, 8), target: new THREE.Vector3(), up: Y.clone(), offX: 0, offY: 0 };
   const heroOff = new THREE.Vector3(), heroDir = new THREE.Vector3(), heroQ = new THREE.Quaternion();
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const still = reducedMotion();
 
   function blend(list: ((p: number) => Look)[], x: number): Look {
     const i = Math.max(0, Math.min(list.length - 1, Math.floor(x)));

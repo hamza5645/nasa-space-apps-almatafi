@@ -10,6 +10,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { barAt, barJump, compare, sideMeans, yearBars, type Bar, type Grid } from "@/lib/compare";
 import { fmt, short } from "@/lib/format";
+import { reducedMotion } from "@/lib/motion";
 
 type Props = { harmonized: Grid; modis: Grid; viirs: Grid; place: string; tone?: "dark" | "light"; unit?: string };
 
@@ -18,7 +19,6 @@ const DEMO_HOLD_MS = 600;      // show the raw jump first
 const NO_JUMP = [0.8, 1.25];   // a harmonized ratio in here reads as "no jump"; outside it, a trend in the burning
 
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
-const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** 11.6× or 0.85×, with fixed decimals so the number doesn't jitter while it moves. */
 function times(r: number | null): string {

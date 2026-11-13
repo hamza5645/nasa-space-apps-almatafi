@@ -10,6 +10,7 @@ import { useEffect, useRef } from "react";
 import { drawSequence, frameUrls, loadSequence, type Sequence } from "@/lib/orbit/sequence";
 import { useOrbitStage } from "./useOrbitStage";
 import WarpLink from "./WarpLink";
+import { reducedMotion } from "@/lib/motion";
 
 export type StoryNumbers = {
   week: [string, string];
@@ -57,7 +58,7 @@ export default function OrbitStory({ n }: { n: StoryNumbers }) {
   // The film loads once the reader starts scrolling (or after a few seconds).
   const loadFilm = () => {
     const f = filmState.current;
-    if (f.dive || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (f.dive || reducedMotion()) return;
     // The stage only ticks on change, so a frame that arrives while the reader holds still redraws here.
     const redraw = () => { f.lastP = -1; drawFilm(); };
     f.dive = loadSequence(frameUrls("/media/dive", DIVE_FRAMES), redraw);
