@@ -1,0 +1,11 @@
+.git
+.github
+data
+frontend
+contracts
+docs
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+**/tests

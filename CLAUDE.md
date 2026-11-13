@@ -1,0 +1,1 @@
+Before doing anything in this repo, read @TEAM.md and @PLAN.md and follow TEAM.md rules: check the Board, claim the task before working, stay in your owner's area, and update the Board and Log before finishing.

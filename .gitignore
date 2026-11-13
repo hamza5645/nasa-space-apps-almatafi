@@ -1,0 +1,25 @@
+.DS_Store
+node_modules/
+.next/
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+data/raw/
+data/processed/
+.pytest_cache/
+# Pipeline outputs: rebuilt from the mock or real FIRMS files, never committed
+data/clean/
+data/grid/
+data/harmonized/
+data/validation/
+data/reports/
+data/cache/
+data/admin/
+data/firms/
+dist/
+
+# Higgsfield raw outputs (processed copies live in frontend/public/media)
+design/higgsfield/out/
+design/higgsfield/review/
