@@ -198,5 +198,27 @@
    "batch_size": 1,
    "prompt": "Photograph taken from the International Space Station in late afternoon, looking down on a flat farming river delta. A deck of broken white cumulus clouds covers about half of the frame. In the clear gaps, small orange agricultural fires glow and thin grey smoke trails drift the same way; a few smoke trails run in under the cloud edge, their fires hidden. Patchwork fields, silver canals, soft haze, natural colours, realistic Earth observation photograph, high dynamic range, no text, no spacecraft parts."
   }
+ },
+ {
+  "id": "game_win",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Cinematic aerial photograph at sunrise over the green rice fields of the Nile Delta in Egypt after the harvest. The air is clear, silver irrigation canals catch the low golden sun, a few last thin wisps of white smoke drift away on the horizon, palm trees and a small village. Hopeful, calm, high dynamic range, photoreal, no text."
+  }
+ },
+ {
+  "id": "game_lose",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Cinematic photograph at dusk over the Nile Delta in Egypt under a heavy brown haze of smoke from burning rice straw. Orange glows of small field fires across the dark farmland, smoke columns leaning in the wind, a dim red sun. Moody, dramatic, photoreal, no text, no people."
+  }
  }
 ]

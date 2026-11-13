@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import Brand from "./Brand";
 import WarpLink from "./WarpLink";
 
-export default function Nav({ current }: { current?: "explore" | "method" }) {
+export default function Nav({ current }: { current?: "explore" | "method" | "play" }) {
   const ref = useRef<HTMLElement>(null);
   const [tone, setTone] = useState<"dark" | "light">("dark");
   const [tucked, setTucked] = useState(false);
@@ -54,6 +54,7 @@ export default function Nav({ current }: { current?: "explore" | "method" }) {
         <Brand />
         <div className="nav-links">
           <WarpLink href="/method" aria-current={current === "method" ? "page" : undefined}>Method</WarpLink>
+          <WarpLink className="nav-play" href="/play" aria-current={current === "play" ? "page" : undefined}>Play</WarpLink>
           <WarpLink className="btn btn-fire" href="/explore" aria-current={current === "explore" ? "page" : undefined}>
             Open the calendar
           </WarpLink>
