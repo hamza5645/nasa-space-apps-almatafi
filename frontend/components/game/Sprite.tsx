@@ -8,6 +8,7 @@
 // revalidated) and decoded again, and until that finished the character wasn't there.
 
 import { useEffect, useRef, useState } from "react";
+import { reducedMotion } from "@/lib/motion";
 
 export type SheetMeta = {
   src: string; frameW: number; frameH: number; frames: number; fps: number; baseline: number;
@@ -47,7 +48,7 @@ export default function Sprite({ sheet, height, run = null, loop = false, fps, f
   useEffect(() => {
     if (run === null || run === undefined) return;
     const rate = fps ?? sheet.fps, n = sheet.frames;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reducedMotion()) {
       // No animation: jump to the end state, but still report the frames the game listens for.
       const t = setTimeout(() => {
         for (let i = 0; i < n; i++) cb.current.onFrame?.(i);

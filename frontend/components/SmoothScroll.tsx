@@ -13,6 +13,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
+import { reducedMotion } from "@/lib/motion";
 
 export default function SmoothScroll() {
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function SmoothScroll() {
       if (e.isIntersecting) v.play().catch(() => {}); else v.pause();
     }), { rootMargin: "200px 0px" });
     document.querySelectorAll<HTMLVideoElement>("video[autoplay][loop]").forEach((v) => films.observe(v));
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return () => films.disconnect();
+    if (reducedMotion()) return () => films.disconnect();
     gsap.registerPlugin(ScrollTrigger);
     const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9, smoothWheel: true });
     lenis.on("scroll", ScrollTrigger.update);

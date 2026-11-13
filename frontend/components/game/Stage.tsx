@@ -18,6 +18,7 @@ import { play, say } from "@/lib/sound";
 import { Street } from "./Scene";
 import Sprite, { Periodic, type Sheets } from "./Sprite";
 import Visual from "./Visual";
+import { reducedMotion } from "@/lib/motion";
 
 type Phase = "ask" | "run" | "jump" | "react" | "done";
 
@@ -95,7 +96,7 @@ export default function Stage({ round, sheets, index, total, plate = false, onRe
 
   // The run lasts as long as the distance needs; with reduced motion it's instant.
   const runMs = Math.max(260, (Math.abs(dx) / RUN_SPEED) * 1000);
-  const still = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const still = reducedMotion();
   useLayoutEffect(() => {
     if (phase !== "run") return;
     const t = setTimeout(() => setPhase("jump"), still ? 0 : runMs);
