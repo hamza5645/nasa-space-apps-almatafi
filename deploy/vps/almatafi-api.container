@@ -1,0 +1,36 @@
+# Quadlet unit for the backend. The image comes from GHCR (built by .github/workflows/deploy.yml);
+# podman-auto-update.timer pulls a new :main within 5 minutes and rolls back if it won't start.
+[Unit]
+Description=ALMATAFI API (FastAPI + DuckDB)
+
+[Container]
+ContainerName=almatafi-api
+Image=ghcr.io/khalidstark/almatafi-api:main
+Network=almatafi.network
+AutoUpdate=registry
+EnvironmentFile=%h/.config/almatafi/api.env
+Environment=PORT=8000
+NoNewPrivileges=true
+DropCapability=all
+# "Started" only once /api/health answers, so a broken image fails the start and gets rolled
+# back. Defined here, not taken from the Dockerfile: OCI images (GitHub's build) drop HEALTHCHECK.
+# Keep the "|| exit 1": Quadlet drops a closing quote that ends the value.
+HealthCmd=python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/health', timeout=4)" || exit 1
+HealthInterval=30s
+HealthStartPeriod=90s
+HealthRetries=3
+HealthOnFailure=kill
+Notify=healthy
+
+[Service]
+# Hard caps, and first in line for the OOM killer, so the API can never squeeze out other services.
+MemoryMax=1G
+MemorySwapMax=256M
+CPUQuota=100%
+TasksMax=256
+OOMScoreAdjust=500
+Restart=always
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,23 @@
+# Quadlet unit for the Cloudflare Tunnel: outbound only, so the VPS opens no port.
+# ~/.cloudflared holds config.yml (from cloudflared.yml) and the tunnel's credentials JSON.
+[Unit]
+Description=ALMATAFI Cloudflare Tunnel (almatafi-api.monitorthesituations.com)
+After=almatafi-api.service
+
+[Container]
+ContainerName=almatafi-tunnel
+Image=docker.io/cloudflare/cloudflared:2026.10.7
+Network=almatafi.network
+Volume=%h/.cloudflared:/home/nonroot/.cloudflared:U
+Exec=tunnel --no-autoupdate run
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+MemoryMax=256M
+TasksMax=128
+OOMScoreAdjust=500
+Restart=always
+
+[Install]
+WantedBy=default.target

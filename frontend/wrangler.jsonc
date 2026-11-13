@@ -1,0 +1,15 @@
+// Cloudflare Workers, static files only (no Worker code). Build first, with the API's URL:
+//   NEXT_PUBLIC_API_URL=https://almatafi-api.monitorthesituations.com npm run build
+//   npx wrangler@4.156.2 deploy
+// GitHub Actions does both on every merge to main (.github/workflows/deploy.yml).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "almatafi",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  "workers_dev": true,
+  "routes": [{ "pattern": "almatafi.monitorthesituations.com", "custom_domain": true }]
+}

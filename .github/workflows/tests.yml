@@ -1,0 +1,91 @@
+name: tests
+
+# Every pull request (including PRs stacked on other branches), pushes to main (the deploy
+# waits for these), and by hand. Not every push: a branch with an open PR would run twice,
+# and Actions minutes on a private repo are limited.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+# Tests only read the code.
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: pipeline/uv.lock
+      - run: uv sync --locked --all-extras
+      - run: uv run --locked --all-extras pytest -q
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+      - run: uv run --locked pytest -q
+
+  frontend:
+    # Next.js app; lib/grid.ts must pass contracts/grid-test-vectors.json like almatafi/cells.py.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: API types match contracts/openapi.json
+        run: npm run gen:api && git diff --exit-code lib/api-types.ts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  docker:
+    # The deploy image (backend/Dockerfile) builds, starts, and answers with its built-in mock data.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -f backend/Dockerfile -t almatafi-api .
+      - run: docker run -d --name api -p 8000:8000 almatafi-api
+      - name: smoke test
+        run: |
+          for i in $(seq 1 60); do curl -sf localhost:8000/api/health && break; sleep 1; done
+          curl -sf localhost:8000/api/health | grep -q '"harmonized":true'
+          curl -sf -X POST localhost:8000/api/stats -H 'content-type: application/json' \
+            -d '{"aoi":{"type":"region","region_id":"rio-negro"},"month":"2026-07"}' | grep -q unusual_high
+          curl -sf localhost:8000/api/validation | grep -q leave-one-year-out
+      - if: failure()
+        run: docker logs api

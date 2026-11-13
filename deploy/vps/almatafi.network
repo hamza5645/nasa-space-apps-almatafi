@@ -1,0 +1,9 @@
+# Quadlet network for the API and its tunnel. Rootless, so it lives inside almatafi's own user
+# namespace: no host firewall rules, no published ports. The tunnel reaches the API by name.
+# (Not a pod: podman auto-update restarts a pod as one unit and can't tell when the API inside
+# it fails to start, so it would never roll back.)
+[Unit]
+Description=ALMATAFI network (API + Cloudflare Tunnel)
+
+[Network]
+NetworkName=almatafi

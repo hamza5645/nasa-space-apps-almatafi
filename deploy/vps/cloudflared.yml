@@ -1,0 +1,8 @@
+# Installed as ~almatafi/.cloudflared/config.yml. The tunnel ID is not a secret; the credentials
+# JSON next to it is (it stays on the VPS only).
+tunnel: cf01f586-8895-424d-85ce-c657924bb9f3
+credentials-file: /home/nonroot/.cloudflared/cf01f586-8895-424d-85ce-c657924bb9f3.json
+ingress:
+  - hostname: almatafi-api.monitorthesituations.com
+    service: http://almatafi-api:8000
+  - service: http_status:404
