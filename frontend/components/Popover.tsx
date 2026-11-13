@@ -11,9 +11,10 @@ type Props = {
   align?: "start" | "end";
   className?: string;
   ariaLabel?: string;
+  tour?: string;
 };
 
-export default function Popover({ label, children, align = "start", className = "", ariaLabel }: Props) {
+export default function Popover({ label, children, align = "start", className = "", ariaLabel, tour }: Props) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -30,7 +31,7 @@ export default function Popover({ label, children, align = "start", className = 
 
   const close = () => { setOpen(false); document.getElementById(btnId)?.focus(); };
   return (
-    <div className={`pop ${className}`} ref={root}>
+    <div className={`pop ${className}`} ref={root} data-tour={tour}>
       <button id={btnId} type="button" className="pop-btn" aria-expanded={open} aria-controls={id} aria-label={ariaLabel}
               onClick={() => setOpen((o) => !o)}>
         {label}

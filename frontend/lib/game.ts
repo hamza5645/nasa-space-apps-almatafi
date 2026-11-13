@@ -176,7 +176,7 @@ export function seasonRound(doc: RegionDoc, map?: { src: string; dots: number; m
 }
 
 /** The rounds from FIRMS's own guidance and the globe's real week. */
-export function factRound(id: "hotspot" | "clouds" | "overpass" | "week", week: Week | null): Round | null {
+export function factRound(id: "hotspot" | "clouds" | "count" | "overpass" | "week", week: Week | null): Round | null {
   if (id === "hotspot") return {
     id: "fact-hotspot", region: null, place: "Anywhere on Earth", prompt: "Is every hotspot a fire?", context: "A hotspot is one pixel that looked hot from orbit.",
     choices: [{ id: "yes", label: "Yes, always" }, { id: "no", label: "No, not always" }], answer: "no",
@@ -188,6 +188,12 @@ export function factRound(id: "hotspot" | "clouds" | "overpass" | "week", week: 
     choices: [{ id: "spot", label: "A hotspot, through the cloud" }, { id: "nothing", label: "Nothing" }], answer: "nothing",
     explain: "Nothing: these sensors can't see through thick cloud. No hotspot is not proof of no fire, so the calendar marks the months that were mostly cloud.",
     visual: { type: "illus", name: "hotspot" }, link: null,
+  };
+  if (id === "count") return {
+    id: "fact-count", region: null, place: "Anywhere on Earth", prompt: "The map shows ten hotspots in one field. Is that ten fires?", context: "Each dot is one hot pixel.",
+    choices: [{ id: "ten", label: "Yes, ten fires" }, { id: "unknown", label: "Not necessarily" }], answer: "unknown",
+    explain: "Not necessarily. One big fire can fill ten pixels, and several small fires can share one. So the calendar counts hotspots, not fires.",
+    visual: { type: "illus", name: "pixels" }, link: null,
   };
   if (id === "overpass") return {
     id: "fact-overpass", region: "nile-delta", place: "Nile Delta, Egypt", prompt: "Farmers burn straw in the afternoon. Which satellite sees more of it?",
@@ -239,7 +245,7 @@ export function buildChapters(docs: RegionDoc[], week: Week | null, maps: MapSho
       id: "hotspots", title: "What's a hotspot?", tagline: "What the satellites actually see", illus: "hotspot",
       intro: ["Twice a day, satellites scan every place on Earth for heat.", "A pixel that looks hot is a hotspot: one dot on our map.", "But a dot isn't always a fire, and no dot isn't always no fire."],
       learned: "Hotspots are hot pixels: most are fires, some are flares or factories, and cloud hides fires.",
-      rounds: keep([factRound("hotspot", week), factRound("clouds", week)]),
+      rounds: keep([factRound("hotspot", week), factRound("clouds", week), factRound("count", week)]),
     },
     {
       id: "eyes", title: "Two eyes in orbit", tagline: "MODIS and VIIRS don't count alike", illus: "pixels",

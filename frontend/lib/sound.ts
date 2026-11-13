@@ -8,7 +8,7 @@ export type Sfx = "tap" | "right" | "wrong" | "win" | "lose";
 // Voice lines that have been recorded and put in public/audio/ (ids as in the narration script:
 // n0…n7 for the landing, game-intro, right-1, right-2, wrong-1, wrong-2, last-ember, win, lose).
 // Empty until the recordings arrive, so no request is made for a file that isn't there.
-export const VOICE = new Set<string>([]);
+export const VOICE = new Set<string>(["n0", "n1", "n2", "n3", "n4", "n5", "n6", "n7"]);
 
 let ctx: AudioContext | null = null;
 let voice: HTMLAudioElement | null = null;
@@ -56,6 +56,11 @@ export function play(s: Sfx) {
     if (s === "win") [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.3, "sine", 0.14));
     if (s === "lose") [392, 330, 262, 196].forEach((f, i) => tone(f, i * 0.14, 0.32, "triangle", 0.1));
   } catch { /* no audio: the game works without it */ }
+}
+
+export function stopVoice() {
+  voice?.pause();
+  voice = null;
 }
 
 /** A recorded voice line, if the file is there; quietly nothing otherwise. */

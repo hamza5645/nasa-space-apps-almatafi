@@ -10,7 +10,8 @@ import Brand from "@/components/Brand";
 import { points, stars, type Chapter } from "@/lib/game";
 import { play, say, setSoundOn, soundOn, subscribeSound } from "@/lib/sound";
 import Illus from "./Illus";
-import Sprite, { type Sheets } from "./Sprite";
+import { Backdrop, Sky } from "./Scene";
+import Sprite, { preload, type Sheets } from "./Sprite";
 import Stage from "./Stage";
 import "./game.css";
 
@@ -24,7 +25,9 @@ function saveStars(s: Record<string, number>) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* not remembered */ }
 }
 
-export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets: Sheets }) {
+export type Plate = { wide: boolean; tall: boolean };
+
+export default function Game({ chapters, sheets, plate = null }: { chapters: Chapter[]; sheets: Sheets; plate?: Plate | null }) {
   const [screen, setScreen] = useState<Screen>("map");
   const [ci, setCi] = useState(0);
   const [ri, setRi] = useState(0);
@@ -36,6 +39,7 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
   const sound = useSyncExternalStore(subscribeSound, soundOn, () => false);
 
   useEffect(() => { const t = setTimeout(() => setBest(loadStars()), 0); return () => clearTimeout(t); }, []);
+  useEffect(() => preload(sheets), [sheets]);   // every sheet is fetched once, before the first question
 
   const chapter = chapters[ci];
   const round = chapter?.rounds[ri];
@@ -75,7 +79,7 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
 
   return (
     <div className="game" data-screen={screen}>
-      <div className="game-sky" aria-hidden="true" />
+      {plate ? <Backdrop tall={plate.tall} /> : <Sky />}
       <header className="game-top">
         <Brand size={22} />
         <nav className="game-links" aria-label="Site">
@@ -156,18 +160,18 @@ export default function Game({ chapters, sheets }: { chapters: Chapter[]; sheets
 
         {screen === "play" && round && (
           <>
-            <Stage key={`${chapter.id}-${round.id}`} round={round} sheets={sheets} index={ri + 1} total={chapter.rounds.length}
+            <Stage key={`${chapter.id}-${round.id}`} round={round} sheets={sheets} index={ri + 1} total={chapter.rounds.length} plate={!!plate}
                    onResult={onResult} onSettled={() => setExplain(true)}
                    explain={explain && (
                      <div className={`explain ${results[ri] ? "ok" : "no"}`} role="status">
-                       <p className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</p>
-                       <p className="explain-text">{round.explain}</p>
-                       <div className="explain-row">
-                         <button type="button" className="btn btn-fire" onClick={next} autoFocus>
-                           {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
-                         </button>
-                         {round.link && <Link className="explain-link" href={round.link}>See it in the calendar →</Link>}
-                       </div>
+                       <p className="explain-text">
+                         <b className="explain-flag">{results[ri] ? `Right! +${points(Math.max(0, streak - 1))}` : "Not quite."}</b>{" "}
+                         {round.explain}
+                         {round.link && <>{" "}<Link className="explain-link" href={round.link}>See it in the calendar →</Link></>}
+                       </p>
+                       <button type="button" className="btn btn-fire" onClick={next} autoFocus>
+                         {ri + 1 < chapter.rounds.length ? "Next question" : "Finish the chapter"}
+                       </button>
                      </div>
                    )} />
           </>

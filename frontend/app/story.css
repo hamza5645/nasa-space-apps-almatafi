@@ -88,3 +88,12 @@
 
 /* The light page begins in the film's last colour, then settles into the usual light. */
 .after-film { background: linear-gradient(180deg, var(--light-warm) 0, var(--light) 520px); }
+
+/* X36: narration button and caption */
+.narrate { position: fixed; left: 16px; bottom: 16px; z-index: 60; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .18); background: rgba(10, 11, 14, .72); color: var(--soft); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; font-size: 14px; }
+.narrate[aria-pressed="true"] { color: var(--ember); border-color: rgba(255, 198, 92, .5); }
+.caption { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; margin: 0; max-width: min(720px, calc(100vw - 140px)); padding: 10px 16px; border-radius: 10px;
+  background: rgba(5, 7, 11, .82); color: #fff; font-size: 17px; line-height: 1.4; text-align: center; animation: cap-in .3s ease-out both; pointer-events: none; }
+@keyframes cap-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+@media (max-width: 640px) { .narrate span { display: none; } .narrate { padding: 0 10px; } .caption { bottom: 70px; max-width: calc(100vw - 32px); font-size: 15px; } }
