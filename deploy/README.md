@@ -110,7 +110,7 @@ The Worker has an `ai` binding, a rate limit binding (50 questions a minute per 
 
 ## Real data (Nov 13)
 
-Set `ALMATAFI_DATA_URL` and `ALMATAFI_DATA_SHA256` in `api.env` and restart (`docs/runbook.md`). The bundle is downloaded again whenever the container is recreated, including after each auto-update; a data volume to avoid that is a decision for R2/R3.
+The real data is a folder on the VPS, `~almatafi/almatafi-data/`, mounted over the image's mock data (`Volume=` in `almatafi-api.container`), so auto-updates keep it. To replace it: build with `scripts/build-data.sh real` (or the parts of it), copy `data/{clean,grid,harmonized,validation,clouds,admin,cache,reports}` to a new folder on the VPS, swap the folder in, and restart the API. `ALMATAFI_DATA_URL` (a bundle over https, `docs/runbook.md`) still works and is installed into the mounted folder at start-up; leave it empty with the volume.
 
 ## Troubleshooting
 
