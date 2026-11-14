@@ -88,8 +88,23 @@ WORKING NOW
 3. Real NASA data on the live site: the globe's week of fires (FIRMS public 7-day files), all map and globe imagery (GIBS), the cloud cover behind the cloud-corrected view (MODIS cloud fraction, 2000 to 2026), and live hotspots from the FIRMS API for the last days in any area.
 4. "Normal or not?", a five-chapter game with 14 questions that teaches what a hotspot is, why the two satellites disagree, and how to read a fire season.
 5. Wel3a, a flame guide on every page: written tips, and a chat that answers questions from a fixed fact sheet and the numbers on screen.
-6. An accessibility mode: voice reading, voice commands, text size, high contrast, reduced motion, and full keyboard control, with a guided introduction.
+6. An accessibility mode with eight tools, listed under "Accessibility tools" below.
 7. A guided tour of the explorer, a narrated story on the home page with captions, and an offline copy of the two demo regions if the server cannot be reached.
+
+ACCESSIBILITY TOOLS
+
+One round button on every page (bottom right, or Alt + A on the keyboard) opens the accessibility panel. With the mode off, the site is unchanged. With it on, these tools are available, and the choices are remembered on the device:
+
+1. Text size: Normal, Large, Larger or Largest, with A− and A+ buttons. All text grows, including the calendar's numbers; the map keeps its size.
+2. High contrast: pure black and white, thick outlines, underlined links, and no scenery behind the numbers.
+3. Reduce motion: still images instead of the 3D globe, the films and the page transitions.
+4. Keyboard mode: a focus ring that is always visible, skip links at the top of every page (to the content, the answer, the calendar, the map and the downloads), arrow keys to move between months in the calendar, and the Alt shortcuts below.
+5. Voice reading: the site says aloud what you land on (its name, what kind of control it is and its state), reads the answer when the month changes and announces each new page. "Read this page" reads the whole page from the top; Escape stops the voice.
+6. Voice commands ("Say a command", or Alt + M): "open the explorer", "method", "play the game", "home", "read the page", "stop", "bigger text", "smaller text", "high contrast", "contrast off", "reduce motion", "Nile Delta", "Río Negro", "next month", "previous month", "show MODIS", "show VIIRS", "show harmonized", "click" followed by a button's name, and "help". "Keep listening" leaves the microphone on for one command after another.
+7. Keyboard shortcuts: Alt + A opens the panel, Alt + K lists the shortcuts, Alt + R reads the page, Alt + V turns voice reading on or off, Alt + M listens for a command, Alt + plus and Alt + minus change the text size, and Alt + 1, 2, 3 and 4 go to the story, the explorer, the Method page and the game.
+8. A six-step guide opens the first time the mode is turned on, with the real controls inside each step, and can be reopened from the panel ("Open the guide"). "Shortcuts and commands" shows the full list at any time.
+
+Voice reading and voice commands use the browser's own speech features (Chrome, Edge and Safari).
 
 LIMITATIONS
 
@@ -224,7 +239,9 @@ Not AI: the voice narration (a team member's own recording), and the music and s
 
 ### Link of project documentation file (PDF)
 
-[Upload `Almatafi-project-documentation.pdf` from this folder to Google Drive, set sharing to "Anyone with the link: Viewer", test the link in a private window, and paste it here.]
+https://drive.google.com/file/d/1lOvyfk3-Gl2P5umLA0U3a02RGuDJqMKC/view
+
+(On Google Drive, shared as "Anyone with the link: Viewer"; opens without login, checked 14 November.)
 
 ---
 

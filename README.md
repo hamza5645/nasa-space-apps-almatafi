@@ -84,9 +84,30 @@ On real NASA data so far: real FIRMS country files (MODIS 2010 for Egypt, Argent
 |---|---|
 | ![The learning game](docs/screenshots/15-game-question.jpg) | **Normal or not?** A five-chapter game with 14 questions: what a hotspot is, why two satellites disagree, and how to tell a strange fire season from a normal one. |
 | ![Wel3a's chat](docs/screenshots/16-wel3a-chat.jpg) | **Wel3a**, a flame guide on every page: written tips, and a chat that answers from a fixed fact sheet and the numbers on screen. |
-| ![The accessibility panel](docs/screenshots/17-accessibility-panel.jpg) | **Accessibility mode**: voice reading, voice commands, text size, high contrast, reduced motion and full keyboard control, with a guided introduction. |
+| ![The accessibility panel](docs/screenshots/19-accessibility-panel-tools.jpg) | **Accessibility mode**: text size, high contrast, reduced motion, keyboard mode, voice reading and voice commands, with a guided introduction. Details below. |
 
 Also: a guided tour of the explorer, a narrated story on the home page with captions, and an offline copy of the two demo regions if the server cannot be reached.
+
+## Accessibility tools
+
+One round button on every page (bottom right, or `Alt + A`) opens the accessibility panel. With the mode off, the site is unchanged. With it on, the choices are remembered on the device.
+
+| Tool | What it does |
+|---|---|
+| **Text size** | Normal, Large, Larger or Largest. All text grows, including the calendar's numbers; the map keeps its size. |
+| **High contrast** | Pure black and white, thick outlines, underlined links, no scenery behind the numbers. |
+| **Reduce motion** | Still images instead of the 3D globe, the films and the page transitions. |
+| **Keyboard mode** | An always-visible focus ring, skip links on every page (content, the answer, calendar, map, downloads), arrow keys between months, and the `Alt` shortcuts. |
+| **Voice reading** | Says what you land on (name, kind of control, state), reads the answer when the month changes, announces each new page. "Read this page" reads from the top; `Escape` stops. |
+| **Voice commands** | "open the explorer", "method", "play the game", "home", "read the page", "stop", "bigger text", "smaller text", "high contrast", "contrast off", "reduce motion", "Nile Delta", "Río Negro", "next month", "previous month", "show MODIS / VIIRS / harmonized", "click" + a button's name, "help". "Keep listening" leaves the microphone on. |
+| **Shortcuts** | `Alt + A` panel · `Alt + K` shortcut list · `Alt + R` read the page · `Alt + V` voice on or off · `Alt + M` listen for a command · `Alt + +` / `Alt + −` text size · `Alt + 1 / 2 / 3 / 4` story, explorer, Method, game |
+| **Guide** | Six steps with the real controls inside each one; opens the first time the mode is turned on and again from the panel. |
+
+Voice reading and voice commands use the browser's own speech features (Chrome, Edge and Safari).
+
+| The shortcut and command list | High contrast with Larger text |
+|---|---|
+| ![Shortcuts and voice commands](docs/screenshots/21b-accessibility-shortcuts-list.jpg) | ![The explorer in high contrast](docs/screenshots/20-accessibility-high-contrast-large-text.jpg) |
 
 ## Limits
 
