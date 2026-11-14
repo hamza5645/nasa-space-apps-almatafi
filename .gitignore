@@ -19,6 +19,7 @@ data/cache/
 data/admin/
 data/firms/
 data/clouds/
+data/clouds-*/
 data/alerts/
 dist/
 .wrangler/

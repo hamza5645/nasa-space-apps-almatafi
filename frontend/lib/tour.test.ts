@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { STEPS, place } from "./tour.ts";
+import { NARRATE_STEPS, NARRATE_KEY, STEPS, TOUR_KEY, place } from "./tour.ts";
 
 const view = { w: 1000, h: 700 }, card = { width: 320, height: 160 };
 
 test("steps are unique and complete", () => {
   assert.equal(new Set(STEPS.map((s) => s.id)).size, STEPS.length);
   for (const s of STEPS) assert.ok(s.title && s.text.length > 20, s.id);
+});
+
+test("the narration stepper has its own key and points at the button", () => {
+  assert.notEqual(NARRATE_KEY, TOUR_KEY);
+  assert.ok(NARRATE_STEPS.length >= 2);
+  for (const s of NARRATE_STEPS) { assert.equal(s.id, "narrate"); assert.ok(s.title && s.text.length > 20); }
+  assert.ok(NARRATE_STEPS.some((s) => /caption/i.test(s.text)), "says the words show as captions");
+  assert.ok(NARRATE_STEPS.some((s) => /remembered/i.test(s.text)), "says the choice is remembered");
 });
 
 test("the card goes on the preferred side when it fits, else the opposite", () => {
