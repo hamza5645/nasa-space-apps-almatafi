@@ -4,7 +4,7 @@
 
 NASA Space Apps Cairo 2026 · Challenge: *Harmonization of MODIS and VIIRS Hot Spots* (authored with CONAE, Argentina)
 
-**Live site: https://almatafi.monitorthesituations.com** (no login) · [30-second demo video](https://youtu.be/CgGGvNjnf54) · [NASA Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/almatafi/?tab=project) · [Method](docs/method.md)
+**Live site: https://almatafi.monitorthesituations.com** (no login) · [30-second demo video](https://youtu.be/ZXDOMeR-cdA) · [NASA Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/almatafi/?tab=project) · [Method](docs/method.md)
 
 ![The home page: a globe lit by one real week of NASA FIRMS fire detections](docs/screenshots/01-landing-hero.jpg)
 
