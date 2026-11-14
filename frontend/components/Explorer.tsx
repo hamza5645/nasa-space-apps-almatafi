@@ -136,7 +136,6 @@ export default function Explorer() {
     if (r && !s.shape) s.replace({ shape: r.geometry });
   }, [regions.data, s.aoi]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const offline = [cal.data, stats.data, hotspots.data].some((d) => d && "offline" in d && d.offline);
   const [tour, setTour] = useFirstVisitTour(Boolean(cal.data));
   const regionList = regions.data?.regions ?? FALLBACK_REGIONS;
   const activeRegion = s.aoi.type === "region" ? s.aoi.region_id : null;
@@ -210,12 +209,6 @@ export default function Explorer() {
           </button>
         </div>
       </header>
-      {offline && (
-        <p className="warn offline" role="status">
-          The server isn&apos;t answering, so this is the saved copy of the demo area. Other areas, months and
-          downloads come back when it does.
-        </p>
-      )}
 
       <div data-tour="verdict"><Verdict stats={stats.data} loading={stats.isFetching} error={stats.error as ApiError | null}
                month={s.month} metric={s.metric} view={s.view} /></div>
