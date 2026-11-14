@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import higgsfield_client as hf
 
-BUDGET = 5.00                                   # hard stop for this project
+BUDGET = 7.58                                   # hard stop for this project ($5 until Nov 14; Khalid allowed $4 more on top of the $3.58 spent, for the promo video, X41)
 W = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(W, "out"); os.makedirs(OUT, exist_ok=True)
 SPEND = os.path.join(OUT, "spend.json")

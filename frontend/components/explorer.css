@@ -7,7 +7,6 @@
 .choices { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; flex: 1 1 auto; min-width: 0; }
 .exports { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-left: auto; }
 .export-msg { font-size: 13px; color: var(--soft); min-width: 0; }
-.offline { margin: 12px var(--gut) 0; }
 
 .pop { position: relative; min-width: 0; }
 .pop-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; max-width: 100%; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-size: 14px; }

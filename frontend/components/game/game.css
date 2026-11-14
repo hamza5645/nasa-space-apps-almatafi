@@ -265,7 +265,8 @@
 }
 
 /* ---- Pixel theme: the UI matches the pixel-art characters (hard edges, bevels, a pixel font). ---- */
-.game { --px: var(--font-pixel), "Pixelify Sans", var(--display); --ink-dark: #241207; --bevel: #B4671C; --bevel-dark: #6E3A0C; --panel-px: #121A2E; --line-px: #2A3550; }
+/* --px is for the big titles only; everything read at small sizes, and every number, uses --read (X46). */
+.game { --read: var(--display); --px: var(--font-pixel), "Pixelify Sans", var(--display); --ink-dark: #241207; --bevel: #B4671C; --bevel-dark: #6E3A0C; --panel-px: #121A2E; --line-px: #2A3550; }
 .game-sky { background:
   radial-gradient(60% 50% at 80% 0%, rgba(107, 208, 228, .12), transparent 70%),
   radial-gradient(70% 60% at 10% 100%, rgba(240, 120, 40, .2), transparent 70%),
@@ -276,17 +277,17 @@
   repeating-linear-gradient(90deg, rgba(255, 150, 70, .12) 0 3px, transparent 3px 9px); mask-image: linear-gradient(180deg, transparent, #000 40%, #000 60%, transparent); -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%, #000 60%, transparent); }
 .game-sky::after { opacity: .7; }
 .game .display, .game h1.display, .levels-copy h1, .intro-text h1, .chapter-end h1 { font-family: var(--px); font-weight: 700; font-stretch: 100%; letter-spacing: 0; }
-.game em { font-family: var(--px); font-style: normal; font-weight: 400; color: var(--ember); }
-.game .eyebrow, .level-n, .hud-chapter, .hud-score, .explain-flag, .block-label, .level-badge, .q-place, .q-count, .levels-progress, .vt-ratio, .vv-num, .end-score { font-family: var(--px); }
+.game em { font-family: inherit; font-style: normal; font-weight: inherit; color: var(--ember); }
+.game .eyebrow, .level-n, .hud-chapter, .hud-score, .explain-flag, .block-label, .level-badge, .q-place, .q-count, .levels-progress, .vt-ratio, .vv-num, .end-score { font-family: var(--read); }
 .game .eyebrow { font-size: 16px; letter-spacing: .02em; }
-.level-title { font-family: var(--px); font-weight: 700; font-size: 21px; }
+.level-title { font-family: var(--read); font-weight: 700; font-size: 21px; }
 .game-top { border-bottom: 3px solid var(--line-px); box-shadow: 0 3px 0 #06080F; background: rgba(10, 13, 22, .9); }
-.game-links a, .hud-chapter { font-family: var(--px); font-size: 17px; }
+.game-links a, .hud-chapter { font-family: var(--read); font-size: 17px; }
 .game .btn, .game .chip-btn, .game-sound { border-radius: 4px; }
-.game .btn-fire { font-family: var(--px); font-size: 18px; border: 3px solid var(--ink-dark); box-shadow: 0 4px 0 var(--bevel-dark), inset 0 3px 0 rgba(255, 255, 255, .35); background: linear-gradient(180deg, #FFB547, #F08A24); }
+.game .btn-fire { font-family: var(--read); font-size: 18px; border: 3px solid var(--ink-dark); box-shadow: 0 4px 0 var(--bevel-dark), inset 0 3px 0 rgba(255, 255, 255, .35); background: linear-gradient(180deg, #FFB547, #F08A24); }
 .game .btn-fire:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--bevel-dark), inset 0 3px 0 rgba(255, 255, 255, .35); }
 .game .btn-fire:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--bevel-dark); }
-.game .btn-glass, .game .chip-btn { font-family: var(--px); font-size: 17px; border: 3px solid var(--line-px); background: var(--panel-px); color: var(--text); box-shadow: 0 4px 0 #06080F; }
+.game .btn-glass, .game .chip-btn { font-family: var(--read); font-size: 17px; border: 3px solid var(--line-px); background: var(--panel-px); color: var(--text); box-shadow: 0 4px 0 #06080F; }
 .game-sound { border: 3px solid var(--line-px); background: var(--panel-px); box-shadow: 0 3px 0 #06080F; }
 .hud-dots i { border-radius: 2px; width: 12px; height: 12px; }
 
@@ -298,9 +299,9 @@
 .level-art { border-radius: 4px; border: 2px solid #0A0E18; }
 .level-badge { border-radius: 3px; border: 2px solid var(--ink-dark); font-size: 13px; }
 .level-path::before { border-top-style: dotted; border-top-width: 4px; }
-.level-stars, .end-stars { font-family: var(--px); }
+.level-stars, .end-stars { font-family: var(--read); }
 .intro-art .illus { border-radius: 6px; border: 3px solid var(--line-px); box-shadow: 0 6px 0 #06080F; }
-.intro-steps li span { border-radius: 3px; font-family: var(--px); font-size: 15px; }
+.intro-steps li span { border-radius: 3px; font-family: var(--read); font-size: 15px; }
 
 /* The stage */
 .q-card { border-radius: 6px; border: 3px solid var(--ink-dark); box-shadow: 0 0 0 3px #FFC65C, 0 8px 0 3px var(--ink-dark), 0 30px 60px -20px rgba(0, 0, 0, .9); }
@@ -309,7 +310,7 @@
 .vv-card { border-width: 3px; }
 .block { border-radius: 4px; border: 3px solid var(--ink-dark); background: linear-gradient(180deg, #FFD27A 0 45%, #F2A13A 45%); box-shadow: 0 6px 0 var(--bevel-dark), inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(0, 0, 0, .08); }
 .block:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 9px 0 var(--bevel-dark), inset 0 3px 0 rgba(255, 255, 255, .45); }
-.block-key { border-radius: 3px; background: rgba(42, 20, 4, .18); font-family: var(--px); }
+.block-key { border-radius: 3px; background: rgba(42, 20, 4, .18); font-family: var(--read); }
 .block.right { background: linear-gradient(180deg, #8BE3A6 0 45%, #3FAE65 45%); box-shadow: 0 6px 0 #1C5A33, 0 0 28px rgba(92, 203, 126, .55), inset 0 3px 0 rgba(255, 255, 255, .4); }
 .block.wrong { background: linear-gradient(180deg, #FF9A8A 0 45%, #E0473A 45%); box-shadow: 0 6px 0 #6E1410, 0 0 28px rgba(240, 106, 90, .55), inset 0 3px 0 rgba(255, 255, 255, .35); }
 .block.was-right { box-shadow: 0 6px 0 var(--bevel-dark), 0 0 0 3px #3FAE65; }
@@ -317,14 +318,14 @@
 .ground { background: #3D4A22; border-top: 4px solid #86A23E; box-shadow: inset 0 4px 0 #5E7A2C; background-image:
   repeating-linear-gradient(90deg, transparent 0 22px, rgba(0, 0, 0, .18) 22px 24px),
   repeating-linear-gradient(180deg, transparent 0 7px, rgba(0, 0, 0, .14) 7px 9px); }
-.ground-hint { font-family: var(--px); font-size: 14px; color: #D4C8B8; text-shadow: 0 2px 0 #06080F; }
+.ground-hint { font-family: var(--read); font-size: 14px; color: #D4C8B8; text-shadow: 0 2px 0 #06080F; }
 .explain { border-radius: 6px; border: 3px solid var(--line-px); box-shadow: 0 6px 0 #06080F, 0 -20px 50px -20px rgba(0, 0, 0, .8); }
 .explain.ok { border-color: #3FAE65; }
 .explain.no { border-color: #E0473A; }
 .explain-flag { font-size: 22px; }
-.explain-link { font-family: var(--px); font-size: 16px; }
+.explain-link { font-family: var(--read); font-size: 16px; }
 .end-stars { font-size: 48px; }
-.end-note { font-family: var(--px); }
+.end-note { font-family: var(--read); }
 
 /* ---- Night city (X34): the scene behind the game, the notepad card, the riveted blocks. ---- */
 .game-sky { display: none; }
@@ -352,11 +353,11 @@
   padding-top: 20px; background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(58, 42, 30, .06) 27px 28px); }
 .q-card::before { content: ""; position: absolute; left: 28px; right: 28px; top: -16px; height: 30px; pointer-events: none;
   background: radial-gradient(circle at 50% 50%, transparent 5px, #4A4A62 5.5px 9.5px, transparent 10px) 0 0 / 64px 30px repeat-x; }
-.q-meta { font-family: var(--px); font-size: 13px; letter-spacing: 0; text-transform: none; }
+.q-meta { font-family: var(--read); font-size: 13px; letter-spacing: 0; text-transform: none; }
 .q-place { padding: 2px 10px; border-radius: 6px; background: #F7C948; color: #3A2A1E; }
 .q-place::before { content: "📍 "; }
 .q-count { padding: 2px 10px; border-radius: 6px; background: #E8D6B4; color: #3A2A1E; }
-.q-text { font-family: var(--px); font-weight: 700; color: #1E1410; }
+.q-text { font-family: var(--read); font-weight: 700; color: #1E1410; }
 .q-ctx { color: #4A3A2E; }
 .q-visual > figure, .q-visual > .vis-illus, .q-visual > .vis-versus, .q-visual > .vis-trap, .q-visual > .vis-maps { position: relative; }
 .vis-years figcaption, .vis-months figcaption { text-align: center; color: #4A3A2E; }
@@ -378,8 +379,8 @@
 .fl-row { margin-bottom: 24px; }
 .fl-now { flex: 1.3 1 0; }
 .fl-now-glow { position: absolute; bottom: 0; width: 70%; height: 60%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 170, 60, .45), transparent 70%); }
-.fl-now-label { position: absolute; top: -4px; font: 700 15px var(--px); color: #FFE39A; text-shadow: 0 2px 0 #2A1404; }
-.fl-ask { width: 60%; border: 2px dashed #FFC65C; border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%; display: grid; place-items: center; color: #FFC65C; font: 700 28px var(--px); animation: il-pulse 1.4s ease-in-out infinite; }
+.fl-now-label { position: absolute; top: -4px; font: 700 15px var(--read); color: #FFE39A; text-shadow: 0 2px 0 #2A1404; }
+.fl-ask { width: 60%; border: 2px dashed #FFC65C; border-radius: 50% 50% 40% 40% / 60% 60% 30% 30%; display: grid; place-items: center; color: #FFC65C; font: 700 28px var(--read); animation: il-pulse 1.4s ease-in-out infinite; }
 .fl-peak .flame-sprite { filter: drop-shadow(0 0 10px rgba(255, 170, 60, .8)); }
 
 /* The blocks: riveted plates with a hazard stripe */

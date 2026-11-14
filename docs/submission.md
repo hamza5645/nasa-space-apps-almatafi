@@ -89,7 +89,7 @@ WORKING NOW
 4. "Normal or not?", a five-chapter game with 14 questions that teaches what a hotspot is, why the two satellites disagree, and how to read a fire season.
 5. Wel3a, a flame guide on every page: written tips, and a chat that answers questions from a fixed fact sheet and the numbers on screen.
 6. An accessibility mode with eight tools, listed under "Accessibility tools" below.
-7. A guided tour of the explorer, a narrated story on the home page with captions, and an offline copy of the two demo regions if the server cannot be reached.
+7. A guided tour of the explorer and a narrated story on the home page with captions.
 
 ACCESSIBILITY TOOLS
 
@@ -239,7 +239,7 @@ Not AI: the voice narration (a team member's own recording), and the music and s
 
 ### Link of project documentation file (PDF)
 
-https://drive.google.com/file/d/19fTjnOQiL3yUdWPMDMg4bQ9u2dxtD8NQ/view
+https://drive.google.com/file/d/1naG9iszfWnrakSpWHT1mjhajeTFs2SLi/view
 
 (On Google Drive, shared as "Anyone with the link: Viewer"; opens without login, checked 14 November.)
 

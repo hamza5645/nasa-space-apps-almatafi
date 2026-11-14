@@ -86,7 +86,7 @@ On real NASA data so far: real FIRMS country files (MODIS 2010 for Egypt, Argent
 | ![Wel3a's chat](docs/screenshots/16-wel3a-chat.jpg) | **Wel3a**, a flame guide on every page: written tips, and a chat that answers from a fixed fact sheet and the numbers on screen. |
 | ![The accessibility panel](docs/screenshots/19-accessibility-panel-tools.jpg) | **Accessibility mode**: text size, high contrast, reduced motion, keyboard mode, voice reading and voice commands, with a guided introduction. Details below. |
 
-Also: a guided tour of the explorer, a narrated story on the home page with captions, and an offline copy of the two demo regions if the server cannot be reached.
+Also: a guided tour of the explorer and a narrated story on the home page with captions.
 
 ## Accessibility tools
 

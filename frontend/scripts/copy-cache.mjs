@@ -1,5 +1,5 @@
 // npm run cache: copy the backend's demo-region cache (python -m app.cache → data/cache/)
-// into public/cache/, the frontend's offline fallback (lib/offline.ts). Commit the result:
+// into public/cache/, which the landing, Method and game pages read at build time. Commit the result:
 // a deploy can't see data/. Rerun after every data change (mock now, real data from Nov 13).
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 
