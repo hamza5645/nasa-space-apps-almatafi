@@ -26,9 +26,10 @@ export function regionCache(regionId: string, base = ""): Promise<RegionCache | 
   return loaded.get(regionId)!;
 }
 
-/** Worth trying the copy: the server couldn't be reached or failed, not a bad request. */
+/** Worth trying the copy: the server couldn't be reached or failed, not a bad request. A 405
+ *  means whatever answers at the API's address isn't our API (another app on the port). */
 export function isOutage(e: unknown): boolean {
-  return e instanceof ApiError && (e.code === "network" || e.status >= 500);
+  return e instanceof ApiError && (e.code === "network" || e.status >= 500 || e.status === 405);
 }
 
 export type Offline = { offline?: true };
