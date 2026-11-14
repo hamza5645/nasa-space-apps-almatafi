@@ -4,7 +4,7 @@
 
 NASA Space Apps Cairo 2026 · Challenge: *Harmonization of MODIS and VIIRS Hot Spots* (authored with CONAE, Argentina)
 
-**Live site: https://almatafi.monitorthesituations.com** (no login) · [Method](docs/method.md) · [Submission texts](docs/submission.md)
+**Live site: https://almatafi.monitorthesituations.com** (no login) · [30-second demo video](https://youtu.be/1Krlp3fKRjE) · [NASA Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/almatafi/?tab=project) · [Method](docs/method.md)
 
 ![The home page: a globe lit by one real week of NASA FIRMS fire detections](docs/screenshots/01-landing-hero.jpg)
 
@@ -150,5 +150,9 @@ cd frontend && npm install && npm run dev                # site on http://localh
 | `docs/` | method, runbook for the real-data build, submission texts | |
 
 GitHub Actions (`.github/workflows/tests.yml`) runs all three (plus frontend lint, typecheck and build) on every pull request and every push to `main`. Every merge to `main` that passes the tests deploys itself (`.github/workflows/deploy.yml`); details in [`deploy/README.md`](deploy/README.md).
+
+## Team
+
+Team Almatafi, NASA Space Apps Cairo 2026: Yassin Ali Salah Ali Ali El Deeb (team owner), Ahmed Hany, Fatema, Hamza Abdelrahman Mohamed Osama Ibrahim Mohamed, Rowaina Mohamed Ahmed, Khalid Osam.
 
 For how we work together, see [`TEAM.md`](TEAM.md); for the build plan, [`PLAN.md`](PLAN.md).

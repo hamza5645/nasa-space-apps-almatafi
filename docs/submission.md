@@ -10,6 +10,11 @@ Final texts, written Nov 14 (X44). The same text serves both forms. The pack wit
 
 Almatafi: one fire record from MODIS and VIIRS
 
+Team: Almatafi (NASA Space Apps Cairo 2026)
+Members: Yassin Ali Salah Ali Ali El Deeb (team owner), Ahmed Hany, Fatema, Hamza Abdelrahman Mohamed Osama Ibrahim Mohamed, Rowaina Mohamed Ahmed, Khalid Osam
+Challenge: Harmonization of MODIS and VIIRS Hot Spots
+NASA project page: https://www.spaceappschallenge.org/2026/find-a-team/almatafi/?tab=project
+
 ---
 
 ### Link to your final project
@@ -144,6 +149,24 @@ Acknowledgement: We acknowledge the use of data and imagery from NASA's Fire Inf
 
 ---
 
+### Link list for the NASA page's "NASA Data" field
+
+The NASA page takes this field as a list of links (Link Text + full URL), not as a paragraph. Add one row per line below. The longer NASA data text above goes in the Cairo form and the PDF; on the NASA page, put the "how we used it" part in the Detailed Project Description.
+
+| Link Text | URL |
+|---|---|
+| NASA FIRMS: Fire Information for Resource Management System | https://firms.modaps.eosdis.nasa.gov/ |
+| FIRMS active fire data: MODIS Collection 6.1 and VIIRS 375 m (S-NPP, NOAA-20, NOAA-21) | https://firms.modaps.eosdis.nasa.gov/active_fire/ |
+| FIRMS yearly country files (MODIS and VIIRS archive) | https://firms.modaps.eosdis.nasa.gov/country/ |
+| FIRMS API (area and data-availability services, near-real-time data) | https://firms.modaps.eosdis.nasa.gov/api/ |
+| FIRMS FAQ | https://www.earthdata.nasa.gov/data/tools/firms/faq |
+| NASA GIBS: Global Imagery Browse Services (Blue Marble, Black Marble, corrected reflectance, aerosol index, MODIS cloud fraction) | https://nasa-gibs.github.io/gibs-api-docs/ |
+| MODIS instrument (Terra and Aqua) | https://www.earthdata.nasa.gov/data/instruments/modis |
+| VIIRS instrument (Suomi NPP, NOAA-20, NOAA-21) | https://www.earthdata.nasa.gov/data/instruments/viirs |
+| NASA 3D Resources (Aqua and Suomi NPP spacecraft models) | https://github.com/nasa/NASA-3D-Resources |
+
+---
+
 ### Space agency partner and other data
 
 SPACE AGENCY PARTNER
@@ -207,7 +230,9 @@ Not AI: the voice narration (a team member's own recording), and the music and s
 
 ### Link to project demo
 
-[Upload the chosen 30-second video to YouTube as Public or Unlisted and paste the link. It must be 30 seconds or less.]
+https://youtu.be/1Krlp3fKRjE
+
+(29 seconds, unlisted on YouTube, opens without login; checked 14 November.)
 
 ## The 7 slides
 

@@ -133,13 +133,14 @@ _Newest first. One entry per work session._
   - **`00-READ-ME-FIRST.md`:** which text goes where, what to fill in, and the open points below.
   - Checked against the live site and API today: all four pages answer 200 without login; `/api/nrt` returns real FIRMS hotspots (21 in the Delta for the last 2 days); every number in the texts was read from `validation.json`, the live pages or this Log.
 - Later, at Khalid's ask: a new root `README.md` for the repo's GitHub page: what it does, the problem, how it works, the validation table, the game, Wel3a and the accessibility mode, limits, NASA data, AI use and how to run it, with 12 screenshots of the live site (`docs/screenshots/`). It carries the same data-status note as the submission texts. Also added to `fields.md`: the NASA page's "NASA Data" field as a list of links (Link Text + URL), which is how that form takes it.
-- Next: Khalid fills in the team name, members and links (`details.json`), rebuilds the PDF, uploads it and the video, and pastes the fields. Hamza reads the texts.
+- Later, with Khalid's links: the team (Almatafi, six members), the NASA project page and the demo video (https://youtu.be/1Krlp3fKRjE: 29 s, unlisted, plays without login, checked) are in the PDF, `fields.md`, the README and `docs/submission.md`. New in the pack: `fields/` (one text file per form field), `Almatafi-project-details.docx` (the project details with screenshots, as a Word file), `Almatafi-NASA-data-links.pdf` and `Almatafi-other-data-and-references.pdf` (Link Text + URL tables; 45 sources, every link checked).
+- Next: Khalid uploads the PDF, pastes its link and the fields. Hamza reads the texts.
 - Broken / blocked, to settle before submitting:
   - **The live record is still simulated** (`data_version: mock-20261114`). Khalid's summary got one added sentence that says so, and it is limitation 1 in the details. If R1/R2 land first, rewrite those and the Evidence section.
   - **Stale labels on the site:** "Mock data until Nov 13" (landing, Method), "replaced by results on the real NASA FIRMS archive from November 13" (Method), "A game, on real data" and "The 25-year record is built from these" (landing).
   - **AI watermark:** the guide requires a visible watermark on AI images and video; the "Generated" tags were removed in entry (35). Not put back here (frontend).
   - The repo is private and has no LICENSE; the 30 s videos are exactly 30.0 s (the 29 s cut of A is safer); the video says 50% cloud where the site now says 46%.
-  - Not checked: NASA marks in the AI-generated video shots, the under-18 rule for the portraits, the host character and the narration voice, and the open question in `docs/registration.md` about work before Nov 13. The team name, the members and the tool behind the character sprite sheets are placeholders.
+  - Not checked: NASA marks in the AI-generated video shots, the under-18 rule for the portraits, the host character and the narration voice, and the open question in `docs/registration.md` about work before Nov 13. The tool behind the character sprite sheets is still a placeholder in the AI/SI text.
   - ECharts is in `frontend/package.json` but nothing imports it; it is left out of the tools list.
 
 ### Nov 14 — Khalid (with Claude) (45)
