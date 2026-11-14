@@ -21,8 +21,7 @@ Run the backend next to it: `cd ../backend && uv run uvicorn app.main:app --relo
 | `lib/share.ts` | the explorer's state in the URL (`?region=rio-negro&month=2026-07&view=viirs`) |
 | `components/wel3a/`, `lib/wel3a.ts` | Wel3a, the flame guide on every page: written tips per page and, in the explorer, the selected month's important points |
 | `worker/index.ts`, `lib/wel3a-chat.ts` | `POST /api/wel3a`: Wel3a's typed questions, answered by Cloudflare Workers AI. `next dev` doesn't run it (the chat then says it can't answer); `npm run build && npx wrangler@4.156.2 dev` does |
-| `lib/offline.ts` | demo regions answer from `public/cache/` when the backend is down or asleep |
-| `public/cache/` | copy of the backend's demo cache: `npm run cache` after `cd ../backend && python -m app.cache`. **Committed**, because a deploy can't see `data/`. Regenerate it after the real data arrives. |
+| `public/cache/` | copy of the backend's demo cache, read at build time by the landing, Method and game pages (the explorer always asks the API): `npm run cache` after `cd ../backend && python -m app.cache`. **Committed**, because a deploy can't see `data/`. Regenerate it after the real data arrives. |
 
 | `lib/orbit/` | the 3D scene behind the landing story and the Method header (three.js): Earth shaders, the fire layer, NASA satellite models, camera keyframes |
 | `components/OrbitStory.tsx` | the landing story: sticky stage, chapters, and the scroll-scrubbed film (dive + smoke) |
