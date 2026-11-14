@@ -2,7 +2,7 @@
 
 How Almatafi turns MODIS and VIIRS hotspots into one record. The code is in `pipeline/almatafi/`, and the contracts are in `contracts/`.
 
-> **Numbers below are from the mock data** (`mock-20261103`), which simulates known fires. R6 replaces them with the real FIRMS results on Nov 13 to 17.
+> **Real results** (`firms-20261114`, Egypt, Argentina and Chile, 8.2 million FIRMS detections): leave one year out R² 0.981 (M3; M0 0.976, M2 0.951, M1 0.931), 0.900 on 1° areas; at 2012 the raw join jumps 3.73× and the harmonized record is 0.71×, below the placebo range (0.86× to 1.14×), with Pettitt p = 0.012, so the conversion overshoots for these countries; season shape correlation 0.915. The tables below are from the mock data (`mock-20261103`), which simulates known fires.
 
 ## 1. Data
 

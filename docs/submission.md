@@ -1,10 +1,10 @@
 # Final submission drafts
 
-Cairo rules: no live pitch. Each team submits **a 30 second video or exactly 7 slides**, first on the local form, then the same project on spaceappschallenge.org. Late submissions are not accepted. The slides and video outline below still carry [real] placeholders; the fields don't.
+Cairo rules: no live pitch. Each team submits **a 30 second video or exactly 7 slides**, first on the local form, then the same project on spaceappschallenge.org. Late submissions are not accepted. The slides below carry the real numbers.
 
 ## Submission fields (Cairo form and NASA project page)
 
-Final texts, written Nov 14 (X44). The same text serves both forms. The pack with the PDF and screenshots is in `~/Downloads/almatafi-submission/` on Khalid's Mac (`fields.md`, `Almatafi-project-documentation.pdf`, `screenshots/`, `00-READ-ME-FIRST.md` with the open points). Anything in [square brackets] is still to fill in. The record on the live site is simulated (`mock-20261114`) and the texts say so; when the real build lands, rewrite the last sentence of the summary, the Evidence section and limitation 1.
+Final texts, written Nov 14 (X44). The same text serves both forms. The pack with the PDF and screenshots is in `~/Downloads/almatafi-submission/` on Khalid's Mac (`fields.md`, `Almatafi-project-documentation.pdf`, `screenshots/`, `00-READ-ME-FIRST.md` with the open points). Anything in [square brackets] is still to fill in. The record on the live site is real FIRMS data (`firms-20261114`, Egypt, Argentina and Chile); the summary, Evidence, limitations and slides say so (X48).
 
 ### Project name
 
@@ -31,7 +31,7 @@ No login is needed. Three clicks show what it does: (1) on the home page, press 
 
 ### High-level project summary
 
-We developed Almatafi, a web platform that merges 25 years of NASA FIRMS fire detections from MODIS and VIIRS into one consistent record, so any month anywhere on Earth can be judged against its own history. The two sensors cannot simply be joined: in one week of real FIRMS data, VIIRS reported 300,095 hotspots where MODIS reported 58,127, so a plain join shows a false surge in 2012. Almatafi converts MODIS to VIIRS-equivalent counts per region, season and overpass time, fitted on the years both sensors flew and tested on years the fit never saw. Users draw any area and get its burning calendar since 2001: the normal range for each month, how unusual this month is, the long-term trend, each hotspot on the map, and downloads for GIS tools. A learning game, a guide character and a voice-controlled accessibility mode open it to non-experts. This matters because fire managers need to tell a routine season from an unprecedented one, as in Río Negro in July 2026 or the Nile Delta's rice-straw season, and that answer should not depend on which satellite was watching. At submission, the method and the app are complete and tested; the 25-year record on the live site still runs on a simulated FIRMS-format data set, which the site labels, while the globe, the map imagery, the cloud cover and the live hotspots are real NASA data.
+We developed Almatafi, a web platform that merges 25 years of NASA FIRMS fire detections from MODIS and VIIRS into one consistent record, so any month anywhere on Earth can be judged against its own history. The two sensors cannot simply be joined: in one week of real FIRMS data, VIIRS reported 300,095 hotspots where MODIS reported 58,127, so a plain join shows a false surge in 2012. Almatafi converts MODIS to VIIRS-equivalent counts per region, season and overpass time, fitted on the years both sensors flew and tested on years the fit never saw. Users draw any area and get its burning calendar since 2001: the normal range for each month, how unusual this month is, the long-term trend, each hotspot on the map, and downloads for GIS tools. A learning game, a guide character and a voice-controlled accessibility mode open it to non-experts. This matters because fire managers need to tell a routine season from an unprecedented one, as in Río Negro in July 2026 or the Nile Delta's rice-straw season, and that answer should not depend on which satellite was watching. At submission, the 25-year record on the live site is built from the real NASA FIRMS archive for Egypt, Argentina and Chile (8.2 million detections, November 2000 to November 2026), and the globe, the map imagery, the cloud cover and the live hotspots are real NASA data too.
 
 ---
 
@@ -71,21 +71,23 @@ HOW IT WORKS
 
 EVIDENCE
 
-The pipeline was developed on a simulated data set in the exact FIRMS file format: six regions, 26 years, with known true fires that each simulated sensor sees with its own pixel size, sensitivity and overpass time. Because the truth is known, the method can be checked against it. Results on that data set:
+The 25-year record on the live site is built from the real NASA FIRMS archive for Egypt, Argentina and Chile (the countries of the two demo regions), from November 2000 to 14 November 2026: the yearly country files for MODIS, VIIRS Suomi NPP and VIIRS NOAA-20, then the FIRMS area API for 2026 (standard processing, then near-real-time). 8,236,880 detections were downloaded and 41 were rejected (18 with an unreadable fire power, 23 duplicates). Results on that real data:
 
-1. Leave-one-year-out, predicting VIIRS from MODIS for years left out of the fit: R² 0.976 on 1,341 tile-month totals (0.968 on small 1° areas).
-2. Break at 2012 (hotspots after 2012 divided by before): raw join 4.61 times, our record 1.03 times.
-3. Pettitt change-point test: raw join p = 0.0003 (a break), our record p = 0.85 (none).
-4. Placebo break years inside one sensor's era (2005, 2007, 2017, 2020): 0.85 to 1.08 times, so 1.03 at 2012 is ordinary.
-5. Against the known true fires, per region: raw join 3.2 to 15.0 times, our record 0.95 to 1.08 times.
+1. Leave-one-year-out, predicting VIIRS from MODIS for years left out of the fit: R² 0.981 on 2,163 tile-month totals (0.900 on small 1° areas). The four models score 0.981, 0.976, 0.951 and 0.931; the best one is used.
+2. Break at 2012 (hotspots after 2012 divided by before): raw join 3.73 times, our record 0.71 times.
+3. Pettitt change-point test: raw join p = 0.0003, our record p = 0.012.
+4. Placebo break years inside one sensor's era (2005, 2007, 2017, 2020): 0.86 to 1.14 times.
+5. Season shape before and after 2012: correlation 0.915 between the two eras' monthly shares.
 
-On real NASA data so far: real FIRMS country files (MODIS 2010 for Egypt, Argentina and Chile, 71,180 rows; VIIRS 2019 for Egypt, 67,424 rows) pass through the cleaning step with no row rejected, and the format matches. The code has 559 automated tests (228 pipeline, 229 backend, 102 frontend) that run on every change.
+Read together: the conversion removes the false surge (3.73 times becomes 0.71 times), but for these three countries it overshoots. Our record sits below its pre-2012 level, outside the placebo range, and the change-point test still finds a change. We report this as measured; checking it per country and against burned-area data is the first next step.
+
+Before the real data, the pipeline was developed on a simulated data set in the exact FIRMS file format, with known true fires that each simulated sensor sees with its own pixel size, sensitivity and overpass time. Against those known fires, the raw join jumped 3.2 to 15.0 times at 2012 and our record stayed at 0.95 to 1.08 times. The code has 559 automated tests (228 pipeline, 229 backend, 102 frontend) that run on every change.
 
 WORKING NOW
 
 1. The whole web app at the link above: explorer, calendar, statistics, map, downloads, share links, the Method page with the validation.
 2. The full pipeline: clean, grid, harmonize, validate, and a tool that downloads the FIRMS archive and near-real-time data.
-3. Real NASA data on the live site: the globe's week of fires (FIRMS public 7-day files), all map and globe imagery (GIBS), the cloud cover behind the cloud-corrected view (MODIS cloud fraction, 2000 to 2026), and live hotspots from the FIRMS API for the last days in any area.
+3. Real NASA data on the live site: the 25-year record for Egypt, Argentina and Chile (FIRMS country files and area API), the globe's week of fires (FIRMS public 7-day files), all map and globe imagery (GIBS), the cloud cover behind the cloud-corrected view (MODIS cloud fraction, 2000 to 2026), and live hotspots from the FIRMS API for the last days in any area.
 4. "Normal or not?", a five-chapter game with 14 questions that teaches what a hotspot is, why the two satellites disagree, and how to read a fire season.
 5. Wel3a, a flame guide on every page: written tips, and a chat that answers questions from a fixed fact sheet and the numbers on screen.
 6. An accessibility mode with eight tools, listed under "Accessibility tools" below.
@@ -108,17 +110,18 @@ Voice reading and voice commands use the browser's own speech features (Chrome, 
 
 LIMITATIONS
 
-1. The 25-year record on the live site is built from the simulated data set, not yet from the real FIRMS archive. The calendar numbers for the Nile Delta and Río Negro, and the validation numbers above, are therefore simulated. The site says so on the home page, the Method page and in the guide's answers.
-2. A hotspot is not a fire, and no hotspot is not proof of no fire: clouds, smoke, small fires and timing hide fires. The calendar counts detections, not burned area.
-3. The record sits on a 0.1° grid, so areas smaller than four cells are coarse and get a warning.
-4. January 2001 to June 2002 has Terra only; single months there are less reliable where fires burn in the afternoon.
-5. The cloud-corrected view leans high (thin cloud and haze count as cloud); read it as an upper bound.
-6. "Alert me" shows a preview of the alert email; no email is sent yet.
-7. Voice commands depend on the browser's speech recognition (Chrome, Edge, Safari).
+1. The real record covers Egypt, Argentina and Chile so far. Elsewhere the calendar has no data yet (the map's hotspots there come live from FIRMS). VIIRS NOAA-21 is not in the record yet; NOAA-20 carries it after Suomi NPP stopped on 2 November 2026.
+2. On this real data the conversion overshoots: after 2012 our record is 0.71 times its earlier level (see Evidence). Compare years across 2012 with care until this is checked.
+3. A hotspot is not a fire, and no hotspot is not proof of no fire: clouds, smoke, small fires and timing hide fires. The calendar counts detections, not burned area.
+4. The record sits on a 0.1° grid, so areas smaller than four cells are coarse and get a warning.
+5. January 2001 to June 2002 has Terra only; single months there are less reliable where fires burn in the afternoon.
+6. The cloud-corrected view leans high (thin cloud and haze count as cloud); read it as an upper bound. The real cloud cover is loaded for the two demo areas only so far.
+7. "Alert me" shows a preview of the alert email; no email is sent yet.
+8. Voice commands depend on the browser's speech recognition (Chrome, Edge, Safari).
 
 FUTURE PLANS
 
-1. Build the record from the real FIRMS archive, first for Egypt, Argentina and Chile, then globally, and publish the validation on real data.
+1. Extend the real record from Egypt, Argentina and Chile to the whole world, add VIIRS NOAA-21, and find and fix the post-2012 overshoot (per country, per model).
 2. Use FIRMS's own list of days without data for coverage, and add land-cover classes to the conversion.
 3. Compare with burned-area products as an independent check that no 2012 step remains.
 4. Send real "unusual month" alerts by email.
@@ -137,11 +140,11 @@ Pipeline: Python 3.12, pandas, NumPy, PyArrow, DuckDB, Parquet and GeoParquet. B
 
 1. NASA FIRMS MODIS Collection 6.1 active fire detections (Terra and Aqua, 1 km).
    https://firms.modaps.eosdis.nasa.gov/
-   Role: one half of the record. Used three ways: the public 7-day files for the globe on the home page (27 October to 3 November 2026, worldwide, 58,127 detections); real yearly country files (2010; Egypt, Argentina, Chile) to confirm the file format and the cleaning rules; and the FIRMS area API for live hotspots. Our simulated development data set copies this product's exact columns and formats.
+   Role: one half of the record. Used three ways: the public 7-day files for the globe on the home page (27 October to 3 November 2026, worldwide, 58,127 detections); the yearly country files for Egypt, Argentina and Chile (Terra and Aqua, 2000 to 2025), which build the 25-year record; and the FIRMS area API for 2026 and for live hotspots anywhere.
 
 2. NASA FIRMS VIIRS 375 m active fire detections (Suomi NPP, NOAA-20, NOAA-21).
    https://firms.modaps.eosdis.nasa.gov/
-   Role: the other half, and the unit the record is expressed in (VIIRS Suomi NPP equivalent). Used the same three ways: the globe's week (300,095 NOAA-20 detections worldwide, 88 over the Nile Delta), a real country file (2019, Egypt) for format and cleaning, and the area API for live hotspots.
+   Role: the other half, and the unit the record is expressed in (VIIRS Suomi NPP equivalent). Used the same three ways: the globe's week (300,095 NOAA-20 detections worldwide, 88 over the Nile Delta), the yearly country files for Egypt, Argentina and Chile (Suomi NPP 2012 to 2025, NOAA-20 2018 to 2025), which build the record, and the area API for 2026 and for live hotspots.
 
 3. NASA FIRMS API (area and data-availability services, near-real-time data from LANCE).
    https://firms.modaps.eosdis.nasa.gov/api/
@@ -257,8 +260,8 @@ https://youtu.be/ZXDOMeR-cdA
 2. **Why it matters:** "Is this fire season normal?" can't be answered on a broken record.
 3. **The solution:** one harmonized record and a burning calendar for any area.
 4. **How it works:** pixel size, sensitivity and overpass time, the three fixes and the pipeline.
-5. **Proof:** leave one year out R² [real], break test raw [real]× vs ours [real]×.
-6. **Río Negro, July 2026:** the calendar puts it against every July since 2001 (z [real]).
+5. **Proof (real FIRMS data, Egypt, Argentina, Chile):** leave one year out R² 0.981; at 2012 the raw join jumps 3.73× and ours is 0.71× (the surge is gone; the overshoot is our next fix).
+6. **Río Negro, July 2026:** the calendar puts it against every July since 2001: below normal (z −1.2) on the real record.
 7. **The Nile Delta and what's next:** the rice straw season for Cairo, then the live link and the team.
 
 ## The 30 second video

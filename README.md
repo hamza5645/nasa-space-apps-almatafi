@@ -8,7 +8,7 @@ NASA Space Apps Cairo 2026 · Challenge: *Harmonization of MODIS and VIIRS Hot S
 
 ![The home page: a globe lit by one real week of NASA FIRMS fire detections](docs/screenshots/01-landing-hero.jpg)
 
-> **Data status.** The method and the app are complete and tested. The 25-year record on the live site still runs on a simulated data set in the exact FIRMS file format, and the site says so. The globe's week of fires, the map imagery, the cloud cover and the live hotspots are real NASA data. Building the record from the real FIRMS archive is the next step.
+> **Data status.** The 25-year record on the live site is built from the real NASA FIRMS archive for Egypt, Argentina and Chile (8.2 million detections, November 2000 to November 2026; `firms-20261114`). The globe's week of fires, the map imagery, the cloud cover and the live hotspots are real NASA data too. The rest of the world is the next step.
 
 ## Try it in two minutes
 
@@ -64,17 +64,17 @@ The full method, with formulas and sources: [`docs/method.md`](docs/method.md).
 
 ## Does it work?
 
-The pipeline was developed on a simulated data set with known true fires, which each simulated sensor sees with its own pixel size, sensitivity and overpass time. Because the truth is known, the method can be checked against it.
+Validation on the real FIRMS data for Egypt, Argentina and Chile:
 
-| Test | Result (simulated data) |
+| Test | Result (real FIRMS data) |
 |---|---|
-| Leave-one-year-out: predict VIIRS from MODIS for years left out of the fit | R² 0.976 on 1,341 tile-month totals (0.968 on 1° areas) |
-| Break at 2012: hotspots after ÷ before | raw join 4.61×, our record 1.03× |
-| Pettitt change-point test | raw join p = 0.0003 (a break), our record p = 0.85 (none) |
-| Placebo break years inside one sensor's era (2005, 2007, 2017, 2020) | 0.85× to 1.08×, so 1.03× at 2012 is ordinary |
-| Against the known true fires, per region | raw join 3.2× to 15.0×, our record 0.95× to 1.08× |
+| Leave-one-year-out: predict VIIRS from MODIS for years left out of the fit | R² 0.981 on 2,163 tile-month totals (0.900 on 1° areas) |
+| Break at 2012: hotspots after ÷ before | raw join 3.73×, our record 0.71× |
+| Pettitt change-point test | raw join p = 0.0003, our record p = 0.012 |
+| Placebo break years inside one sensor's era (2005, 2007, 2017, 2020) | 0.86× to 1.14× |
+| Season shape before vs after 2012 | correlation 0.915 |
 
-On real NASA data so far: real FIRMS country files (MODIS 2010 for Egypt, Argentina and Chile; VIIRS 2019 for Egypt) pass through the cleaning step with no row rejected. The code has 559 automated tests that run on every change.
+The conversion removes the false surge but overshoots for these three countries: our record sits below its pre-2012 level, outside the placebo range. We report it as measured; fixing it is the next step. Before the real data, on a simulated set with known true fires, the raw join jumped 3.2× to 15.0× and our record stayed at 0.95× to 1.08×. The code has 559 automated tests that run on every change.
 
 ![The Method page's validation section](docs/screenshots/09-method-validation.jpg)
 
@@ -111,7 +111,8 @@ Voice reading and voice commands use the browser's own speech features (Chrome, 
 
 ## Limits
 
-- The record on the live site is simulated for now (see **Data status** above).
+- The real record covers Egypt, Argentina and Chile so far; elsewhere the calendar has no data yet. VIIRS NOAA-21 isn't in it yet.
+- After 2012 our record is 0.71× its earlier level on the real data (see **Does it work?**): compare years across 2012 with care.
 - A hotspot is not a fire, and no hotspot is not proof of no fire: clouds, smoke, small fires and timing hide fires. The calendar counts detections, not burned area.
 - The record sits on a 0.1° grid, so areas under four cells are coarse and get a warning.
 - January 2001 to June 2002 has Terra only; single months there are less reliable where fires burn in the afternoon.
