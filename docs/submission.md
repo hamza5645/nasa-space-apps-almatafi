@@ -229,7 +229,7 @@ Yes. The idea, the harmonization method and the choice of tests are ours; the to
 
 3. Gemma on Cloudflare Workers AI (large language model). Powers the chat of Wel3a, the guide character. It answers from a fixed fact sheet and the numbers on the page; the chat states "AI answers can be wrong. Trust the numbers on the page." The guide's pop-up tips are written by us, not generated.
 
-4. [Character art: name the tool used to make the pixel-art character sprite sheets (the host, Khalid, the explorer, the firefighter, the fire truck), or delete this line if they were drawn by hand.]
+4. Manus AI (image generation). Used to make the pixel-art character sprite sheets in the game and the demo video (the host, Khalid, the explorer, the firefighter and the fire truck).
 
 5. Browser speech synthesis and speech recognition (built into Chrome, Edge and Safari). Used by the accessibility mode to read the page aloud and to take voice commands. Nothing is generated for the project's content.
 
@@ -239,7 +239,7 @@ Not AI: the voice narration (a team member's own recording), and the music and s
 
 ### Link of project documentation file (PDF)
 
-https://drive.google.com/file/d/1YXBt-y9HZFGiXLcuJgiWvVkJ0YkGmBcS/view
+https://drive.google.com/file/d/1r3DQy5slZxVIuyc3PJaKg62W3Jq1LIPI/view
 
 (On Google Drive, shared as "Anyone with the link: Viewer"; opens without login, checked 14 November.)
 
@@ -247,7 +247,7 @@ https://drive.google.com/file/d/1YXBt-y9HZFGiXLcuJgiWvVkJ0YkGmBcS/view
 
 ### Link to project demo
 
-https://youtu.be/1Krlp3fKRjE
+https://youtu.be/sRcld90Jnzo
 
 (29 seconds, unlisted on YouTube, opens without login; checked 14 November.)
 

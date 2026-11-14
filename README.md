@@ -4,7 +4,7 @@
 
 NASA Space Apps Cairo 2026 · Challenge: *Harmonization of MODIS and VIIRS Hot Spots* (authored with CONAE, Argentina)
 
-**Live site: https://almatafi.monitorthesituations.com** (no login) · [30-second demo video](https://youtu.be/1Krlp3fKRjE) · [NASA Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/almatafi/?tab=project) · [Method](docs/method.md)
+**Live site: https://almatafi.monitorthesituations.com** (no login) · [30-second demo video](https://youtu.be/sRcld90Jnzo) · [NASA Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/almatafi/?tab=project) · [Method](docs/method.md)
 
 ![The home page: a globe lit by one real week of NASA FIRMS fire detections](docs/screenshots/01-landing-hero.jpg)
 
@@ -141,6 +141,7 @@ We acknowledge the use of data and imagery from NASA's Fire Information for Reso
 
 - **Claude Code** (Anthropic) was used as a coding assistant for the pipeline, backend, web app, tests and documents. Assisted commits carry a `Co-Authored-By: Claude` line.
 - **Higgsfield** (Soul stills, Kling image-to-video) made the scene-setting films, stills and portraits on the home page and behind the explorer. They carry no data.
+- **Manus AI** made the pixel-art character sprite sheets used in the game and the demo video.
 - **Gemma on Cloudflare Workers AI** answers the questions typed into Wel3a's chat. Its pop-up tips are written by us.
 
 The voice narration is a team member's own recording; the music and sound effects are synthesized by our own code.
