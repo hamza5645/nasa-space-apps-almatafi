@@ -55,6 +55,7 @@ h1, h2, h3 { margin: 0; }
 .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; font-size: 15px; margin-left: auto; }
 .nav-links a { color: var(--soft); text-decoration: none; }
 .nav-links a:hover, .nav-links a[aria-current="page"] { color: #FFFFFF; }
+.nav-links a.btn-fire { color: #FFFFFF; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 10px; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid transparent; }

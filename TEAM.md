@@ -132,6 +132,10 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 
 _Newest first. One entry per work session._
 
+### Nov 14 — Hamza (with Claude) (10)
+- Did: at Hamza's call, the nav's "Open the calendar" button text is pure white (the nav's link colour, `--soft`, was overriding the button's own); one line in `frontend/app/globals.css`, checked in the browser. Committed straight to `main` at Hamza's call. The same button elsewhere keeps its dark text.
+- Broken / blocked: nothing. White on the button's orange is about 2.6:1, under the 4.5:1 for text; the dark `--fire-ink` would pass.
+
 ### Nov 14 — Hamza (with Claude) (9)
 - Did: X48, at Hamza's call: the submission texts now say the record is real FIRMS data (`firms-20261114`, Egypt, Argentina and Chile) with the real validation numbers. `docs/submission.md`: the summary's last sentence, Evidence (real results first, the simulated test with known fires kept as development history), Working now, limitations (new 1: three countries only, no NOAA-21; new 2: the post-2012 overshoot, 0.71×), future plan 1, the two FIRMS data entries, slides 5 and 6. `README.md`: Data status, the validation table, Limits. `docs/method.md`: the header gives the real results; its tables are still the mock's (R6).
 - Next: Khalid updates the copies outside the repo the same way: `fields.md`, the project PDF and the Drive files in `~/Downloads/almatafi-submission/`, and the forms if already pasted.
