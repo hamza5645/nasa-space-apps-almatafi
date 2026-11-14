@@ -266,5 +266,172 @@
    "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, spacecraft, satellites, people, cuts",
    "prompt": "Top-down satellite view, locked camera. The white clouds drift slowly from left to right across the river delta and thicken over it, their soft shadows sliding over the green farmland and the desert. The land, the coastline and the sea do not move or change. Photoreal satellite imagery, calm."
   }
+ },
+ {
+  "id": "p_sats_still",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Photograph from low Earth orbit at night: two different Earth-observation satellites with long blue solar panels and gold foil bodies fly one behind the other in the upper middle of the frame, above the dark night side of Earth. Below them Africa is scattered with small glowing orange wildfire embers and a few golden city lights, a thin turquoise airglow line on the curved horizon, stars above. The left third of the frame is darker and emptier. Photoreal NASA photography, cinematic, sharp, no text."
+  }
+ },
+ {
+  "id": "p_sats",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "p_sats_still",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, cuts, flicker",
+   "prompt": "Slow cinematic orbit shot. Both satellites glide steadily from left to right above the Earth, their solar panels catching a little light, the orange wildfire embers below flicker and pulse, the Earth turns slowly underneath, the airglow shimmers. Smooth constant motion, no cuts, photoreal."
+  }
+ },
+ {
+  "id": "p_dive",
+  "model": "kling-video/v3.0/pro/image-to-video",
+  "usd": 0.8,
+  "from": "planet",
+  "last": "promo_delta_sat",
+  "args": {
+   "duration": 5,
+   "sound": "off",
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, cuts, flicker",
+   "prompt": "One continuous smooth camera move with no cuts. The camera starts in deep space looking at the night side of Earth with glowing orange wildfire embers, then flies toward the planet and dives straight down through the thin blue atmosphere as dawn breaks, the land brightening into daylight, descending toward north-east Africa until it looks straight down at the green Nile Delta, the Mediterranean coast and scattered white clouds. Constant forward motion, cinematic, photoreal satellite view at the end."
+  }
+ },
+ {
+  "id": "p_desk_still",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "A dark mission-control room at night, photographed straight on. In the centre of the frame stands one large flat widescreen monitor on a desk; its screen is switched on and shows only a perfectly plain, flat, uniform bright white rectangle with nothing on it. The monitor fills the middle sixty percent of the frame and is perfectly level and facing the camera. Faint orange and cyan rim light from the sides, a keyboard and a mug on the dark desk in front, blurred equipment lights far behind. Photoreal, cinematic, shallow depth of field, no people, no text, no logos."
+  }
+ },
+ {
+  "id": "p_end_still",
+  "model": "higgsfield-ai/soul/cinema",
+  "usd": 0.01,
+  "args": {
+   "aspect_ratio": "16:9",
+   "resolution": "1080p",
+   "batch_size": 1,
+   "prompt": "Sunrise over the farmland of Egypt's Nile Delta seen from a low aerial view: green rice fields in long rows, irrigation canals reflecting the sky, date palms, thin morning mist lying on the fields, two thin distant smoke columns far away, warm golden light. The upper half of the frame is open glowing sky. Photoreal, cinematic, wide, no people, no text."
+  }
+ },
+ {
+  "id": "p_end",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "p_end_still",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "text, watermark, logo, cartoon, blurry, warped, morphing, people, cuts, flicker",
+   "prompt": "Very slow aerial rise and forward glide over the misty green fields at sunrise, the mist drifts gently, the canals glint, the distant smoke columns lean in the breeze, palms sway slightly. Calm, cinematic, photoreal, no cuts."
+  }
+ },
+ {
+  "id": "a_khalid_push",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_khalid_side",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The man faces right and pushes a heavy invisible object in front of him with both hands, leaning forward, walking in place with steady steps in a smooth loop. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_khalid_pull",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_khalid_side",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The man faces right, reaches up with both hands, grabs an invisible tall lever in front of him and pulls it down toward himself with effort, then lets go and stands straight again. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_khalid_cheer",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_khalid_front",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The man faces the camera, throws both fists up in the air and cheers happily, bouncing lightly on his feet, then relaxes back to standing. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_host_run",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_host_front",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The boy with glasses turns to face right and runs in place toward the right in a steady looping run cycle, arms and legs pumping, side view. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_host_point",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_host_front",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The boy with glasses faces the camera, raises his right arm and points up and to the side with his index finger, looking excited, holds the pointing pose, then lowers the arm. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_explorer_run",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_explorer_front",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The explorer with the hat turns to face right and runs in place toward the right in a steady looping run cycle, one hand holding his hat, side view. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_explorer_point",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_explorer_map",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The explorer holds the open map in one hand and points to the right with his other arm stretched out, nodding, holds the pointing pose, then brings the hand back to the map. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
+ },
+ {
+  "id": "a_ff_run",
+  "model": "kling-video/v2.5-turbo/pro/image-to-video",
+  "usd": 0.18,
+  "from": "a_ff_side",
+  "args": {
+   "duration": 5,
+   "cfg_scale": 0.5,
+   "negative_prompt": "3d, realistic, photo, camera movement, zoom, text, watermark, extra characters, scenery, background details, motion blur, morphing, style change, different outfit",
+   "prompt": "2D pixel-art video game character sprite animation on a flat solid pure green background. The firefighter faces right and runs in place toward the right in a steady looping run cycle, carrying the hose nozzle in her hands, the water stops flowing, side view. The character stays in the centre of the frame at exactly the same size, feet on the same invisible ground line. Locked camera, no zoom, no camera movement, no shadow, the background stays flat solid green. Keep the exact same pixel-art style, colours, outfit, face and proportions for the whole clip."
+  }
  }
 ]

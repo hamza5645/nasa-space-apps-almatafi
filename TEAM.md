@@ -55,10 +55,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X41 the 30-second promo video, second version after Khalid watched the first (effects louder than his voice; more Higgsfield and Manus: cinematic footage, new character animations) — Khalid (with Claude), Nov 14, PR #9. The edit is outside the repo; here only `design/higgsfield/` and this file change
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
+- X41 the 30-second promo video, three versions to choose from — Khalid (with Claude), Nov 14, PR #9. The videos are in `~/Downloads/almatafi-promo-videos/` on Khalid's Mac (not in the repo); the PR carries the Higgsfield shots and this file. Khalid picks one; Hamza to look before it is submitted
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
@@ -121,6 +121,22 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (45)
+- Did: X41 again, after Khalid watched the first video: the effects were louder than his voice, and he wanted far more Higgsfield and Manus, then asked for two or three versions to choose from in the morning. Three videos, each 1920×1080, 30.0 s, same voice-over and captions, in `~/Downloads/almatafi-promo-videos/`:
+  - **A, `almatafi-promo-A-original.mp4`:** the first cut, unchanged, with the effects turned down.
+  - **B, `almatafi-promo-B-cinematic.mp4`:** photoreal Higgsfield footage around the real site: two satellites in orbit, a dark desk whose screen shows the site (the camera pushes into it), a dive from orbit to NASA's image of the Delta, a small film of straw burning beside the October column, sunrise over the Delta behind the logo.
+  - **C, `almatafi-promo-C-arcade.mp4`:** the whole film as a game: the game's night street for the opening and the ending, a "WORLD 1-2 · ONE RECORD" banner per scene, a score that grows with each action, scanlines and a pixel frame. No AI footage in it except the street plate.
+  - **New animations in B and C:** the host, the explorer and the firefighter run (they hopped before); Khalid pushes the slider, pulls a lever down for the cloud-corrected view and cheers at the end; the host and the explorer point. Each comes from one frame of Khalid's own sheets, animated by Kling on a green background and cut into a strip; I looked at every strip and all eight kept the faces and clothes.
+  - **Sound, all three:** the music and effects are fitted under the voice by measurement: in every half second they stay at least 11 dB (A) or 13 dB (B, C) under the voice's usual level, and the busiest effects (footsteps, ticks) are gone. Peak −1.5 dB.
+  - **Higgsfield:** Khalid allowed $4 more; $2.63 used (6 scene shots, 8 character clips), ledger $6.21 of $7.58. `design/higgsfield/README.md` has the list.
+  - Checked: contact sheets of each whole video, the scene changes of B, every strip. Not heard: I can't listen.
+- Next: Khalid picks a version (or asks for a mix); then one listen with sound before submitting.
+- Broken / blocked:
+  - **Manus made nothing that is in the videos.** Its connector can only start a task; one task was started (pixel props: https://manus.im/app/jhhNm8dXU9ZPZLK69usM5e) but its files can't be fetched from here: the Chrome extension still refuses this session (account mismatch) and the share page has no file links. If Khalid downloads `almatafi-props.zip` from that task, the props can replace the drawn satellites, clouds and lever.
+  - Higgsfield's and Manus's APIs refused connections from Khalid's network for about ten minutes (Cloudflare resets); nothing was charged for the failed tries.
+  - "50% cloud cover" vs the site's "Cloud cover (simulated) 11%": unchanged, see entry (44).
+  - In B the push into the desk's screen crops the site's page to the screen's shape for a second (the screen is wider than 16:9).
 
 ### Nov 14 — Khalid (with Claude) (44)
 - Did: X41, the 30-second promo video, from Khalid's brief, his 28 s voice-over and the five character sheets. 1920×1080, 30 fps, 29.96 s: `~/Downloads/almatafi-promo.mp4` on Khalid's Mac. The edit (Remotion) is outside the repo, in `~/Documents/video-editor-bassam/projects/almatafi-promo` (`render.sh`, `bed.py` for the music, `cap/capture.mjs` for the site captures).
