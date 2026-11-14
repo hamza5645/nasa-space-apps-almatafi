@@ -239,7 +239,7 @@ Not AI: the voice narration (a team member's own recording), and the music and s
 
 ### Link of project documentation file (PDF)
 
-https://drive.google.com/file/d/1lOvyfk3-Gl2P5umLA0U3a02RGuDJqMKC/view
+https://drive.google.com/file/d/1YXBt-y9HZFGiXLcuJgiWvVkJ0YkGmBcS/view
 
 (On Google Drive, shared as "Anyone with the link: Viewer"; opens without login, checked 14 November.)
 
