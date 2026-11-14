@@ -55,7 +55,6 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X46 the game's pixel font is hard to read, most of all the numbers: a readable font for everything but the big titles — Khalid (with Claude), Nov 14
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
@@ -66,6 +65,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
+- [x] X46 the game's text and numbers in the site's own font (Archivo); the pixel font stays on the big titles only — Khalid (with Claude), Nov 14. Open: Khalid to say whether the titles should change too
 - [x] X45 the narration stepper's first step names no one ("each chapter of the story is read aloud") — Khalid (with Claude), Nov 14
 - [x] X41 (promo video) the 30-second promo video, three versions to choose from, plus an interactive cut (one HTML file, `~/Downloads/almatafi-promo-videos/almatafi-interactive.html`, and a private page: https://claude.ai/artifact/TCuortLmBDzUUQ78x9Yjzc) — Khalid (with Claude) (PR #9, merged Nov 14 at Khalid's call, **not reviewed by Hamza**). The videos are in `~/Downloads/almatafi-promo-videos/` on Khalid's Mac (not in the repo); the PR carried the Higgsfield shots. Open: Khalid picks a version; one listen with sound before submitting
 - [x] X43 a first-visit stepper on the landing's "Hear the story" button: three steps on the tour's overlay, once per device, skipped when narration is already on — Khalid (with Claude) (PR #12, merged Nov 14 at Khalid's call, **not reviewed by Hamza**). Open: Safari and a phone
@@ -128,6 +128,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (48)
+- Did: X46, at Khalid's ask: the game's pixel font (Pixelify Sans) was hard to read, most of all the numbers. Everything read at small sizes and every number (the question, the pills, the answer blocks, buttons, score, counts on the cards, chart labels, the header) now uses the site's own font; the pixel font stays on the big titles (level map, chapter intro, chapter end). One variable, `--read`, in `frontend/components/game/game.css`; `em` follows the text around it. Played all five chapters in headless Chrome on the dev build at 1280×720 and 1000×610: no page scroll, nothing cut but the explorer's feet (4 px, as before), every sprite drawn. 104 frontend tests and lint pass. Also merged PR #14 (X45) at Khalid's call.
+- Next: Hamza's look. Khalid: say whether the titles should lose the pixel font too.
+- Broken / blocked: nothing known. Not checked in Safari or on a phone.
 
 ### Nov 14 — Khalid (with Claude) (47)
 - Did: merged PRs #12 (X43), #8 (X40) and #9 (the promo video) at Khalid's call and deployed; #8 and #9 conflicted with `main` in this file only (both sides' Log entries kept; the promo video's entries are now "(44–46, promo video)"). #9 had committed two local cloud build folders (`data/clouds-mock/`, `data/clouds-real/`) by accident: removed, and `data/clouds-*/` is ignored now. Then X45, at Khalid's ask: the narration stepper's first step said "Khalid reads each chapter of the story in his own voice"; it now says "each chapter of the story is read aloud" (`frontend/lib/tour.ts`).
