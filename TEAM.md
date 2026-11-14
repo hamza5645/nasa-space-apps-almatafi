@@ -65,6 +65,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
+- [x] X45 the narration stepper's first step names no one ("each chapter of the story is read aloud") — Khalid (with Claude), Nov 14
 - [x] X41 (promo video) the 30-second promo video, three versions to choose from, plus an interactive cut (one HTML file, `~/Downloads/almatafi-promo-videos/almatafi-interactive.html`, and a private page: https://claude.ai/artifact/TCuortLmBDzUUQ78x9Yjzc) — Khalid (with Claude) (PR #9, merged Nov 14 at Khalid's call, **not reviewed by Hamza**). The videos are in `~/Downloads/almatafi-promo-videos/` on Khalid's Mac (not in the repo); the PR carried the Higgsfield shots. Open: Khalid picks a version; one listen with sound before submitting
 - [x] X43 a first-visit stepper on the landing's "Hear the story" button: three steps on the tour's overlay, once per device, skipped when narration is already on — Khalid (with Claude) (PR #12, merged Nov 14 at Khalid's call, **not reviewed by Hamza**). Open: Safari and a phone
 - [x] X40 the accessibility voice is silent in Khalid's Chrome (Alt + R, nothing heard): `speak()` hardened against Chrome's known silent failures; and the explorer falls back to the offline copy on a 405 (another app answering on the API's port) — Khalid (with Claude) (PR #8, merged Nov 14 at Khalid's call, **not reviewed by Hamza**). Open: nothing was heard in this session; Khalid to try the voice in his own Chrome
@@ -126,6 +127,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (47)
+- Did: merged PRs #12 (X43), #8 (X40) and #9 (the promo video) at Khalid's call and deployed; #8 and #9 conflicted with `main` in this file only (both sides' Log entries kept; the promo video's entries are now "(44–46, promo video)"). #9 had committed two local cloud build folders (`data/clouds-mock/`, `data/clouds-real/`) by accident: removed, and `data/clouds-*/` is ignored now. Then X45, at Khalid's ask: the narration stepper's first step said "Khalid reads each chapter of the story in his own voice"; it now says "each chapter of the story is read aloud" (`frontend/lib/tour.ts`).
+- Next: Hamza's look at the four. The Board's "In review" still lists X35 and X39, both merged.
+- Broken / blocked: nothing known. The stepper and the voice fix were not clicked through on the live site.
 
 ### Nov 14 — Khalid (with Claude) (46)
 - Did: X43, at Khalid's ask: the first time someone lands on the site, nothing said what the "Hear the story" button was.

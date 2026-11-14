@@ -21,7 +21,7 @@ export const TOUR_KEY = "almatafi-tour-v1";
 
 // X43: the landing's first-visit stepper on the "Hear the story" button (data-tour="narrate").
 export const NARRATE_STEPS: Step[] = [
-  { id: "narrate", title: "Hear the story", text: "This button turns on narration. As you scroll, Khalid reads each chapter of the story in his own voice.", side: "top" },
+  { id: "narrate", title: "Hear the story", text: "This button turns on narration. As you scroll, each chapter of the story is read aloud.", side: "top" },
   { id: "narrate", title: "Read along", text: "Each line also shows as a caption at the bottom of the screen while it plays, so you can follow with the sound low.", side: "top" },
   { id: "narrate", title: "Off until you want it", text: "Narration is off by default. One click turns it on, another turns it off; your choice is remembered on this device, and leaving the page stops the voice.", side: "top" },
 ];
