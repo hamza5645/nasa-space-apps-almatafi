@@ -55,6 +55,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
+- X44 the submission texts for the Cairo form and the NASA project page (all fields), the project PDF, and screenshots of the site — Khalid (with Claude), Nov 14. Files go to `~/Downloads/almatafi-submission/` on Khalid's Mac; `docs/submission.md` gets the final texts
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
