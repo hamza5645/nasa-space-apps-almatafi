@@ -57,10 +57,8 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 ### In progress
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
-- X41 an interactive cut of the promo (the same voice-over; each scene is a control the viewer can use) — Khalid (with Claude), Nov 14, on PR #9's branch. Built outside the repo, like the videos
-
 ### In review (PR open, merge in this order)
-- X41 the 30-second promo video, three versions to choose from — Khalid (with Claude), Nov 14, PR #9. The videos are in `~/Downloads/almatafi-promo-videos/` on Khalid's Mac (not in the repo); the PR carries the Higgsfield shots and this file. Khalid picks one; Hamza to look before it is submitted
+- X41 the 30-second promo video, three versions to choose from, plus an interactive cut (one HTML file, `~/Downloads/almatafi-promo-videos/almatafi-interactive.html`, and a private page: https://claude.ai/artifact/TCuortLmBDzUUQ78x9Yjzc) — Khalid (with Claude), Nov 14, PR #9. The videos are in `~/Downloads/almatafi-promo-videos/` on Khalid's Mac (not in the repo); the PR carries the Higgsfield shots and this file. Khalid picks one; Hamza to look before it is submitted
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
@@ -123,6 +121,18 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (46)
+- Did: X41, an interactive cut of the promo, from the same 28 s voice-over (Khalid asked for "an interactive video, freestyle"). One self-contained HTML file (6 MB, no network needed): `~/Downloads/almatafi-promo-videos/almatafi-interactive.html`, also published as a private page, https://claude.ai/artifact/TCuortLmBDzUUQ78x9Yjzc (only Khalid can open it until he shares it). The source is outside the repo: `~/Documents/video-editor-bassam/projects/almatafi-interactive` (`template.html`, `build.py`, `play.mjs` for the click-through test).
+  - **How it works:** the film plays with the voice, word-timed captions and the quiet music bed. Each of its nine scenes is a working control; touching one pauses the film ("Paused. This scene is yours.") until Continue. The timeline under the stage is the nine scenes; a click jumps to one. Space plays and pauses, the arrow keys change scene.
+  - **Scenes:** MODIS / VIIRS switch (the real week: 58,127 vs 300,095; Delta 7 vs 88) over a drawn 5 km patch · the raw join → harmonized slider on the Delta's yearly totals (11.6× → 0.80×, the site's own formula; Khalid's sprite pushes the handle) · the three fixes as steps on the Delta's real October 2026 points (45 → 589 → 665), with purple noise marks to click away · a drag-to-compare of NASA's two MODIS Terra images of the Delta (5 and 20 Oct 2026) with "50%, preliminary" · the full burning calendar, any month clickable, as seen or cloud-corrected · one game question with the two blocks (Khalid jumps) · Wel3a with three questions · accessibility switches that really change the player (text size, high contrast) · the end card with a link to the site.
+  - **Data:** read at build time from `frontend/public/cache/nile-delta.json` and `globe/fires.json`, so it shows the site's numbers (`mock-20261113`; the end card says so). Rebuild with `python3 build.py` after the real-data cache lands.
+  - Checked in headless Chrome: a screenshot of every scene, and a click-through (play, switch, drag, timeline jumps, all 12 noise marks, calendar, wrong then right answer, Wel3a, the switches, play to the end): no page errors. Not heard: I can't listen.
+- Next: Khalid tries it in his own browser with sound, then shares the page with Hamza if he wants it used.
+- Broken / blocked:
+  - Drawn, not data, and labelled on the page: the 5 km patch, the purple noise marks, the hollow "hidden by clouds" dots. Wel3a's three answers are sample answers written for this page, not the site's AI.
+  - "50%" vs the site's simulated 11%: unchanged from entry (44); the calendar scene shows the 11%.
+  - On a phone held upright the stage is small (it asks to turn the phone). Not tried in Safari or on a real phone.
 
 ### Nov 14 — Khalid (with Claude) (45)
 - Did: X41 again, after Khalid watched the first video: the effects were louder than his voice, and he wanted far more Higgsfield and Manus, then asked for two or three versions to choose from in the morning. Three videos, each 1920×1080, 30.0 s, same voice-over and captions, in `~/Downloads/almatafi-promo-videos/`:
