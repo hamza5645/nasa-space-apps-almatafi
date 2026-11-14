@@ -55,10 +55,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X43 a first-visit stepper on the landing's "Hear the story" button (what narration does, captions, remembered on the device) + a refreshed website overview for Khalid — Khalid (with Claude), Nov 14, branch `khalid/x43-narration-tip`
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
+- X43 a first-visit stepper on the landing's "Hear the story" button: three steps on the tour's overlay, once per device, skipped when narration is already on — Khalid (with Claude): [hamza5645/nasa-space-apps-almatafi#12](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/12). Hamza to look: it is in `frontend/`, and `Tour.tsx` now takes its steps as props (the explorer's tour is unchanged)
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
@@ -124,6 +124,15 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (46)
+- Did: X43, at Khalid's ask: the first time someone lands on the site, nothing said what the "Hear the story" button was.
+  - **The stepper:** 1.5 s after the landing renders, the explorer tour's overlay opens on the narration button (`data-tour="narrate"`, the spotlight cut-out around it, the card above): what the button does (Khalid reads each chapter as you scroll), that each line also shows as a caption, and that narration is off until wanted and remembered on this device. Back / Next / Skip, arrow keys, Escape, a click on the hole or on the button itself all close it. Once per device (`almatafi-narrate-tip-v1`); skipped when narration is already on.
+  - **Code:** `Tour.tsx` takes `steps` and `storageKey` props (defaults are the explorer's, so the explorer's tour is as before) and `useFirstVisitTour` takes the key and the delay; `NARRATE_STEPS` and `NARRATE_KEY` in `lib/tour.ts`; `Narration.tsx` renders the `<Tour>`. One new test (103 frontend tests, lint and typecheck pass).
+  - Checked in headless Chrome over CDP on the dev build at 1280×800 and 390×844: the cut-out sits on the button (8 px pad) at both sizes, steps 1 → 3, Done and Escape both write the key, a reload shows nothing, with narration already on nothing shows. Wel3a's tip bubble can be open at the same time (bottom right); it sits under the overlay.
+  - Also: the website overview for Khalid refreshed outside the repo (`~/Downloads/almatafi-website-2026-11-14.md`: narration stepper, Wel3a, accessibility mode, tours, the game's stage, real clouds, status).
+- Next: Hamza's look at PR #12; merge at Khalid's call. Not checked in Safari or on a real phone.
+- Broken / blocked: nothing known. In `next dev` the Next.js dev badge sits on the button's left end; it isn't there in the build.
 
 ### Nov 14 — Khalid (with Claude) (45)
 - Did: X41. The cloud-corrected view ran on simulated cloud cover everywhere, because the Nov 13 GIBS download never finished: Terra was complete, Aqua had 520 of 4,459 days, and no output was written.
