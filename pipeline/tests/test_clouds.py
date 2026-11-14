@@ -120,3 +120,37 @@ def test_build_gibs_averages_the_days(tmp_path):
     # Every second day: half the images; reruns read the cache.
     table2, stats2 = clouds.build_gibs(ids, (2026, 10), (2026, 10), tmp_path / "cache", fetch=fetch, workers=2, log=lambda _: None, every=2)
     assert stats2["cached"] == 32 and stats2["fetched"] == 0 and len(table2) == 4
+
+
+def test_build_gibs_never_keeps_an_error_reply(tmp_path):
+    """GIBS sometimes answers 200 with an XML error report. It is asked again, never cached,
+    and a cached one from an older run is fetched anew."""
+    px = (40, 280 % 256, 520 % 256, 255)
+    xml = b"<?xml version='1.0'?><ServiceExceptionReport/>"
+    seen: dict[str, int] = {}
+
+    def fetch(url):
+        if url == clouds.GIBS_COLORMAP:
+            return COLORMAP.encode()
+        seen[url] = seen.get(url, 0) + 1
+        day = url.split("TIME=")[1]
+        if day.endswith("-02") and seen[url] == 1:
+            return xml                      # fails once, then works
+        if day.endswith("-03"):
+            return xml                      # never works
+        return _png(720, 360, px)
+
+    cache = tmp_path / "cache"
+    stale = cache / "Aqua" / "world" / "2026-10-01.png"
+    stale.parent.mkdir(parents=True)
+    stale.write_bytes(xml)                  # left by an older run
+    ids = clouds.cmg_of_cell([cell_id(30.25, 31.25)])
+    run = lambda: clouds.build_gibs(ids, (2026, 10), (2026, 10), cache, fetch=fetch, workers=2, log=lambda _: None,
+                                    every=1, retries=2, retry_wait=0)
+    table, stats = run()
+    assert stats["failed"] == 2 and stats["fetched"] == 60 and stats["cached"] == 0
+    assert stale.read_bytes().startswith(clouds.PNG_MAGIC)
+    assert not (cache / "Terra" / "world" / "2026-10-03.png").exists()
+    assert all(abs(v - 0.4) < 1e-6 for v in table.to_pandas()["cloud_fraction"])
+    _, again = run()                        # only the day that never works is asked again
+    assert again["cached"] == 60 and again["fetched"] == 0 and again["failed"] == 2
