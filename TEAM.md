@@ -55,10 +55,10 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- X44 the submission texts for the Cairo form and the NASA project page (all fields), the project PDF, and screenshots of the site — Khalid (with Claude), Nov 14. Files go to `~/Downloads/almatafi-submission/` on Khalid's Mac; `docs/submission.md` gets the final texts
 - R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
+- X44 the submission texts for the Cairo form and the NASA project page (every field), the project PDF and 16 screenshots of the live site — Khalid (with Claude), Nov 14. The pack is in `~/Downloads/almatafi-submission/` on Khalid's Mac (not in the repo); `docs/submission.md` has the texts. Open points before submitting are in the Log (46). Hamza to read the texts
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
@@ -124,6 +124,22 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Khalid (with Claude) (46)
+- Did: X44, the submission pack, from the Cairo form's field instructions and the official Project Submission Guide (read in full). In `~/Downloads/almatafi-submission/` on Khalid's Mac:
+  - **`fields.md`:** every field ready to paste: project link with a two-minute how-to, Khalid's summary, project details (what it does, how it works, evidence, working now, limitations, future plans, tools), NASA data (7 items with links and roles), partner and other data (CONAE, data services, libraries with licences, the method's references), and the AI/SI disclosure. The same texts are in `docs/submission.md`.
+  - **`Almatafi-project-documentation.pdf`:** the PDF the Cairo form requires, 10 pages, the five sections it asks for, with screenshots. `pdf-source/build-pdf.py` rebuilds it from `fields.md` and `details.json`.
+  - **`screenshots/`:** 16 screenshots of the live site taken today in headless Chrome (landing, explorer for both demo regions, the raw and harmonized slider, Method, the game, Wel3a's chat, the accessibility panel).
+  - **`00-READ-ME-FIRST.md`:** which text goes where, what to fill in, and the open points below.
+  - Checked against the live site and API today: all four pages answer 200 without login; `/api/nrt` returns real FIRMS hotspots (21 in the Delta for the last 2 days); every number in the texts was read from `validation.json`, the live pages or this Log.
+- Next: Khalid fills in the team name, members and links (`details.json`), rebuilds the PDF, uploads it and the video, and pastes the fields. Hamza reads the texts.
+- Broken / blocked, to settle before submitting:
+  - **The live record is still simulated** (`data_version: mock-20261114`). Khalid's summary got one added sentence that says so, and it is limitation 1 in the details. If R1/R2 land first, rewrite those and the Evidence section.
+  - **Stale labels on the site:** "Mock data until Nov 13" (landing, Method), "replaced by results on the real NASA FIRMS archive from November 13" (Method), "A game, on real data" and "The 25-year record is built from these" (landing).
+  - **AI watermark:** the guide requires a visible watermark on AI images and video; the "Generated" tags were removed in entry (35). Not put back here (frontend).
+  - The repo is private and has no LICENSE; the 30 s videos are exactly 30.0 s (the 29 s cut of A is safer); the video says 50% cloud where the site now says 46%.
+  - Not checked: NASA marks in the AI-generated video shots, the under-18 rule for the portraits, the host character and the narration voice, and the open question in `docs/registration.md` about work before Nov 13. The team name, the members and the tool behind the character sprite sheets are placeholders.
+  - ECharts is in `frontend/package.json` but nothing imports it; it is left out of the tools list.
 
 ### Nov 14 — Khalid (with Claude) (45)
 - Did: X41. The cloud-corrected view ran on simulated cloud cover everywhere, because the Nov 13 GIBS download never finished: Terra was complete, Aqua had 520 of 4,459 days, and no output was written.
