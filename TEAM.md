@@ -57,6 +57,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 ### In progress
 
 ### In review (PR open, merge in this order)
+- X48 submission texts say the data is real (`docs/submission.md`, `README.md`, `docs/method.md`) — Hamza (with Claude), at Hamza's call
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
 - X39 the Accessibility button beside Wel3a's flame (it sat on the bubble and the chat), round like the flame; Wel3a's pop-up tips off by default on small screens — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#7](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/7). Khalid to look: the button's place and its hover label were his choices in X37
 
@@ -130,6 +131,11 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Hamza (with Claude) (9)
+- Did: X48, at Hamza's call: the submission texts now say the record is real FIRMS data (`firms-20261114`, Egypt, Argentina and Chile) with the real validation numbers. `docs/submission.md`: the summary's last sentence, Evidence (real results first, the simulated test with known fires kept as development history), Working now, limitations (new 1: three countries only, no NOAA-21; new 2: the post-2012 overshoot, 0.71×), future plan 1, the two FIRMS data entries, slides 5 and 6. `README.md`: Data status, the validation table, Limits. `docs/method.md`: the header gives the real results; its tables are still the mock's (R6).
+- Next: Khalid updates the copies outside the repo the same way: `fields.md`, the project PDF and the Drive files in `~/Downloads/almatafi-submission/`, and the forms if already pasted.
+- Broken / blocked: nothing. The site's own texts already follow the data version, so no frontend change.
 
 ### Nov 14 — Hamza (with Claude) (8)
 - Did: R1 + R2 for the demo countries, at Hamza's call, against the submission deadline. The live API now serves real FIRMS data (`data_version: firms-20261114`).
