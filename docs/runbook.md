@@ -26,7 +26,7 @@ scripts/build-data.sh mock
 4. **Ship:**
    - Upload `dist/almatafi-data-real.tar.gz` anywhere that serves it over https.
    - On the VPS, set `ALMATAFI_DATA_URL` and `ALMATAFI_DATA_SHA256` in `~almatafi/.config/almatafi/api.env`, then restart the API (`deploy/README.md`, "Real data"). The backend checks the bundle before using it.
-   - Commit `frontend/public/cache/`, so the site's offline copy and its landing/method numbers are real.
+   - Commit `frontend/public/cache/`, so the landing, Method and game numbers are real.
 5. **Story check (R5):** in the explorer, open Río Negro, July 2026 and the Nile Delta, October 2026.
 6. **Docs (R6):** put the real numbers in `docs/method.md` and `docs/submission.md`.
 

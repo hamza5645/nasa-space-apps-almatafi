@@ -42,12 +42,11 @@
 .maptools button { border-radius: 10px; }
 .toplist button { border-radius: 10px; background: rgba(255, 255, 255, .03); border-color: rgba(255, 255, 255, .08); transition: border-color .2s, background-color .2s; }
 .toplist button:hover, .toplist button[aria-pressed="true"] { background: rgba(240, 138, 36, .08); }
-.offline { border-radius: 14px; }
 
 /* Entrance: each band rises in turn */
 @media (prefers-reduced-motion: no-preference) {
   .explorer > .topbar { animation: xp-drop .7s var(--ease-out) both; }
-  .explorer > .verdict, .explorer > .xp-grid, .explorer > .xp-sensors, .explorer > .offline { animation: xp-rise 1s var(--ease-out) both; }
+  .explorer > .verdict, .explorer > .xp-grid, .explorer > .xp-sensors { animation: xp-rise 1s var(--ease-out) both; }
   .explorer > .verdict { animation-delay: .12s; }
   .explorer > .xp-grid { animation-delay: .24s; }
   .explorer > .xp-sensors { animation-delay: .36s; }

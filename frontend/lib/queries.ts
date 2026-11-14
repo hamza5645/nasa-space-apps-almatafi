@@ -1,10 +1,9 @@
 // Data hooks over lib/api.ts. Query keys hold the whole request, so the same area and
-// month are fetched once per session. Demo regions fall back to the offline copy.
+// month are fetched once per session.
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api, type Aoi, type Metric, type View } from "./api.ts";
 import { monthDays } from "./format.ts";
-import { pickCalendar, pickHotspots, pickStats, withFallback } from "./offline.ts";
 
 export function useRegions() {
   return useQuery({ queryKey: ["regions"], queryFn: ({ signal }) => api.regions(signal), staleTime: Infinity });
@@ -18,7 +17,7 @@ export function useCalendar(aoi: Aoi, start: string, end: string | null, view: V
   const body = { aoi, start, end, view, metric, ...(fix ? { clouds: "correct" as const } : {}) };
   return useQuery({
     queryKey: ["calendar", body],
-    queryFn: ({ signal }) => withFallback(() => api.calendar(body, signal), aoi, pickCalendar(view, metric, start, end, fix)),
+    queryFn: ({ signal }) => api.calendar(body, signal),
     placeholderData: keepPreviousData,
   });
 }
@@ -28,7 +27,7 @@ export function useStats(aoi: Aoi, month: string | null, view: View, metric: Met
   const body = { aoi, month: month ?? "", view, metric, ...(fix ? { clouds: "correct" as const } : {}) };
   return useQuery({
     queryKey: ["stats", body],
-    queryFn: ({ signal }) => withFallback(() => api.stats(body, signal), aoi, pickStats(body.month, view, metric, fix)),
+    queryFn: ({ signal }) => api.stats(body, signal),
     enabled: month !== null,
   });
 }
@@ -44,7 +43,7 @@ export function useHotspots(aoi: Aoi, month: string | null, view: View) {
   const body = { aoi, start, end, sensors, limit: 5000 };
   return useQuery({
     queryKey: ["hotspots", body],
-    queryFn: ({ signal }) => withFallback(() => api.hotspots(body, signal), aoi, pickHotspots(month ?? "", sensors)),
+    queryFn: ({ signal }) => api.hotspots(body, signal),
     enabled: month !== null,
     retry: false,
   });
