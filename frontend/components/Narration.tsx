@@ -3,8 +3,12 @@
 // X36: the landing page's narration. A speaker button (off by default, remembered on this
 // device); when it's on, each chapter plays its recorded line as it comes into view, with the
 // words as a caption at the bottom of the screen. Leaving the page stops the voice.
+// X43: on a first visit (remembered on this device) a three-step card on the button says what
+// it does; it is skipped for anyone who already has narration on.
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Tour, { useFirstVisitTour } from "@/components/Tour";
+import { NARRATE_KEY, NARRATE_STEPS } from "@/lib/tour";
 import { NARRATION, chapterInView } from "@/lib/narration";
 import { say, setSoundOn, soundOn, stopVoice, subscribeSound } from "@/lib/sound";
 
@@ -13,6 +17,7 @@ export default function Narration() {
   const [caption, setCaption] = useState<string | null>(null);
   const current = useRef(-1);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [tip, setTip] = useFirstVisitTour(!on, NARRATE_KEY, 1500);
 
   useEffect(() => {
     if (!on) { stopVoice(); current.current = -1; return; }   // the caption only renders while on
@@ -38,7 +43,7 @@ export default function Narration() {
 
   return (
     <>
-      <button type="button" className="narrate" aria-pressed={on} onClick={() => setSoundOn(!on)}
+      <button type="button" className="narrate" data-tour="narrate" aria-pressed={on} onClick={() => { setTip(false); setSoundOn(!on); }}
               title={on ? "Narration on" : "Narration: hear the story"} aria-label={on ? "Narration on. Turn it off" : "Narration off. Turn it on"}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" stroke="none" />
@@ -47,6 +52,7 @@ export default function Narration() {
         <span>{on ? "Narration on" : "Hear the story"}</span>
       </button>
       {on && caption && <p className="caption" role="status">{caption}</p>}
+      <Tour open={tip} onClose={() => setTip(false)} steps={NARRATE_STEPS} storageKey={NARRATE_KEY} />
     </>
   );
 }

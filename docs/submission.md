@@ -23,7 +23,7 @@ Almatafi merges 25 years of NASA FIRMS fire detections from MODIS and VIIRS into
 1. FIRMS MODIS C6.1 active fires: https://firms.modaps.eosdis.nasa.gov/
 2. FIRMS VIIRS 375 m active fires (S NPP, NOAA 20, NOAA 21): https://firms.modaps.eosdis.nasa.gov/
 3. GIBS imagery: Blue Marble, and the day's MODIS/VIIRS corrected reflectance and OMPS/OMI aerosol index (smoke) on the map: https://earthdata.nasa.gov/gibs
-4. Cloud correction method: MOD14CMH/MYD14CMH (MODIS climate modelling grid fire products, monthly 0.5°). The app uses simulated cloud cover until these are loaded, and says so.
+4. Cloud correction: NASA GIBS's daily MODIS cloud fraction (MOD06/MYD06, Terra and Aqua; layers `MODIS_Terra_Cloud_Fraction_Day`, `MODIS_Aqua_Cloud_Fraction_Day`), averaged per 0.5° cell and month from every second day, November 2000 to now. The method follows MOD14CMH/MYD14CMH (Giglio 2006); those files themselves are not read.
 
 **Acknowledgement:** We acknowledge the use of data and imagery from NASA's Fire Information for Resource Management System (FIRMS), part of NASA's Earth Science Data and Information System (ESDIS), with near real-time data from LANCE. MODIS: Giglio et al. 2016, doi:10.1016/j.rse.2016.02.054. VIIRS: Schroeder et al. 2014, doi:10.1016/j.rse.2013.12.008. FIRMS: Davies et al. 2009, doi:10.1109/TGRS.2008.2002076.
 
