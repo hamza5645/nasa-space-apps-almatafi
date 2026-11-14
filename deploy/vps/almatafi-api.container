@@ -10,6 +10,10 @@ Network=almatafi.network
 AutoUpdate=registry
 EnvironmentFile=%h/.config/almatafi/api.env
 Environment=PORT=8000
+# Real data (R2, Nov 14): the built data folder lives on the VPS and is mounted over the image's
+# mock data, so it survives auto-updates. :U hands it to the container's user. Remove the line
+# to go back to the image's built-in mock data.
+Volume=%h/almatafi-data:/app/data:U
 NoNewPrivileges=true
 DropCapability=all
 # "Started" only once /api/health answers, so a broken image fails the start and gets rolled

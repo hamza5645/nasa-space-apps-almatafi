@@ -55,7 +55,6 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 - Phase 5 UI polish (Higgsfield etc.) and Phase 6 submission: after the MVP checklist in PLAN.md §12
 
 ### In progress
-- R1 real FIRMS download — Hamza (with Claude), Nov 13, at Hamza's call (R1 is Khalid's task; Khalid, don't start a second download, the files will be in Hamza's `data/raw/firms/`). Now: the yearly country files for Egypt, Argentina and Chile, 2000–2025, and the three full-resolution outlines. The API part (2026, NOAA-21, the NRT tail) waits for a `FIRMS_MAP_KEY` on Hamza's machine
 
 ### In review (PR open, merge in this order)
 - X35 Wel3a, the flame guide on every page (written tips + an AI chat on Cloudflare Workers AI through `/api/wel3a` in the site's Worker) — Hamza (with Claude): [hamza5645/nasa-space-apps-almatafi#2](https://github.com/hamza5645/nasa-space-apps-almatafi/pull/2). Khalid to look; it sits next to his X34 tour
@@ -65,6 +64,7 @@ Task IDs and details are in `PLAN.md` §10. Move IDs between the lists below.
 Each PR is built on the one before it; after merging one, the next retargets to `main` by itself. Each one's TEAM.md Board edits will conflict with `main`; resolve by keeping `main`'s Board.
 
 ### Done
+- [x] R1 + R2 (demo countries) real FIRMS data live — Hamza (with Claude), Nov 14 at Hamza's call: Egypt, Argentina, Chile, 2000 → Nov 14 2026, on the VPS as a mounted folder. Open: NOAA-21 not fetched; cloud cover only for the old mock regions' cells; global grid (R3); the pitch story (below)
 - [x] X46 the game's text and numbers in the site's own font (Archivo); the pixel font stays on the big titles only — Khalid (with Claude), Nov 14. Open: Khalid to say whether the titles should change too
 - [x] X45 the narration stepper's first step names no one ("each chapter of the story is read aloud") — Khalid (with Claude), Nov 14
 - [x] X41 (promo video) the 30-second promo video, three versions to choose from, plus an interactive cut (one HTML file, `~/Downloads/almatafi-promo-videos/almatafi-interactive.html`, and a private page: https://claude.ai/artifact/TCuortLmBDzUUQ78x9Yjzc) — Khalid (with Claude) (PR #9, merged Nov 14 at Khalid's call, **not reviewed by Hamza**). The videos are in `~/Downloads/almatafi-promo-videos/` on Khalid's Mac (not in the repo); the PR carried the Higgsfield shots. Open: Khalid picks a version; one listen with sound before submitting
@@ -128,6 +128,19 @@ Each PR is built on the one before it; after merging one, the next retargets to 
 ## Log
 
 _Newest first. One entry per work session._
+
+### Nov 14 — Hamza (with Claude) (8)
+- Did: R1 + R2 for the demo countries, at Hamza's call, against the submission deadline. The live API now serves real FIRMS data (`data_version: firms-20261114`).
+  - **Download:** the yearly country files for Egypt, Argentina and Chile (MODIS 2000–2025, S-NPP 2012–2025, NOAA-20 2018–2025: all 144), plus 2026 through the area API (standard, then NRT to Nov 14) for MODIS, S-NPP and NOAA-20, clipped to the full-resolution outlines. It ran as parallel processes (per country, product and, for Argentina's big VIIRS files, per year), each in its own folder under `data/raw/firms/`. Twelve API processes at once used up the key's 5,000 transactions per 10 minutes: about 100 requests failed with HTTP 400, and the live site's on-demand hotspots failed for a few minutes. All of them were rerun once the window cleared; no file failed in the end.
+  - **Not fetched: NOAA-21** (no country files; its 2023–2025 history alone is ~270 requests per country). The record doesn't need it: after S-NPP's end (Nov 2) NOAA-20 carries it.
+  - **Build:** the steps of `scripts/build-data.sh real`, each file once. 8,236,880 rows in, 41 dropped; 5,605,141 points gridded over 26,041 cells; model M3, leave-one-year-out R² 0.981 (M0 0.976). **2012 break: raw join 3.73×, harmonized 0.71×** (the mock gave 1.02): on real data our record steps *down* at 2012 for these three countries. To look into (Khalid, X22's Terra/Aqua scoring may be part of it).
+  - **Clouds:** the committed real GIBS file (`pipeline/seed/clouds/`), as the image uses: it covers only the old mock regions' 0.5° cells (the two demo areas are inside them); elsewhere the cloud-corrected view has no cloud data. The GIBS build for the real grid (~1 h) wasn't run.
+  - **On the VPS:** no https host for a bundle, so the data folder is `~almatafi/almatafi-data/` (518 MB), mounted over the image's mock data (`Volume=` in `deploy/vps/almatafi-api.container`; the old unit is `~almatafi/almatafi-api.container.bak-mock`). Auto-updates keep it. Checked live: Nile Delta stats, Río Negro calendar and the Delta's October hotspots answer 200 in 0.4–0.6 s; the API uses 144 MB of its 1 GB.
+  - **Site:** `frontend/public/cache/` rebuilt from the real data, so the landing, Method and game pages show real numbers and drop their "Mock data" labels. 104 frontend tests and the static build pass.
+- **The story changes (pitch, both):** on real data the **Nile Delta, October 2026 is 285, below normal (z −1.4)**, and **Río Negro, July 2026 is 0 harmonized (2 raw VIIRS), below normal**. The mock's planted "unusually high" months don't exist. The explorer computes its verdicts live, so it says this; check the texts that promise those months are unusual (landing "Try it", narration, game, `docs/submission.md`).
+- On this Mac the backend's uv environment didn't find the `almatafi` package (the editable install); `PYTHONPATH=../pipeline` worked around it.
+- Next: Khalid looks at the 2012 step-down and the story; R3 (global grid, needs X18); GIBS clouds for the real grid; NOAA-21; the X47 PR (#16) is still open.
+- Broken / blocked: nothing known. Not checked: the explorer in a browser on the deployed site after this merge.
 
 ### Nov 14 — Khalid (with Claude) (48)
 - Did: X46, at Khalid's ask: the game's pixel font (Pixelify Sans) was hard to read, most of all the numbers. Everything read at small sizes and every number (the question, the pills, the answer blocks, buttons, score, counts on the cards, chart labels, the header) now uses the site's own font; the pixel font stays on the big titles (level map, chapter intro, chapter end). One variable, `--read`, in `frontend/components/game/game.css`; `em` follows the text around it. Played all five chapters in headless Chrome on the dev build at 1280×720 and 1000×610: no page scroll, nothing cut but the explorer's feet (4 px, as before), every sprite drawn. 104 frontend tests and lint pass. Also merged PR #14 (X45) at Khalid's call.
